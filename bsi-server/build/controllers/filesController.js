@@ -57,7 +57,7 @@ class FilesController {
     delete(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             const { id } = req.params;
-            yield database_1.default.query('DELETE FROM games WHERE id = ?', [id]);
+            yield database_1.default.query('DELETE  FROM games WHERE id = ?', [id]);
             res.json({ message: "The game was deleted" });
         });
     }
@@ -131,36 +131,10 @@ class FilesController {
                     const content = fs.readFileSync(req.file.path, 'utf-8');
                     // Separate the content into rows based on newline
                     let rows = content.split('\n');
-                    // Remove the first and last row
-                    rows = rows.slice(1, rows.length - 1);
-                    // Loop through each row and call the stored procedure
-                    try {
-                        for (const row of rows) {
-                            // Parse fields according to fixed width format
-                            const tipoRegistro = row.substring(0, 1);
-                            const nombreEmpresa = row.substring(1, 17);
-                            const infoDiscrecional = row.substring(17, 37);
-                            const cuitEmpresa = row.substring(37, 48);
-                            const prestacion = row.substring(48, 58);
-                            const fechaEmision = row.substring(58, 64);
-                            const horaGeneracion = row.substring(64, 68);
-                            const fechaAcreditacion = row.substring(68, 74);
-                            const bloqueCBU = row.substring(74, 88);
-                            const moneda = row.substring(88, 89);
-                            const rotuloArchivo = row.substring(89, 97);
-                            const tipoRemuneracion = row.substring(97, 98);
-                            const filler = row.substring(98, 99);
-                            const marca = row.substring(99, 100);
-                            // Call stored procedure (adjust as needed for your procedure)
-                            yield database_1.default.query('CALL YourStoredProcedure(?, ?, ?)', [tipoRegistro, nombreEmpresa, cuitEmpresa]);
-                            //generacion del arhivo salida
-                        }
-                        res.status(200).json({ message: 'Data updated successfully.' });
-                    }
-                    catch (error) {
-                        console.error(error);
-                        res.status(500).json({ message: 'An error occurred while updating the data.' });
-                    }
+                    console.log(rows);
+                    rows.shift();
+                    rows.pop();
+                    console.log(rows);
                 });
             });
         });

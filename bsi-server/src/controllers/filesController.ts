@@ -30,7 +30,7 @@ public async delete(req: Request, res: Response): Promise<void> {
 
     const { id } = req.params;
 
-    await pool.query('DELETE FROM games WHERE id = ?', [id]);
+    await pool.query('DELETE  FROM games WHERE id = ?', [id]);
 
     res.json({ message: "The game was deleted" });
 }
@@ -118,11 +118,14 @@ public async upload2(req: Request, res: Response, next: any): Promise<void> {
         // Separate the content into rows based on newline
         let rows: string[] = content.split('\n');
 
-        // Remove the first and last row
-        rows = rows.slice(1, rows.length - 1);
+          console.log(rows);
 
-        
+        rows.shift();
+        rows.pop();
 
+        console.log(rows);
+  
+        /*
         // Loop through each row and call the stored procedure
         try {
 
@@ -153,8 +156,11 @@ public async upload2(req: Request, res: Response, next: any): Promise<void> {
         } catch (error) {
             console.error(error);
             res.status(500).json({ message: 'An error occurred while updating the data.' });
-        }      
+        }   
+        */   
+
     });
+
 }
 
 public async uploadS3(file:any) {
