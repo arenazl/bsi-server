@@ -119,6 +119,7 @@ public async upload2(req: Request, res: Response, next: any): Promise<void> {
         let rows: string[] = content.split('\n');
 
           console.log(rows);
+          
 
         rows.shift();
         rows.pop();
