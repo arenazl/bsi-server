@@ -8,8 +8,12 @@ import * as fs from 'fs';
 import * as mysql from 'mysql2/promise';
 import keys from './../keys';
 import S3 from 'aws-sdk/clients/s3';
+import { transInmediataInfo } from './../models/model';
+import {transInmediataDato } from './../models/model';
 
 import nodemailer from 'nodemailer';
+import { ImportExport } from 'aws-sdk';
+import legajoController from './legajoController';
 
 class FilesController {
 
@@ -120,47 +124,42 @@ public async upload2(req: Request, res: Response, next: any): Promise<void> {
         // Separate the content into rows based on newline
         let rows: string[] = content.split('\n');
 
-          console.log(rows);
-          
+        //console.log(rows);
 
-        rows.shift();
-        rows.pop();
-
-        console.log(rows);
-  
-        /*
-        // Loop through each row and call the stored procedure
+        
         try {
 
-            for (const row of rows) {
-            // Parse fields according to fixed width format
-            const tipoRegistro = row.substring(0, 1);
-            const nombreEmpresa = row.substring(1, 17);
-            const infoDiscrecional = row.substring(17, 37);
-            const cuitEmpresa = row.substring(37, 48);
-            const prestacion = row.substring(48, 58);
-            const fechaEmision = row.substring(58, 64);
-            const horaGeneracion = row.substring(64, 68);
-            const fechaAcreditacion = row.substring(68, 74);
-            const bloqueCBU = row.substring(74, 88);
-            const moneda = row.substring(88, 89);
-            const rotuloArchivo = row.substring(89, 97);
-            const tipoRemuneracion = row.substring(97, 98);
-            const filler = row.substring(98, 99);
-            const marca = row.substring(99, 100);
             
-            // Call stored procedure (adjust as needed for your procedure)
-            await pool.query('CALL YourStoredProcedure(?, ?, ?)', [tipoRegistro, nombreEmpresa, cuitEmpresa]);
-
-            //generacion del arhivo salida
+       //INFO
+        let infoRow  = rows[0];
+        let info = parsearInfoArchivoTR(rows[0], rows[rows.length - 2]);       
     
-            }         
-            res.status(200).json({ message: 'Data updated successfully.' });
+        //console.log('INFO:');
+        //console.log(info);
+
+        //DEBERIA HACER UN INSERT EN LA BASE DE DATOS PARA OBTENER EL ID DE LA INFO
+        //PARA ASIGNARSELA A LOS CAMPOS
+        // Ejecuta el stored procedure y obtiene el LAST_INSERT_ID()       
+
+        info.id = 1;
+
+        //DATOS
+        let transInmediataDatos = parsearDatosArchivoTR(rows, info.id);
+
+        console.log('DATOS:')
+        console.log(transInmediataDatos[0]);
+
+        //Armo el archivoTR
+        escribirArchivoTR(transInmediataDatos, info, 'Honorarios', 'VAR');
+            
+            
         } catch (error) {
             console.error(error);
             res.status(500).json({ message: 'An error occurred while updating the data.' });
-        }   
-        */   
+        }      
+        
+  
+        
 
     });
 
@@ -274,6 +273,145 @@ public async sendMail(req: Request, res: Response, next: any): Promise<void> {
 }
 
 }
+
+function escribirArchivoTR(rows: Array<transInmediataDato>, info: transInmediataInfo, concepto:string, motivo:string) : boolean {
+    
+
+    const file = fs.openSync('./uploads/output.txt', 'w');
+
+           // console.log(transInmediataDatos);
+
+            for (const value of rows) {
+
+                //CBU
+                let CBU;
+                CBU = value.bloqueCBU1.toString() + value.bloqueCBU2.toString();
+
+                //IMPORTE
+                let IMPORTE = value.importe.toString();
+                IMPORTE = padStringFromLeft(IMPORTE, (12 - IMPORTE.length), '0')
+
+                //CONCEPTO
+                let CONCEPTO = concepto;
+                CONCEPTO = padStringFromRight(concepto, (50 - concepto.length), ' ');
+
+                //REFERENCIA
+                let REFERENCIA = ' ';
+                REFERENCIA = padStringFromRight(REFERENCIA, (12 - REFERENCIA.length), ' ');
+
+                //EMAIL
+                let EMAIL = ' ';
+                EMAIL = padStringFromRight(EMAIL, (50 - EMAIL.length), ' ');
+
+                //RELLENO
+                let RELLENO = '';
+                RELLENO = padStringFromRight(RELLENO, (124 - RELLENO.length), ' ');
+                
+
+
+            fs.writeSync(file,CBU + '|' + IMPORTE + '|' + CONCEPTO + motivo + REFERENCIA + EMAIL + RELLENO +'\n');
+
+            }
+
+            //DATOS FINALES
+
+            //CANT REGISTROS FINALES
+            let CANT_REGISTROS = info.cantidadRegistroFinal.toString();
+            CANT_REGISTROS = padStringFromLeft(CANT_REGISTROS, (5 - CANT_REGISTROS.length), '0');
+
+            //IMPORTE TOTAL
+            let IMPORTE_TOTAL = info.importeTotalFinal.toString();
+            IMPORTE_TOTAL = padStringFromLeft(IMPORTE_TOTAL, (17 - IMPORTE_TOTAL.length), '0');
+
+            //RELLENO
+            let RELLENO = '';
+            RELLENO = padStringFromRight(RELLENO, (251 - RELLENO.length), ' ');
+
+
+            fs.writeSync(file, CANT_REGISTROS + IMPORTE_TOTAL  + RELLENO +'\n');
+
+
+
+
+            fs.closeSync(file);
+
+            return true;
+}
+
+function parsearInfoArchivoTR(infoRowC:string, infoRowF:string) : transInmediataInfo {
+    
+        let info = new transInmediataInfo();
+
+        //CABECERA
+        info.tipoDeRegistro = Number(infoRowC.substring(0, 1).trim());
+        info.empresaNombre = infoRowC.substring(1, 17);
+        info.infoDiscrecional = infoRowC.substring(17, 37);
+        info.empresaCUIT = Number(infoRowC.substring(37, 48).trim());
+        info.prestacion = infoRowC.substring(48, 58);
+        info.fechaEmision = Number(infoRowC.substring(58, 64).trim());
+        info.horaGeneracion = Number(infoRowC.substring(64, 68).trim());
+        info.fechaAcreditacion = Number(infoRowC.substring(68, 74).trim());
+        info.bloqueDosCbuEmpresa = Number(infoRowC.substring(74, 88).trim());
+        info.moneda = Number(infoRowC.substring(88, 89).trim());
+        info.rotuloArchivo = infoRowC.substring(89, 97);
+        info.tipoRemuneracion = Number(infoRowC.substring(97, 98).trim());
+        info.filler = infoRowC.substring(98, 99);
+        info.marca = Number(infoRowC.substring(99, 100).trim());
+
+
+        //PARTE FINAL
+        info.tipoRegistroFinal = Number(infoRowF.substring(0, 1).trim());
+        info.cantidadRegistroFinal =  Number(infoRowF.substring(1, 7).trim());
+        info.importeTotalFinal = Number(infoRowF.substring(7, 18).trim());
+        info.fillerFinal = infoRowF.substring(18, 99);
+        info.marcaFinal = Number(infoRowF.substring(99, 100).trim());;
+
+        return info;
+    
+}
+
+function parsearDatosArchivoTR(rows:string[], transfeInfoId:number) : Array<transInmediataDato> {
+    
+    let datosRows = rows.slice(1, rows.length - 2);
+    let transInmediataDatos = new Array<transInmediataDato>();
+
+    
+    for (const row of datosRows) {
+
+            
+        let datoTran = new transInmediataDato()
+
+        // Parse fields according to fixed width format
+        datoTran.transInmediataInfoId = transfeInfoId;
+        datoTran.tipoDeRegistro = Number(row.substring(0, 1).trim());
+        datoTran.bloqueCBU1 = row.substring(1, 9).trim();
+        datoTran.bloqueCBU2 = row.substring(9, 23).trim();
+        datoTran.importe = Number(row.substring(23, 33).trim());
+        datoTran.refUnivoca = row.substring(33, 48);
+        datoTran.beneficiarioDoc = row.substring(48, 59).trim();
+        datoTran.beneficiarioApeNombre = row.substring(59, 81).trim();
+        datoTran.filler = row.substring(81, 99).trim();
+        datoTran.marca = Number(row.substring(99, 100).trim());
+
+        transInmediataDatos.push(datoTran);
+        
+        //console.log(datoTran);
+
+     }    
+
+    return transInmediataDatos;
+
+}
+
+  function padStringFromLeft(str:string, length:number, padChar = ' ') {
+    let paddedStr = padChar.repeat(length);
+    return paddedStr + str;
+  }
+  function padStringFromRight(str:string, length:number, padChar = ' ') {
+    let paddedStr = padChar.repeat(length);
+    return str + paddedStr;
+  }
+
 
 const fileController = new FilesController;
 export default fileController;

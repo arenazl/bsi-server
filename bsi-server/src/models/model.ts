@@ -92,3 +92,50 @@ export interface LotesFilterOptions {
   estado:number,
   id_barrio:number
 }
+
+export class transInmediataInfo{
+    
+  //cabecera
+  id: number;
+  tipoDeRegistro: number;
+  empresaNombre: string;
+  infoDiscrecional: string;
+  empresaCUIT: number;
+  prestacion: string;
+  fechaEmision: number;
+  horaGeneracion: number;
+  fechaAcreditacion: number;
+  bloqueDosCbuEmpresa: number;
+  moneda: number;
+  rotuloArchivo: string;
+  tipoRemuneracion: number;
+  filler: string;
+  marca: number;
+
+
+  //pie
+  tipoRegistroFinal: number;
+  cantidadRegistroFinal : number;
+  importeTotalFinal: number;
+  fillerFinal : string;
+  marcaFinal :number;
+
+
+}
+
+export class transInmediataDato{
+    
+  id: number;
+  tipoDeRegistro: number;
+  bloqueCBU1 : string;
+  bloqueCBU2: string;
+  importe: number;
+  refUnivoca: string;
+  beneficiarioDoc: string;
+  beneficiarioApeNombre: string;
+  filler: string;
+  marca: number;
+
+  transInmediataInfoId: number;
+
+}
