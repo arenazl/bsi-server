@@ -26,6 +26,8 @@ class FilesController {
        return res.json(serverFiles);
 }
 
+
+
 public async delete(req: Request, res: Response): Promise<void> {
 
     const { id } = req.params;
