@@ -172,7 +172,8 @@ class FilesController {
                             const motivo = dataFromUI[2];
                             //Armo el archivoTR
                             escribirArchivoTR(transInmediataDatos, info, concepto, motivo);
-                            res.json({ uploadname: req.file.filename });
+                            //DEVUELVO AL FRONT EL ID GENERADO PARA MOSTRAR LOS RESULTADOS (ESTA PANTALLA VA A LLAMAR A getResponseTR ['files/responsetr/:id] )
+                            res.json({ id: headId });
                         }
                         catch (error) {
                             console.log(error);
@@ -184,6 +185,12 @@ class FilesController {
                     }
                 });
             });
+        });
+    }
+    getResponseTR(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { id } = req.params;
+            //HACER SP CON RESULTADO CON CLAVE DE ID
         });
     }
     uploadS3(file) {

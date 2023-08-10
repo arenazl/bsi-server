@@ -17,6 +17,7 @@ class FileRoutes {
         this.router.delete('/:id', filesController_1.default.delete);
         this.router.post('/upload', filesController_1.default.upload);
         this.router.post('/uploadtr', filesController_1.default.uploadTR);
+        this.router.get('/responsetr/:id', filesController_1.default.getResponseTR);
         this.router.post('/dropbox', filesController_1.default.dropbox);
         this.router.post('/download', filesController_1.default.download);
         //this.router.post('/file', gamesController.file);

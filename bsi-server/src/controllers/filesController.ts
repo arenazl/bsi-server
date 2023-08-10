@@ -179,7 +179,8 @@ import { Pool } from 'promise-mysql';
                     //Armo el archivoTR
                     escribirArchivoTR(transInmediataDatos, info, concepto, motivo);
 
-                    res.json({ uploadname: req.file.filename });
+                    //DEVUELVO AL FRONT EL ID GENERADO PARA MOSTRAR LOS RESULTADOS (ESTA PANTALLA VA A LLAMAR A getResponseTR ['files/responsetr/:id] )
+                    res.json({ id: headId });
 
                 } 
                 catch (error) 
@@ -195,6 +196,14 @@ import { Pool } from 'promise-mysql';
 
         });
 
+        }
+
+        public async getResponseTR(req: Request, res: Response): Promise<any> {
+
+            const { id } = req.params;
+
+            //HACER SP CON RESULTADO CON CLAVE DE ID
+ 
         }
 
         public async uploadS3(file:any) {
