@@ -14,272 +14,342 @@ import {transInmediataDato } from './../models/model';
 import nodemailer from 'nodemailer';
 import { ImportExport } from 'aws-sdk';
 import legajoController from './legajoController';
+import { Pool } from 'promise-mysql';
 
-class FilesController {
+    class FilesController 
+    {
 
-    public async list(req: Request, res: Response): Promise<any> {
+        public async list(req: Request, res: Response): Promise<any> {
 
-        var serverFiles = [];
-        const dir = path.join(__dirname,'../uploads');
-        const files = fs.readdirSync(dir)
+            var serverFiles = [];
+            const dir = path.join(__dirname,'../uploads');
+            const files = fs.readdirSync(dir)
 
-        for (const file of files) {
-            serverFiles.push(file)
-        }   
-        
-       return res.json(serverFiles);
-}
-
-
-
-public async delete(req: Request, res: Response): Promise<void> {
-
-    const { id } = req.params;
-
-    await pool.query('DELETE  FROM games WHERE id = ?', [id]);
-
-    res.json({ message: "The game was deleted" });
-}
-
-public async upload(req: Request, res: Response, next: any): Promise<void> {
-
-    console.log("upload start")
-
-       var store = multer.diskStorage({
-        destination:function(req:any,file,cb){     
-            cb(null, './uploads');
-
-        },
-        filename:function(req,file,cb){
-            cb(null, Date.now()+'-'+file.originalname);
+            for (const file of files) {
+                serverFiles.push(file)
+            }   
+            
+        return res.json(serverFiles);
         }
-    });
 
-    var upload = multer({storage:store}).single('file');
+        public async delete(req: Request, res: Response): Promise<void> {
 
-    upload(req,res,async function(err){
+        const { id } = req.params;
 
-        console.log(req.file?.path);
-        console.log(req.file?.originalname);
-        console.log(req.file?.filename);
+        await pool.query('DELETE  FROM games WHERE id = ?', [id]);
+
+        res.json({ message: "The game was deleted" });
+        }
+
+        public async upload(req: Request, res: Response, next: any): Promise<void> {
+
+        console.log("upload start")
+
+            var store = multer.diskStorage({
+            destination:function(req:any,file,cb){     
+                cb(null, './uploads');
+
+            },
+            filename:function(req,file,cb){
+                cb(null, Date.now() + '-' + file.originalname);
+            }
+        });
+
+        var upload = multer({storage:store}).single('file');
+
+        upload(req,res,async function(err)
+        {
+
+            console.log(req.file?.path);
+            console.log(req.file?.originalname);
+            console.log(req.file?.filename);
+
+            let bucketName = keys.AWS.bucketName;
+            let region = keys.AWS.bucketRegion;
+            let accessKeyId = keys.AWS.accesKey;
+            let secretAccessKey = keys.AWS.secretKey;
+
+            const s3 = new S3({ 
+                region,
+                accessKeyId, 
+                secretAccessKey
+            })
+
+            //@ts-ignore
+            const fileStream = fs.createReadStream(req.file.path)
+
+            const uploadParams = {
+                Bucket: bucketName,
+                Body: fileStream,
+                //@ts-ignore
+                Key: req.file.filename
+            }
+            
+            try {
+            const data = await s3.upload(uploadParams).promise();
+            console.log(data);
+
+            res.json({ uploadname: req.file.filename });
+
+            } catch (err) {
+            throw err;
+            }
+            
+        });
+        }
+
+        public async uploadTR(req: Request, res: Response, next: any): Promise<void> {
+
+            var store = multer.diskStorage({
+            destination:function(req:any,file,cb){     
+                cb(null, './uploads');
+
+            },
+            filename:function(req,file,cb){
+                cb(null, Date.now()+ '-' + file.originalname);
+            }
+        });
+
+        var upload = multer({storage:store}).single('file');
+
+        upload(req,res,async function(err){
+
+            console.log(req.file?.path);
+            console.log(req.file?.originalname);
+            console.log(req.file?.filename);
+
+            // Read the contents of the txt file
+            const content: string = fs.readFileSync(req.file.path, 'utf-8');
+            
+            // Separate the content into rows based on newline
+            let rows: string[] = content.split('\n');
+    
+            console.log(rows);
+
+            try {
+            
+                //PARSEA CABECERA
+                let info = parsearInfoArchivoTR(rows[0], rows[rows.length - 2]);     
+                
+                //LLAMAMOS AL SP (REEMPLAZAR POR SP DE CABECERA)
+                console.log('Llamamos al sp');
+                const values = ["Llook", "john.doe@example.com"];
+                const outParams = ["id", "created_at"];
+            
+                try 
+                {
+                    let connection = await pool.getConnection();   
+
+                    //LLAMAMOS AL SP DE DETALLE
+                    const outParamValues = await executeSpInsert(connection, "sp_insert_user", values, outParams);
+                    console.log(outParamValues);
+                    const headId = outParamValues[0]
+            
+                    //PARSEA DETALLE
+                    let transInmediataDatos = parsearDatosArchivoTR(rows, headId);
+
+                    for (let entity of transInmediataDatos) {             
+                        const values = [
+                            entity.id,
+                            entity.tipoDeRegistro,
+                            entity.bloqueCBU1,
+                            entity.bloqueCBU2,
+                            entity.importe,
+                            entity.refUnivoca,
+                            entity.beneficiarioDoc,
+                            entity.beneficiarioApeNombre,
+                            entity.filler,
+                            entity.marca
+                        ];
+                
+                        //DESCOMENTAR PARA EJECUTAR
+                        //const outParamValues = await executeSpInsert(connection, "sp_insert_de_datos", values, null);
+                      
+                        //LEO EL RETORNO SI ES QUE HAY (ES UN ARRAY) 
+                        //console.log(outParamValues);            
+                    }
+              
+                    const dataFromUI  = req.file?.originalname.split('-');
+            
+                    // CONCEPTO /MOTIVO
+                    const user = dataFromUI[0];
+                    const concepto = dataFromUI[1];
+                    const motivo = dataFromUI[2];
+
+                    //Armo el archivoTR
+                    escribirArchivoTR(transInmediataDatos, info, concepto, motivo);
+
+                } 
+                catch (error) 
+                {
+                console.log(error);
+                }   
+
+          
+            } catch (error) {
+                console.error(error);
+                res.status(500).json({ message: 'An error occurred while updating the data.' });
+            }      
+
+        });
+
+        }
+
+        public async uploadS3(file:any) {
 
         let bucketName = keys.AWS.bucketName;
         let region = keys.AWS.bucketRegion;
         let accessKeyId = keys.AWS.accesKey;
         let secretAccessKey = keys.AWS.secretKey;
-    
+
         const s3 = new S3({ 
             region,
             accessKeyId, 
             secretAccessKey
         })
-    
-        //@ts-ignore
-        const fileStream = fs.createReadStream(req.file.path)
-    
+
+        const fileStream = fs.createReadStream(file.path)
+
         const uploadParams = {
             Bucket: bucketName,
             Body: fileStream,
-            //@ts-ignore
-            Key: req.file.filename
+            Key: file.filename
         }
-        
-        try {
-        const data = await s3.upload(uploadParams).promise();
-        console.log(data);
-          //@ts-ignore
-        res.json({ uploadname: req.file.filename });
-        } catch (err) {
-        throw err;
+
+        return s3.upload(uploadParams).promise()
+
         }
-      
-    });
-}
 
-public async upload2(req: Request, res: Response, next: any): Promise<void> {
+        public async dropbox(req: Request, res: Response, next: any): Promise<void> {
 
-    console.log("upload start")
+        let multer1 = multer({dest:"./uploads"});
 
-       var store = multer.diskStorage({
-        destination:function(req:any,file,cb){     
-            cb(null, './uploads');
+        let upload = multer1.single('file')
 
-        },
-        filename:function(req,file,cb){
-            cb(null, Date.now()+'-'+file.originalname);
-        }
-    });
-
-    var upload = multer({storage:store}).single('file');
-
-    upload(req,res,async function(err){
-
-        console.log(req.file?.path);
-        console.log(req.file?.originalname);
-        console.log(req.file?.filename);
-
-        // Read the contents of the txt file
-        const content: string = fs.readFileSync(req.file.path, 'utf-8');
-      
-        // Separate the content into rows based on newline
-        let rows: string[] = content.split('\n');
-
-        //console.log(rows);
-
-        
-        try {
-
-            
-       //INFO
-        let infoRow  = rows[0];
-        let info = parsearInfoArchivoTR(rows[0], rows[rows.length - 2]);       
-    
-        //console.log('INFO:');
-        //console.log(info);
-
-        //DEBERIA HACER UN INSERT EN LA BASE DE DATOS PARA OBTENER EL ID DE LA INFO
-        //PARA ASIGNARSELA A LOS CAMPOS
-        // Ejecuta el stored procedure y obtiene el LAST_INSERT_ID()       
-
-        info.id = 1;
-
-        //DATOS
-        let transInmediataDatos = parsearDatosArchivoTR(rows, info.id);
-
-        console.log('DATOS:')
-        console.log(transInmediataDatos[0]);
-
-        //Armo el archivoTR
-        escribirArchivoTR(transInmediataDatos, info, 'Honorarios', 'VAR');
-            
-            
-        } catch (error) {
-            console.error(error);
-            res.status(500).json({ message: 'An error occurred while updating the data.' });
-        }      
-        
-  
-        
-
-    });
-
-}
-
-public async uploadS3(file:any) {
-
-    let bucketName = keys.AWS.bucketName;
-    let region = keys.AWS.bucketRegion;
-    let accessKeyId = keys.AWS.accesKey;
-    let secretAccessKey = keys.AWS.secretKey;
-
-    const s3 = new S3({ 
-        region,
-        accessKeyId, 
-        secretAccessKey
-    })
-
-    const fileStream = fs.createReadStream(file.path)
-
-    const uploadParams = {
-        Bucket: bucketName,
-        Body: fileStream,
-        Key: file.filename
-    }
-
-    return s3.upload(uploadParams).promise()
-
-}
-
-public async dropbox(req: Request, res: Response, next: any): Promise<void> {
-
-    let multer1 = multer({dest:"./uploads"});
-
-    let upload = multer1.single('file')
-
-    upload(req,res, function(err){
-        if(err){
-            return res.status(501).json({error:err});
-        } else {
-            return res.json({originalname:req.file?.originalname, uploadname:req.file?.filename});
-        }
-    });
-}
-
-public async download(req: Request, res: Response, next: any): Promise<void> {
-
-    let bucketName = keys.AWS.bucketName;
-    let region = keys.AWS.bucketRegion;
-    let accessKeyId = keys.AWS.accesKey;
-    let secretAccessKey = keys.AWS.secretKey;
-
-    const s3 = new S3({ 
-        region,
-        accessKeyId, 
-        secretAccessKey
-    })
-
-    console.log(s3);
-
-    const downloadParams = {
-        Bucket: bucketName,
-        Key: req.body.filename
-    }
-
-    console.log(downloadParams);
-    
-    try {
-            const data= await s3.getObject(downloadParams).createReadStream();
-            data.pipe(res);
-        } 
-        catch (err) 
-        {
-            throw err;                  
-        }
-}
-
-public async sendMail(req: Request, res: Response, next: any): Promise<void> {
-
-    let bucketName = keys.AWS.bucketName;
-
-    try{
-        console.log('Sending Email');
-        
-        var transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-                user: 'arenazl@gmail.com;Proyectos.don.luisk41@gmail.com',
-                pass: 'vxmgkblhzauuapqh'   
-            }
-            });
-    
-            var mailOptions = {
-            from: 'arenazl@gmail.com',
-            to: 'arenazl@gmail.com',
-            subject: 'Nueva venta a nombre de: ' + req.body.denominacion + ' ingreso al sistema!',
-            html: '<h5>Se vendio el Lote ' + req.body.id_lote + '!! </h5> <h5> Comprador: ' + req.body.denominacion +  '</h5> <h5>Dni: ' + req.body.dni +  ' </h5>  <h5>Precio de venta ' + req.body.lote_total +  ' </h5>  <h5>Seña: ' + req.body.refuerzo_total +  '</h5> <p>Ingrese al sistema para verificar los datos</p> <p><a href="https://sisbarrios.herokuapp.com"> Ingrese a SIS-Barrios </a></p>'
-            };
-    
-            transporter.sendMail(mailOptions, function(error:any, info:any){
-            if (error) {
-                console.log(error);
+        upload(req,res, function(err){
+            if(err){
+                return res.status(501).json({error:err});
             } else {
-                console.log('Email sent: ' + info.response);
+                return res.json({originalname:req.file?.originalname, uploadname:req.file?.filename});
             }
-            });
-    } catch (ex) {
-        console.log(ex)
+        });
+        }
+
+        public async download(req: Request, res: Response, next: any): Promise<void> {
+
+        let bucketName = keys.AWS.bucketName;
+        let region = keys.AWS.bucketRegion;
+        let accessKeyId = keys.AWS.accesKey;
+        let secretAccessKey = keys.AWS.secretKey;
+
+        const s3 = new S3({ 
+            region,
+            accessKeyId, 
+            secretAccessKey
+        })
+
+        console.log(s3);
+
+        const downloadParams = {
+            Bucket: bucketName,
+            Key: req.body.filename
+        }
+
+        console.log(downloadParams);
+
+        try {
+                const data= await s3.getObject(downloadParams).createReadStream();
+                data.pipe(res);
+            } 
+            catch (err) 
+            {
+                throw err;                  
+            }
+        }
+
+        public async sendMail(req: Request, res: Response, next: any): Promise<void> {
+
+        let bucketName = keys.AWS.bucketName;
+
+        try{
+            console.log('Sending Email');
+            
+            var transporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                    user: 'arenazl@gmail.com;Proyectos.don.luisk41@gmail.com',
+                    pass: 'vxmgkblhzauuapqh'   
+                }
+                });
+
+                var mailOptions = {
+                from: 'arenazl@gmail.com',
+                to: 'arenazl@gmail.com',
+                subject: 'Nueva venta a nombre de: ' + req.body.denominacion + ' ingreso al sistema!',
+                html: '<h5>Se vendio el Lote ' + req.body.id_lote + '!! </h5> <h5> Comprador: ' + req.body.denominacion +  '</h5> <h5>Dni: ' + req.body.dni +  ' </h5>  <h5>Precio de venta ' + req.body.lote_total +  ' </h5>  <h5>Seña: ' + req.body.refuerzo_total +  '</h5> <p>Ingrese al sistema para verificar los datos</p> <p><a href="https://sisbarrios.herokuapp.com"> Ingrese a SIS-Barrios </a></p>'
+                };
+
+                transporter.sendMail(mailOptions, function(error:any, info:any){
+                if (error) {
+                    console.log(error);
+                } else {
+                    console.log('Email sent: ' + info.response);
+                }
+                });
+        } catch (ex) {
+            console.log(ex)
+        }
+
+        }
     }
 
-}
+    async function executeSpInsert(connection: mysql.Connection, spName: string, values: (string | number)[], outParams: string[]) 
+    {    
+        try 
+        {   
+            console.log('executeSpInsert')
+            
+            let placeholders = values.map(() => '?').join(',');
+            let sql = `CALL ${spName}(${placeholders});`;
 
-}
-
-function escribirArchivoTR(rows: Array<transInmediataDato>, info: transInmediataInfo, concepto:string, motivo:string) : boolean {
+            console.log('placeholders')
+            console.log(placeholders)
+            console.log('sql')
+            console.log(sql)
     
+            const statement = await connection.prepare(sql);
+
+            console.log('values')
+            await statement.execute(values);
+            statement.close();
+    
+            if (outParams.length > 0) {
+
+                let outPlaceholders = outParams.map(param => `@${param}`).join(',');
+
+                console.log('outPlaceholders')
+                console.log(outPlaceholders)
+
+                const [outResults]: any = await connection.query(`SELECT ${outPlaceholders};`);
+            
+                return outResults[0];
+            }
+    
+            return {};
+        } 
+        catch (error:any) 
+        {
+            throw new Error(`Error al ejecutar el stored procedure: ${error.message}`);
+        }       
+     
+    }
+
+    function escribirArchivoTR(rows: Array<transInmediataDato>, info: transInmediataInfo, concepto:string, motivo:string) : boolean {
+
 
     const file = fs.openSync('./uploads/output.txt', 'w');
 
-           // console.log(transInmediataDatos);
+            // console.log(transInmediataDatos);
 
             for (const value of rows) {
 
@@ -336,10 +406,10 @@ function escribirArchivoTR(rows: Array<transInmediataDato>, info: transInmediata
             fs.closeSync(file);
 
             return true;
-}
+    }
 
-function parsearInfoArchivoTR(infoRowC:string, infoRowF:string) : transInmediataInfo {
-    
+    function parsearInfoArchivoTR(infoRowC:string, infoRowF:string) : transInmediataInfo {
+
         let info = new transInmediataInfo();
 
         //CABECERA
@@ -367,15 +437,15 @@ function parsearInfoArchivoTR(infoRowC:string, infoRowF:string) : transInmediata
         info.marcaFinal = Number(infoRowF.substring(99, 100).trim());;
 
         return info;
-    
-}
 
-function parsearDatosArchivoTR(rows:string[], transfeInfoId:number) : Array<transInmediataDato> {
-    
+    }
+
+    function parsearDatosArchivoTR(rows:string[], transfeInfoId:number) : Array<transInmediataDato> {
+
     let datosRows = rows.slice(1, rows.length - 2);
     let transInmediataDatos = new Array<transInmediataDato>();
 
-    
+
     for (const row of datosRows) {
 
             
@@ -397,11 +467,12 @@ function parsearDatosArchivoTR(rows:string[], transfeInfoId:number) : Array<tran
         
         //console.log(datoTran);
 
-     }    
+        }    
 
     return transInmediataDatos;
 
-}
+    }
+
 
   function padStringFromLeft(str:string, length:number, padChar = ' ') {
     let paddedStr = padChar.repeat(length);

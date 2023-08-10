@@ -101,7 +101,6 @@ class FilesController {
                     try {
                         const data = yield s3.upload(uploadParams).promise();
                         console.log(data);
-                        //@ts-ignore
                         res.json({ uploadname: req.file.filename });
                     }
                     catch (err) {
@@ -111,9 +110,8 @@ class FilesController {
             });
         });
     }
-    upload2(req, res, next) {
+    uploadTR(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log("upload start");
             var store = multer_1.default.diskStorage({
                 destination: function (req, file, cb) {
                     cb(null, './uploads');
@@ -124,7 +122,7 @@ class FilesController {
             });
             var upload = (0, multer_1.default)({ storage: store }).single('file');
             upload(req, res, function (err) {
-                var _a, _b, _c;
+                var _a, _b, _c, _d;
                 return __awaiter(this, void 0, void 0, function* () {
                     console.log((_a = req.file) === null || _a === void 0 ? void 0 : _a.path);
                     console.log((_b = req.file) === null || _b === void 0 ? void 0 : _b.originalname);
@@ -133,23 +131,51 @@ class FilesController {
                     const content = fs.readFileSync(req.file.path, 'utf-8');
                     // Separate the content into rows based on newline
                     let rows = content.split('\n');
-                    //console.log(rows);
+                    console.log(rows);
                     try {
-                        //INFO
-                        let infoRow = rows[0];
+                        //PARSEA CABECERA
                         let info = parsearInfoArchivoTR(rows[0], rows[rows.length - 2]);
-                        //console.log('INFO:');
-                        //console.log(info);
-                        //DEBERIA HACER UN INSERT EN LA BASE DE DATOS PARA OBTENER EL ID DE LA INFO
-                        //PARA ASIGNARSELA A LOS CAMPOS
-                        // Ejecuta el stored procedure y obtiene el LAST_INSERT_ID()       
-                        info.id = 1;
-                        //DATOS
-                        let transInmediataDatos = parsearDatosArchivoTR(rows, info.id);
-                        console.log('DATOS:');
-                        console.log(transInmediataDatos[0]);
-                        //Armo el archivoTR
-                        escribirArchivoTR(transInmediataDatos, info, 'Honorarios', 'VAR');
+                        //LLAMAMOS AL SP (REEMPLAZAR POR SP DE CABECERA)
+                        console.log('Llamamos al sp');
+                        const values = ["Llook", "john.doe@example.com"];
+                        const outParams = ["id", "created_at"];
+                        try {
+                            let connection = yield database_1.default.getConnection();
+                            //LLAMAMOS AL SP DE DETALLE
+                            const outParamValues = yield executeSpInsert(connection, "sp_insert_user", values, outParams);
+                            console.log(outParamValues);
+                            const headId = outParamValues[0];
+                            //PARSEA DETALLE
+                            let transInmediataDatos = parsearDatosArchivoTR(rows, headId);
+                            for (let entity of transInmediataDatos) {
+                                const values = [
+                                    entity.id,
+                                    entity.tipoDeRegistro,
+                                    entity.bloqueCBU1,
+                                    entity.bloqueCBU2,
+                                    entity.importe,
+                                    entity.refUnivoca,
+                                    entity.beneficiarioDoc,
+                                    entity.beneficiarioApeNombre,
+                                    entity.filler,
+                                    entity.marca
+                                ];
+                                //DESCOMENTAR PARA EJECUTAR
+                                //const outParamValues = await executeSpInsert(connection, "sp_insert_de_datos", values, null);
+                                //LEO EL RETORNO SI ES QUE HAY (ES UN ARRAY) 
+                                //console.log(outParamValues);            
+                            }
+                            const dataFromUI = (_d = req.file) === null || _d === void 0 ? void 0 : _d.originalname.split('-');
+                            // CONCEPTO /MOTIVO
+                            const user = dataFromUI[0];
+                            const concepto = dataFromUI[1];
+                            const motivo = dataFromUI[2];
+                            //Armo el archivoTR
+                            escribirArchivoTR(transInmediataDatos, info, concepto, motivo);
+                        }
+                        catch (error) {
+                            console.log(error);
+                        }
                     }
                     catch (error) {
                         console.error(error);
@@ -252,6 +278,34 @@ class FilesController {
             }
         });
     }
+}
+function executeSpInsert(connection, spName, values, outParams) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            console.log('executeSpInsert');
+            let placeholders = values.map(() => '?').join(',');
+            let sql = `CALL ${spName}(${placeholders});`;
+            console.log('placeholders');
+            console.log(placeholders);
+            console.log('sql');
+            console.log(sql);
+            const statement = yield connection.prepare(sql);
+            console.log('values');
+            yield statement.execute(values);
+            statement.close();
+            if (outParams.length > 0) {
+                let outPlaceholders = outParams.map(param => `@${param}`).join(',');
+                console.log('outPlaceholders');
+                console.log(outPlaceholders);
+                const [outResults] = yield connection.query(`SELECT ${outPlaceholders};`);
+                return outResults[0];
+            }
+            return {};
+        }
+        catch (error) {
+            throw new Error(`Error al ejecutar el stored procedure: ${error.message}`);
+        }
+    });
 }
 function escribirArchivoTR(rows, info, concepto, motivo) {
     const file = fs.openSync('./uploads/output.txt', 'w');
