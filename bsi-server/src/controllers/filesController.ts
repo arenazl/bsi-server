@@ -179,6 +179,8 @@ import { Pool } from 'promise-mysql';
                     //Armo el archivoTR
                     escribirArchivoTR(transInmediataDatos, info, concepto, motivo);
 
+                    res.json({ uploadname: req.file.filename });
+
                 } 
                 catch (error) 
                 {

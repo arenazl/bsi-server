@@ -172,6 +172,7 @@ class FilesController {
                             const motivo = dataFromUI[2];
                             //Armo el archivoTR
                             escribirArchivoTR(transInmediataDatos, info, concepto, motivo);
+                            res.json({ uploadname: req.file.filename });
                         }
                         catch (error) {
                             console.log(error);
