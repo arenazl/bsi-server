@@ -135,21 +135,20 @@ class FilesController {
                     try {
                         //PARSEA CABECERA
                         let info = parsearInfoArchivoTR(rows[0], rows[rows.length - 2]);
-                        //LLAMAMOS AL SP (REEMPLAZAR POR SP DE CABECERA)
-                        console.log('Llamamos al sp');
-                        const values = ["Llook", "john.doe@example.com"];
-                        const outParams = ["id", "created_at"];
                         try {
                             let connection = yield database_1.default.getConnection();
                             //LLAMAMOS AL SP DE DETALLE
-                            const outParamValues = yield executeSpInsert(connection, "sp_insert_user", values, outParams);
-                            console.log(outParamValues);
-                            const headId = outParamValues[0];
+                            console.log('Llamamos al sp');
+                            const values = [info.tipoDeRegistro, info.empresaNombre, info.infoDiscrecional, info.empresaCUIT.toString(), info.prestacion, info.fechaEmision.toString(), info.horaGeneracion.toString() + '00', info.fechaAcreditacion.toString(), info.bloqueDosCbuEmpresa, info.moneda, info.rotuloArchivo, info.tipoRemuneracion];
+                            const outParams = ["id", "created_at"];
+                            const outParamValues = yield executeSpInsert(connection, "Insert_Transferencia_Inmediata_Info", values, outParams);
+                            const id = outParamValues['@id'];
+                            console.log('Termina el SP de Info. ID value: ' + id);
+                            console.log('Comienza el SP de Dato:');
                             //PARSEA DETALLE
-                            let transInmediataDatos = parsearDatosArchivoTR(rows, headId);
+                            let transInmediataDatos = parsearDatosArchivoTR(rows, id);
                             for (let entity of transInmediataDatos) {
                                 const values = [
-                                    entity.id,
                                     entity.tipoDeRegistro,
                                     entity.bloqueCBU1,
                                     entity.bloqueCBU2,
@@ -158,12 +157,18 @@ class FilesController {
                                     entity.beneficiarioDoc,
                                     entity.beneficiarioApeNombre,
                                     entity.filler,
-                                    entity.marca
+                                    entity.marca,
+                                    entity.transInmediataInfoId
                                 ];
+                                console.log(values);
+                                const outParams = ["id", "created_at"];
                                 //DESCOMENTAR PARA EJECUTAR
-                                //const outParamValues = await executeSpInsert(connection, "sp_insert_de_datos", values, null);
+                                const outParamValues = yield executeSpInsert(connection, "insert_transferencia_inmediata_dato", values, outParams);
                                 //LEO EL RETORNO SI ES QUE HAY (ES UN ARRAY) 
-                                //console.log(outParamValues);            
+                                console.log(outParamValues);
+                                console.log('Termina el SP de Dato');
+                                //RETORNO UNO SOLO DE MOMENTO SOLO PARA IR PROBANDO 
+                                return;
                             }
                             const dataFromUI = (_d = req.file) === null || _d === void 0 ? void 0 : _d.originalname.split('-');
                             // CONCEPTO /MOTIVO
@@ -173,7 +178,7 @@ class FilesController {
                             //Armo el archivoTR
                             escribirArchivoTR(transInmediataDatos, info, concepto, motivo);
                             //DEVUELVO AL FRONT EL ID GENERADO PARA MOSTRAR LOS RESULTADOS (ESTA PANTALLA VA A LLAMAR A getResponseTR ['files/responsetr/:id] )
-                            res.json({ id: headId });
+                            res.json({ id: id });
                         }
                         catch (error) {
                             console.log(error);
@@ -299,6 +304,7 @@ function executeSpInsert(connection, spName, values, outParams) {
             console.log(sql);
             const statement = yield connection.prepare(sql);
             console.log('values');
+            console.log(values);
             yield statement.execute(values);
             statement.close();
             if (outParams.length > 0) {
@@ -380,6 +386,7 @@ function parsearInfoArchivoTR(infoRowC, infoRowF) {
     return info;
 }
 function parsearDatosArchivoTR(rows, transfeInfoId) {
+    console.log('transfeInfoId: ' + transfeInfoId);
     let datosRows = rows.slice(1, rows.length - 2);
     let transInmediataDatos = new Array();
     for (const row of datosRows) {
