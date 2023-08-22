@@ -131,19 +131,27 @@ import { Pool } from 'promise-mysql';
                 //PARSEA CABECERA
                 let info = parsearInfoArchivoTR(rows[0], rows[rows.length - 2]);     
             
+                const dataFromUI  = req.file?.originalname.split('-');
+            
+                // CONCEPTO /MOTIVO
+                const user = dataFromUI[0];
+                const concepto = dataFromUI[2];
+                const motivo = dataFromUI[1];
             
                 try 
                 {
-                    let connection = await pool.getConnection();   
+                    let connection = await pool.getConnection();
 
                     //LLAMAMOS AL SP DE DETALLE
-                    console.log('Llamamos al sp');
-              
-                    const values = [info.tipoDeRegistro, info.empresaNombre, info.infoDiscrecional, info.empresaCUIT.toString(), info.prestacion, info.fechaEmision.toString(), info.horaGeneracion.toString() + '00', info.fechaAcreditacion.toString(), info.bloqueDosCbuEmpresa, info.moneda, info.rotuloArchivo, info.tipoRemuneracion];
+                    console.log('Llamamos al sp');            
+                    const values = [info.tipoDeRegistro, info.empresaNombre, info.infoDiscrecional, info.empresaCUIT.toString(), info.prestacion, info.fechaEmision.toString(), info.horaGeneracion.toString() + '00', info.fechaAcreditacion.toString(), info.bloqueDosCbuEmpresa, info.moneda, info.rotuloArchivo, info.tipoRemuneracion, info.importeTotalFinal, concepto];
                     const outParams = ["id", "created_at"];
+
+
 
                     const outParamValues = await executeSpInsert(connection, "Insert_Transferencia_Inmediata_Info", values, outParams);
                     const id = outParamValues['@id'];
+                    const created_at = outParamValues['@created_at'];
 
                     console.log('Termina el SP de Info. ID value: ' + id);
                     console.log('Comienza el SP de Dato:');
@@ -151,8 +159,12 @@ import { Pool } from 'promise-mysql';
                     //PARSEA DETALLE
                     let transInmediataDatos = parsearDatosArchivoTR(rows, id);
 
+                    
+                    let contador = 0;
 
-                    for (let entity of transInmediataDatos) {             
+                    for (let entity of transInmediataDatos) {      
+
+
                         const values = [
                             entity.tipoDeRegistro,
                             entity.bloqueCBU1,
@@ -164,31 +176,31 @@ import { Pool } from 'promise-mysql';
                             entity.filler,
                             entity.marca,
                             entity.transInmediataInfoId
-                        ];
-                
-                        console.log(values);                                      
+                        ];                                                 
 
-                        const outParams = ["id", "created_at"];
+                        const outParams = ['id', 'created_at'];
+
                         //DESCOMENTAR PARA EJECUTAR
-                        const outParamValues = await executeSpInsert(connection, "insert_transferencia_inmediata_dato", values, outParams);                     
+                        const outParamValues = await executeSpInsert(connection, "insert_transferencia_inmediata_dato", values, outParams);   
+                        
+                        console.log('outParamValues: ' + outParamValues);
+                        
+                        
                         //LEO EL RETORNO SI ES QUE HAY (ES UN ARRAY) 
-                        console.log(outParamValues);   
-                        
-                        console.log('Termina el SP de Dato');
-                        
-                        //RETORNO UNO SOLO DE MOMENTO SOLO PARA IR PROBANDO 
-                        return;
-                    }
-              
-                    const dataFromUI  = req.file?.originalname.split('-');
-            
-                    // CONCEPTO /MOTIVO
-                    const user = dataFromUI[0];
-                    const concepto = dataFromUI[1];
-                    const motivo = dataFromUI[2];
+                    }            
+
 
                     //Armo el archivoTR
                     escribirArchivoTR(transInmediataDatos, info, concepto, motivo);
+
+
+                    //CAMBIAR LAS CONSULTAS POR SP EJECUTADOS
+                    const infoScreen = getPantallaTransferenciaInfoById(id, connection);
+                    console.log('---INFO---');
+                    console.log(infoScreen);
+                    const dataScreen = getPantallaTransferenciaDatoById(id, connection);
+                    console.log('---DATA---');
+                    console.log(dataScreen);
 
                     //DEVUELVO AL FRONT EL ID GENERADO PARA MOSTRAR LOS RESULTADOS (ESTA PANTALLA VA A LLAMAR A getResponseTR ['files/responsetr/:id] )
                     res.json({ id: id });
@@ -197,9 +209,7 @@ import { Pool } from 'promise-mysql';
                 catch (error) 
                 {
                 console.log(error);
-                }   
-
-          
+                }             
             } catch (error) {
                 console.error(error);
                 res.status(500).json({ message: 'An error occurred while updating the data.' });
@@ -345,8 +355,10 @@ import { Pool } from 'promise-mysql';
             console.log(values);
             await statement.execute(values);
             statement.close();
+            await connection.unprepare(sql);
+            
     
-            if (outParams.length > 0) {
+            if (outParams.length > 0 ) {
 
                 let outPlaceholders = outParams.map(param => `@${param}`).join(',');
 
@@ -355,8 +367,10 @@ import { Pool } from 'promise-mysql';
 
                 const [outResults]: any = await connection.query(`SELECT ${outPlaceholders};`);
             
+                
                 return outResults[0];
             }
+            
     
             return {};
         } 
@@ -402,15 +416,18 @@ import { Pool } from 'promise-mysql';
                 
 
 
-            fs.writeSync(file,CBU + '|' + IMPORTE + '|' + CONCEPTO + motivo + REFERENCIA + EMAIL + RELLENO +'\n');
+            fs.writeSync(file,CBU + IMPORTE + CONCEPTO + motivo + REFERENCIA + EMAIL + RELLENO +'\n');
 
             }
 
             //DATOS FINALES
 
             //CANT REGISTROS FINALES
-            let CANT_REGISTROS = info.cantidadRegistroFinal.toString();
+            let CANT_REGISTROS = (info.cantidadRegistroFinal + 1).toString();
             CANT_REGISTROS = padStringFromLeft(CANT_REGISTROS, (5 - CANT_REGISTROS.length), '0');
+
+            console.log('Cant Reegistros: ' + info.cantidadRegistroFinal)
+            console.log('Escribe: ' + CANT_REGISTROS)
 
             //IMPORTE TOTAL
             let IMPORTE_TOTAL = info.importeTotalFinal.toString();
@@ -498,6 +515,29 @@ import { Pool } from 'promise-mysql';
 
     }
 
+    async function getPantallaTransferenciaDatoById(transferenciaInfoId : number, connection : mysql.PoolConnection) {
+
+        
+        const queryAll = "SELECT tranDato.id as orden,  concat(tranDato.bloqueCBU1, tranDato.bloqueCBU2) as CBU, tranDato.importe as Importe, tranDato.beneficiarioApeNombre as Referencia FROM heroku_55504b2b2691e53.transferencias_inmediatas_dato AS tranDato where tranDato.transferenciaInmediataInfoId = " + transferenciaInfoId
+        const datos = await pool.query( queryAll );     
+
+        console.log(datos);
+        
+    
+        return datos;
+    }
+
+    async function getPantallaTransferenciaInfoById(transferenciaInfoId : number, connection : mysql.PoolConnection) {
+
+        
+        const queryAll = "    SELECT tranInfo.fecha_emision as Fecha, COUNT(tranDato.id) as CantTran, tranInfo.importeTotal as ImporteTotal, tranInfo.bloque_cbu as cbuOrigen, tranInfo.concepto as concepto FROM heroku_55504b2b2691e53.transferencias_inmediatas AS tranInfo INNER JOIN heroku_55504b2b2691e53.transferencias_inmediatas_dato AS tranDato ON tranInfo.id = tranDato.transferenciaInmediataInfoId where tranInfo.id =" + transferenciaInfoId
+        const info = await pool.query( queryAll );     
+
+        console.log(info);
+        
+    
+        return info;
+    }
 
   function padStringFromLeft(str:string, length:number, padChar = ' ') {
     let paddedStr = padChar.repeat(length);
