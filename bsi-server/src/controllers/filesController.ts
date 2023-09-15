@@ -143,10 +143,22 @@ import { Pool } from 'promise-mysql';
                     let connection = await pool.getConnection();
 
                     //LLAMAMOS AL SP DE DETALLE
-                    console.log('Llamamos al sp');            
-                    const values = [info.tipoDeRegistro, info.empresaNombre, info.infoDiscrecional, info.empresaCUIT.toString(), info.prestacion, info.fechaEmision.toString(), info.horaGeneracion.toString() + '00', info.fechaAcreditacion.toString(), info.bloqueDosCbuEmpresa, info.moneda, info.rotuloArchivo, info.tipoRemuneracion, info.importeTotalFinal, concepto];
-                    const outParams = ["id", "created_at"];
+                    console.log('Llamamos al sp');    
 
+                    const values = [info.tipoDeRegistro, 
+                                    info.empresaNombre, 
+                                    info.infoDiscrecional, 
+                                    info.empresaCUIT.toString(), 
+                                    info.prestacion, info.fechaEmision.toString(), 
+                                    info.horaGeneracion.toString() + '00', 
+                                    info.fechaAcreditacion.toString(), 
+                                    info.bloqueDosCbuEmpresa, 
+                                    info.moneda, 
+                                    info.rotuloArchivo, 
+                                    info.tipoRemuneracion, 
+                                    arreglarDecimales(info.importeTotalFinal), concepto];
+                    
+                    const outParams = ["id", "created_at"];
 
 
                     const outParamValues = await executeSpInsert(connection, "Insert_Transferencia_Inmediata_Info", values, outParams);
@@ -166,10 +178,10 @@ import { Pool } from 'promise-mysql';
 
 
                         const values = [
-                            entity.tipoDeRegistro,
+                            entity.tipoDeRegistro,     
                             entity.bloqueCBU1,
                             entity.bloqueCBU2,
-                            entity.importe,
+                            arreglarDecimales(entity.importe),
                             entity.refUnivoca,
                             entity.beneficiarioDoc,
                             entity.beneficiarioApeNombre,
@@ -184,23 +196,14 @@ import { Pool } from 'promise-mysql';
                         const outParamValues = await executeSpInsert(connection, "insert_transferencia_inmediata_dato", values, outParams);   
                         
                         console.log('outParamValues: ' + outParamValues);
-                        
-                        
+                                            
                         //LEO EL RETORNO SI ES QUE HAY (ES UN ARRAY) 
                     }            
 
 
                     //Armo el archivoTR
-                    escribirArchivoTR(transInmediataDatos, info, concepto, motivo);
+                    escribirArchivoTR(transInmediataDatos, info, concepto, motivo, id);
 
-
-                    //CAMBIAR LAS CONSULTAS POR SP EJECUTADOS
-                    const infoScreen = getPantallaTransferenciaInfoById(id, connection);
-                    console.log('---INFO---');
-                    console.log(infoScreen);
-                    const dataScreen = getPantallaTransferenciaDatoById(id, connection);
-                    console.log('---DATA---');
-                    console.log(dataScreen);
 
                     //DEVUELVO AL FRONT EL ID GENERADO PARA MOSTRAR LOS RESULTADOS (ESTA PANTALLA VA A LLAMAR A getResponseTR ['files/responsetr/:id] )
                     res.json({ id: id });
@@ -208,10 +211,11 @@ import { Pool } from 'promise-mysql';
                 } 
                 catch (error) 
                 {
-                console.log(error);
+                    console.error('error:' + error);
                 }             
             } catch (error) {
-                console.error(error);
+
+                console.error('error:' + error);
                 res.status(500).json({ message: 'An error occurred while updating the data.' });
             }      
 
@@ -219,14 +223,51 @@ import { Pool } from 'promise-mysql';
 
         }
 
+
+        public async downloadFile(req: Request, res: Response): Promise<void> {
+
+            
+
+            try {
+              const { id } = req.params; // Assuming the file is identified by an 'id'
+              
+              // TODO: Fetch the file path based on the 'id'
+              const filePath = './uploads/output_' + id + '.txt'; // Replace with the actual file path
+              
+              res.download(filePath, function(err) {
+                if (err) {
+                  // Handle error, but keep in mind the response may be partially sent,
+                  // so check `res.headersSent`
+                  console.error(err);
+                  if (res.headersSent) {
+                    // Decide what to do: close the connection, or or just report the error.
+                  } else {
+                    //res.status(err)
+                  }
+                } else {
+                  // The file was sent successfully
+                }
+              });
+            } catch (error) {
+              console.error('An error occurred:', error);
+              res.status(500).send('Internal Server Error');
+            }
+        }        
+
         public async getResponseTR(req: Request, res: Response): Promise<any> {
+
+            console.log('enter response....')
 
             const { id } = req.params;
 
-            //HACER SP CON RESULTADO CON CLAVE DE ID
- 
-        }
+               //CAMBIAR LAS CONSULTAS POR SP EJECUTADOS
+               const infoScreen = await getPantallaTransferenciaInfoById(id);
 
+               const dataScreen = await getPantallaTransferenciaDatoById(id)   
+               
+               res.json({head:infoScreen[0], data: dataScreen[0] });
+        }
+        
         public async uploadS3(file:any) {
 
         let bucketName = keys.AWS.bucketName;
@@ -371,7 +412,6 @@ import { Pool } from 'promise-mysql';
                 return outResults[0];
             }
             
-    
             return {};
         } 
         catch (error:any) 
@@ -381,10 +421,10 @@ import { Pool } from 'promise-mysql';
      
     }
 
-    function escribirArchivoTR(rows: Array<transInmediataDato>, info: transInmediataInfo, concepto:string, motivo:string) : boolean {
+    function escribirArchivoTR(rows: Array<transInmediataDato>, info: transInmediataInfo, concepto:string, motivo:string, id:number) : boolean {
 
 
-    const file = fs.openSync('./uploads/output.txt', 'w');
+    const file = fs.openSync('./uploads/output_' + id + '.txt', 'w');
 
             // console.log(transInmediataDatos);
 
@@ -415,7 +455,6 @@ import { Pool } from 'promise-mysql';
                 RELLENO = padStringFromRight(RELLENO, (124 - RELLENO.length), ' ');
                 
 
-
             fs.writeSync(file,CBU + IMPORTE + CONCEPTO + motivo + REFERENCIA + EMAIL + RELLENO +'\n');
 
             }
@@ -440,15 +479,14 @@ import { Pool } from 'promise-mysql';
 
             fs.writeSync(file, CANT_REGISTROS + IMPORTE_TOTAL  + RELLENO +'\n');
 
-
-
-
             fs.closeSync(file);
 
             return true;
     }
 
-    function parsearInfoArchivoTR(infoRowC:string, infoRowF:string) : transInmediataInfo {
+
+    function parsearInfoArchivoTR(infoRowC:string, infoRowF:string) : transInmediataInfo 
+    {
 
         let info = new transInmediataInfo();
 
@@ -515,26 +553,40 @@ import { Pool } from 'promise-mysql';
 
     }
 
-    async function getPantallaTransferenciaDatoById(transferenciaInfoId : number, connection : mysql.PoolConnection) {
+    function arreglarDecimales(importe:number) {
+
+        let valorImporte = Math.floor(importe) / 100;
+        return valorImporte.toFixed(2);
+      }
+
+    async function getPantallaTransferenciaDatoById(transferenciaInfoId : number) {
 
         
-        const queryAll = "SELECT tranDato.id as orden,  concat(tranDato.bloqueCBU1, tranDato.bloqueCBU2) as CBU, tranDato.importe as Importe, tranDato.beneficiarioApeNombre as Referencia FROM heroku_55504b2b2691e53.transferencias_inmediatas_dato AS tranDato where tranDato.transferenciaInmediataInfoId = " + transferenciaInfoId
+        let queryAll = "SELECT tranDato.id as orden,  concat(tranDato.bloqueCBU1, tranDato.bloqueCBU2) as CBU, tranDato.importe as Importe, tranDato.beneficiarioApeNombre as Referencia FROM heroku_55504b2b2691e53.transferencias_inmediatas_dato AS tranDato where tranDato.transferenciaInmediataInfoId = " + transferenciaInfoId
+        
+        queryAll = queryAll.slice(0, -1);
+        
         const datos = await pool.query( queryAll );     
 
+        console.log('datos');
         console.log(datos);
-        
     
         return datos;
     }
 
-    async function getPantallaTransferenciaInfoById(transferenciaInfoId : number, connection : mysql.PoolConnection) {
+     async function getPantallaTransferenciaInfoById(transferenciaInfoId : number) {
 
+  
+        let queryAll = "SELECT tranInfo.fecha_emision as Fecha, COUNT(tranDato.id) as CantTran, tranInfo.importeTotal as ImporteTotal, tranInfo.bloque_cbu as cbuOrigen, tranInfo.concepto as concepto FROM heroku_55504b2b2691e53.transferencias_inmediatas AS tranInfo INNER JOIN heroku_55504b2b2691e53.transferencias_inmediatas_dato AS tranDato ON tranInfo.id = tranDato.transferenciaInmediataInfoId where tranInfo.id =" + transferenciaInfoId
         
-        const queryAll = "    SELECT tranInfo.fecha_emision as Fecha, COUNT(tranDato.id) as CantTran, tranInfo.importeTotal as ImporteTotal, tranInfo.bloque_cbu as cbuOrigen, tranInfo.concepto as concepto FROM heroku_55504b2b2691e53.transferencias_inmediatas AS tranInfo INNER JOIN heroku_55504b2b2691e53.transferencias_inmediatas_dato AS tranDato ON tranInfo.id = tranDato.transferenciaInmediataInfoId where tranInfo.id =" + transferenciaInfoId
+        queryAll = queryAll.slice(0, -1);
+  
+        console.log('new query: ' + queryAll)
+        
         const info = await pool.query( queryAll );     
 
+        console.log('head');
         console.log(info);
-        
     
         return info;
     }

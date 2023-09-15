@@ -26,6 +26,7 @@ class LegajoController {
         });
     }
 
+    
     public async list(req: Request, res: Response): Promise<void> {
 
     try {
@@ -378,6 +379,7 @@ class LegajoController {
     }
 
 }
+
 
 const legajoController = new LegajoController;
 export default legajoController;

@@ -144,7 +144,18 @@ class FilesController {
                             let connection = yield database_1.default.getConnection();
                             //LLAMAMOS AL SP DE DETALLE
                             console.log('Llamamos al sp');
-                            const values = [info.tipoDeRegistro, info.empresaNombre, info.infoDiscrecional, info.empresaCUIT.toString(), info.prestacion, info.fechaEmision.toString(), info.horaGeneracion.toString() + '00', info.fechaAcreditacion.toString(), info.bloqueDosCbuEmpresa, info.moneda, info.rotuloArchivo, info.tipoRemuneracion, info.importeTotalFinal, concepto];
+                            const values = [info.tipoDeRegistro,
+                                info.empresaNombre,
+                                info.infoDiscrecional,
+                                info.empresaCUIT.toString(),
+                                info.prestacion, info.fechaEmision.toString(),
+                                info.horaGeneracion.toString() + '00',
+                                info.fechaAcreditacion.toString(),
+                                info.bloqueDosCbuEmpresa,
+                                info.moneda,
+                                info.rotuloArchivo,
+                                info.tipoRemuneracion,
+                                arreglarDecimales(info.importeTotalFinal), concepto];
                             const outParams = ["id", "created_at"];
                             const outParamValues = yield executeSpInsert(connection, "Insert_Transferencia_Inmediata_Info", values, outParams);
                             const id = outParamValues['@id'];
@@ -159,7 +170,7 @@ class FilesController {
                                     entity.tipoDeRegistro,
                                     entity.bloqueCBU1,
                                     entity.bloqueCBU2,
-                                    entity.importe,
+                                    arreglarDecimales(entity.importe),
                                     entity.refUnivoca,
                                     entity.beneficiarioDoc,
                                     entity.beneficiarioApeNombre,
@@ -174,33 +185,59 @@ class FilesController {
                                 //LEO EL RETORNO SI ES QUE HAY (ES UN ARRAY) 
                             }
                             //Armo el archivoTR
-                            escribirArchivoTR(transInmediataDatos, info, concepto, motivo);
-                            //CAMBIAR LAS CONSULTAS POR SP EJECUTADOS
-                            const infoScreen = getPantallaTransferenciaInfoById(id, connection);
-                            console.log('---INFO---');
-                            console.log(infoScreen);
-                            const dataScreen = getPantallaTransferenciaDatoById(id, connection);
-                            console.log('---DATA---');
-                            console.log(dataScreen);
+                            escribirArchivoTR(transInmediataDatos, info, concepto, motivo, id);
                             //DEVUELVO AL FRONT EL ID GENERADO PARA MOSTRAR LOS RESULTADOS (ESTA PANTALLA VA A LLAMAR A getResponseTR ['files/responsetr/:id] )
                             res.json({ id: id });
                         }
                         catch (error) {
-                            console.log(error);
+                            console.error('error:' + error);
                         }
                     }
                     catch (error) {
-                        console.error(error);
+                        console.error('error:' + error);
                         res.status(500).json({ message: 'An error occurred while updating the data.' });
                     }
                 });
             });
         });
     }
+    downloadFile(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { id } = req.params; // Assuming the file is identified by an 'id'
+                // TODO: Fetch the file path based on the 'id'
+                const filePath = './uploads/output_' + id + '.txt'; // Replace with the actual file path
+                res.download(filePath, function (err) {
+                    if (err) {
+                        // Handle error, but keep in mind the response may be partially sent,
+                        // so check `res.headersSent`
+                        console.error(err);
+                        if (res.headersSent) {
+                            // Decide what to do: close the connection, or or just report the error.
+                        }
+                        else {
+                            //res.status(err)
+                        }
+                    }
+                    else {
+                        // The file was sent successfully
+                    }
+                });
+            }
+            catch (error) {
+                console.error('An error occurred:', error);
+                res.status(500).send('Internal Server Error');
+            }
+        });
+    }
     getResponseTR(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
+            console.log('enter response....');
             const { id } = req.params;
-            //HACER SP CON RESULTADO CON CLAVE DE ID
+            //CAMBIAR LAS CONSULTAS POR SP EJECUTADOS
+            const infoScreen = yield getPantallaTransferenciaInfoById(id);
+            const dataScreen = yield getPantallaTransferenciaDatoById(id);
+            res.json({ head: infoScreen[0], data: dataScreen[0] });
         });
     }
     uploadS3(file) {
@@ -327,8 +364,8 @@ function executeSpInsert(connection, spName, values, outParams) {
         }
     });
 }
-function escribirArchivoTR(rows, info, concepto, motivo) {
-    const file = fs.openSync('./uploads/output.txt', 'w');
+function escribirArchivoTR(rows, info, concepto, motivo, id) {
+    const file = fs.openSync('./uploads/output_' + id + '.txt', 'w');
     // console.log(transInmediataDatos);
     for (const value of rows) {
         //CBU
@@ -415,18 +452,27 @@ function parsearDatosArchivoTR(rows, transfeInfoId) {
     }
     return transInmediataDatos;
 }
-function getPantallaTransferenciaDatoById(transferenciaInfoId, connection) {
+function arreglarDecimales(importe) {
+    let valorImporte = Math.floor(importe) / 100;
+    return valorImporte.toFixed(2);
+}
+function getPantallaTransferenciaDatoById(transferenciaInfoId) {
     return __awaiter(this, void 0, void 0, function* () {
-        const queryAll = "SELECT tranDato.id as orden,  concat(tranDato.bloqueCBU1, tranDato.bloqueCBU2) as CBU, tranDato.importe as Importe, tranDato.beneficiarioApeNombre as Referencia FROM heroku_55504b2b2691e53.transferencias_inmediatas_dato AS tranDato where tranDato.transferenciaInmediataInfoId = " + transferenciaInfoId;
+        let queryAll = "SELECT tranDato.id as orden,  concat(tranDato.bloqueCBU1, tranDato.bloqueCBU2) as CBU, tranDato.importe as Importe, tranDato.beneficiarioApeNombre as Referencia FROM heroku_55504b2b2691e53.transferencias_inmediatas_dato AS tranDato where tranDato.transferenciaInmediataInfoId = " + transferenciaInfoId;
+        queryAll = queryAll.slice(0, -1);
         const datos = yield database_1.default.query(queryAll);
+        console.log('datos');
         console.log(datos);
         return datos;
     });
 }
-function getPantallaTransferenciaInfoById(transferenciaInfoId, connection) {
+function getPantallaTransferenciaInfoById(transferenciaInfoId) {
     return __awaiter(this, void 0, void 0, function* () {
-        const queryAll = "    SELECT tranInfo.fecha_emision as Fecha, COUNT(tranDato.id) as CantTran, tranInfo.importeTotal as ImporteTotal, tranInfo.bloque_cbu as cbuOrigen, tranInfo.concepto as concepto FROM heroku_55504b2b2691e53.transferencias_inmediatas AS tranInfo INNER JOIN heroku_55504b2b2691e53.transferencias_inmediatas_dato AS tranDato ON tranInfo.id = tranDato.transferenciaInmediataInfoId where tranInfo.id =" + transferenciaInfoId;
+        let queryAll = "SELECT tranInfo.fecha_emision as Fecha, COUNT(tranDato.id) as CantTran, tranInfo.importeTotal as ImporteTotal, tranInfo.bloque_cbu as cbuOrigen, tranInfo.concepto as concepto FROM heroku_55504b2b2691e53.transferencias_inmediatas AS tranInfo INNER JOIN heroku_55504b2b2691e53.transferencias_inmediatas_dato AS tranDato ON tranInfo.id = tranDato.transferenciaInmediataInfoId where tranInfo.id =" + transferenciaInfoId;
+        queryAll = queryAll.slice(0, -1);
+        console.log('new query: ' + queryAll);
         const info = yield database_1.default.query(queryAll);
+        console.log('head');
         console.log(info);
         return info;
     });

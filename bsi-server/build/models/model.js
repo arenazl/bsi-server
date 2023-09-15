@@ -16,7 +16,7 @@ var EnumLotes;
     EnumLotes[EnumLotes["Reservado"] = 1] = "Reservado";
     EnumLotes[EnumLotes["Cargado"] = 2] = "Cargado";
     EnumLotes[EnumLotes["Vendido"] = 3] = "Vendido";
-})(EnumLotes = exports.EnumLotes || (exports.EnumLotes = {}));
+})(EnumLotes || (exports.EnumLotes = EnumLotes = {}));
 class transInmediataInfo {
 }
 exports.transInmediataInfo = transInmediataInfo;

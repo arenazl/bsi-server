@@ -19,7 +19,7 @@ class FileRoutes {
         this.router.post('/uploadtr', fileController.uploadTR);
         this.router.get('/responsetr/:id', fileController.getResponseTR);
         this.router.post('/dropbox', fileController.dropbox);
-        this.router.post('/download', fileController.download);
+        this.router.get('/download/:id', fileController.downloadFile);
           
         //this.router.post('/file', gamesController.file);
         //this.router.post('/download', gamesController.download);
