@@ -48,7 +48,7 @@ class FilesController {
     list(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             var serverFiles = [];
-            const dir = path_1.default.join(__dirname, '../uploads');
+            const dir = path_1.default.join(__dirname, "../uploads");
             const files = fs.readdirSync(dir);
             for (const file of files) {
                 serverFiles.push(file);
@@ -59,7 +59,7 @@ class FilesController {
     delete(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             const { id } = req.params;
-            yield database_1.default.query('DELETE  FROM games WHERE id = ?', [id]);
+            yield database_1.default.query("DELETE  FROM games WHERE id = ?", [id]);
             res.json({ message: "The game was deleted" });
         });
     }
@@ -68,13 +68,13 @@ class FilesController {
             console.log("upload start");
             var store = multer_1.default.diskStorage({
                 destination: function (req, file, cb) {
-                    cb(null, './uploads');
+                    cb(null, "./uploads");
                 },
                 filename: function (req, file, cb) {
-                    cb(null, Date.now() + '-' + file.originalname);
-                }
+                    cb(null, Date.now() + "-" + file.originalname);
+                },
             });
-            var upload = (0, multer_1.default)({ storage: store }).single('file');
+            var upload = (0, multer_1.default)({ storage: store }).single("file");
             upload(req, res, function (err) {
                 var _a, _b, _c;
                 return __awaiter(this, void 0, void 0, function* () {
@@ -88,7 +88,7 @@ class FilesController {
                     const s3 = new s3_1.default({
                         region,
                         accessKeyId,
-                        secretAccessKey
+                        secretAccessKey,
                     });
                     //@ts-ignore
                     const fileStream = fs.createReadStream(req.file.path);
@@ -96,7 +96,7 @@ class FilesController {
                         Bucket: bucketName,
                         Body: fileStream,
                         //@ts-ignore
-                        Key: req.file.filename
+                        Key: req.file.filename,
                     };
                     try {
                         const data = yield s3.upload(uploadParams).promise();
@@ -114,13 +114,13 @@ class FilesController {
         return __awaiter(this, void 0, void 0, function* () {
             var store = multer_1.default.diskStorage({
                 destination: function (req, file, cb) {
-                    cb(null, './uploads');
+                    cb(null, "./uploads");
                 },
                 filename: function (req, file, cb) {
-                    cb(null, Date.now() + '-' + file.originalname);
-                }
+                    cb(null, Date.now() + "-" + file.originalname);
+                },
             });
-            var upload = (0, multer_1.default)({ storage: store }).single('file');
+            var upload = (0, multer_1.default)({ storage: store }).single("file");
             upload(req, res, function (err) {
                 var _a, _b, _c, _d;
                 return __awaiter(this, void 0, void 0, function* () {
@@ -128,14 +128,14 @@ class FilesController {
                     console.log((_b = req.file) === null || _b === void 0 ? void 0 : _b.originalname);
                     console.log((_c = req.file) === null || _c === void 0 ? void 0 : _c.filename);
                     // Read the contents of the txt file
-                    const content = fs.readFileSync(req.file.path, 'utf-8');
+                    const content = fs.readFileSync(req.file.path, "utf-8");
                     // Separate the content into rows based on newline
-                    let rows = content.split('\n');
+                    let rows = content.split("\n");
                     console.log(rows);
                     try {
                         //PARSEA CABECERA
                         let info = parsearInfoArchivoTR(rows[0], rows[rows.length - 2]);
-                        const dataFromUI = (_d = req.file) === null || _d === void 0 ? void 0 : _d.originalname.split('-');
+                        const dataFromUI = (_d = req.file) === null || _d === void 0 ? void 0 : _d.originalname.split("-");
                         // CONCEPTO /MOTIVO
                         const user = dataFromUI[0];
                         const concepto = dataFromUI[2];
@@ -143,25 +143,29 @@ class FilesController {
                         try {
                             let connection = yield database_1.default.getConnection();
                             //LLAMAMOS AL SP DE DETALLE
-                            console.log('Llamamos al sp');
-                            const values = [info.tipoDeRegistro,
+                            console.log("Llamamos al sp");
+                            const values = [
+                                info.tipoDeRegistro,
                                 info.empresaNombre,
                                 info.infoDiscrecional,
                                 info.empresaCUIT.toString(),
-                                info.prestacion, info.fechaEmision.toString(),
-                                info.horaGeneracion.toString() + '00',
+                                info.prestacion,
+                                info.fechaEmision.toString(),
+                                info.horaGeneracion.toString() + "00",
                                 info.fechaAcreditacion.toString(),
                                 info.bloqueDosCbuEmpresa,
                                 info.moneda,
                                 info.rotuloArchivo,
                                 info.tipoRemuneracion,
-                                arreglarDecimales(info.importeTotalFinal), concepto];
+                                arreglarDecimales(info.importeTotalFinal),
+                                concepto,
+                            ];
                             const outParams = ["id", "created_at"];
                             const outParamValues = yield executeSpInsert(connection, "Insert_Transferencia_Inmediata_Info", values, outParams);
-                            const id = outParamValues['@id'];
-                            const created_at = outParamValues['@created_at'];
-                            console.log('Termina el SP de Info. ID value: ' + id);
-                            console.log('Comienza el SP de Dato:');
+                            const id = outParamValues["@id"];
+                            const created_at = outParamValues["@created_at"];
+                            console.log("Termina el SP de Info. ID value: " + id);
+                            console.log("Comienza el SP de Dato:");
                             //PARSEA DETALLE
                             let transInmediataDatos = parsearDatosArchivoTR(rows, id);
                             let contador = 0;
@@ -176,13 +180,13 @@ class FilesController {
                                     entity.beneficiarioApeNombre,
                                     entity.filler,
                                     entity.marca,
-                                    entity.transInmediataInfoId
+                                    entity.transInmediataInfoId,
                                 ];
-                                const outParams = ['id', 'created_at'];
+                                const outParams = ["id", "created_at"];
                                 //DESCOMENTAR PARA EJECUTAR
                                 const outParamValues = yield executeSpInsert(connection, "insert_transferencia_inmediata_dato", values, outParams);
-                                console.log('outParamValues: ' + outParamValues);
-                                //LEO EL RETORNO SI ES QUE HAY (ES UN ARRAY) 
+                                console.log("outParamValues: " + outParamValues);
+                                //LEO EL RETORNO SI ES QUE HAY (ES UN ARRAY)
                             }
                             //Armo el archivoTR
                             escribirArchivoTR(transInmediataDatos, info, concepto, motivo, id);
@@ -190,12 +194,14 @@ class FilesController {
                             res.json({ id: id });
                         }
                         catch (error) {
-                            console.error('error:' + error);
+                            console.error("error:" + error);
                         }
                     }
                     catch (error) {
-                        console.error('error:' + error);
-                        res.status(500).json({ message: 'An error occurred while updating the data.' });
+                        console.error("error:" + error);
+                        res
+                            .status(500)
+                            .json({ message: "An error occurred while updating the data." });
                     }
                 });
             });
@@ -206,7 +212,7 @@ class FilesController {
             try {
                 const { id } = req.params; // Assuming the file is identified by an 'id'
                 // TODO: Fetch the file path based on the 'id'
-                const filePath = './uploads/output_' + id + '.txt'; // Replace with the actual file path
+                const filePath = "./uploads/output_" + id + ".txt"; // Replace with the actual file path
                 res.download(filePath, function (err) {
                     if (err) {
                         // Handle error, but keep in mind the response may be partially sent,
@@ -225,18 +231,19 @@ class FilesController {
                 });
             }
             catch (error) {
-                console.error('An error occurred:', error);
-                res.status(500).send('Internal Server Error');
+                console.error("An error occurred:", error);
+                res.status(500).send("Internal Server Error");
             }
         });
     }
     getResponseTR(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log('enter response....');
+            console.log("enter response....");
             const { id } = req.params;
             //CAMBIAR LAS CONSULTAS POR SP EJECUTADOS
             const infoScreen = yield getPantallaTransferenciaInfoById(id);
             const dataScreen = yield getPantallaTransferenciaDatoById(id);
+            //@ts-ignore
             res.json({ head: infoScreen[0], data: dataScreen[0] });
         });
     }
@@ -249,13 +256,13 @@ class FilesController {
             const s3 = new s3_1.default({
                 region,
                 accessKeyId,
-                secretAccessKey
+                secretAccessKey,
             });
             const fileStream = fs.createReadStream(file.path);
             const uploadParams = {
                 Bucket: bucketName,
                 Body: fileStream,
-                Key: file.filename
+                Key: file.filename,
             };
             return s3.upload(uploadParams).promise();
         });
@@ -263,14 +270,17 @@ class FilesController {
     dropbox(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
             let multer1 = (0, multer_1.default)({ dest: "./uploads" });
-            let upload = multer1.single('file');
+            let upload = multer1.single("file");
             upload(req, res, function (err) {
                 var _a, _b;
                 if (err) {
                     return res.status(501).json({ error: err });
                 }
                 else {
-                    return res.json({ originalname: (_a = req.file) === null || _a === void 0 ? void 0 : _a.originalname, uploadname: (_b = req.file) === null || _b === void 0 ? void 0 : _b.filename });
+                    return res.json({
+                        originalname: (_a = req.file) === null || _a === void 0 ? void 0 : _a.originalname,
+                        uploadname: (_b = req.file) === null || _b === void 0 ? void 0 : _b.filename,
+                    });
                 }
             });
         });
@@ -284,12 +294,12 @@ class FilesController {
             const s3 = new s3_1.default({
                 region,
                 accessKeyId,
-                secretAccessKey
+                secretAccessKey,
             });
             console.log(s3);
             const downloadParams = {
                 Bucket: bucketName,
-                Key: req.body.filename
+                Key: req.body.filename,
             };
             console.log(downloadParams);
             try {
@@ -305,26 +315,38 @@ class FilesController {
         return __awaiter(this, void 0, void 0, function* () {
             let bucketName = keys_1.default.AWS.bucketName;
             try {
-                console.log('Sending Email');
+                console.log("Sending Email");
                 var transporter = nodemailer_1.default.createTransport({
-                    service: 'gmail',
+                    service: "gmail",
                     auth: {
-                        user: 'arenazl@gmail.com;Proyectos.don.luisk41@gmail.com',
-                        pass: 'vxmgkblhzauuapqh'
-                    }
+                        user: "arenazl@gmail.com;Proyectos.don.luisk41@gmail.com",
+                        pass: "vxmgkblhzauuapqh",
+                    },
                 });
                 var mailOptions = {
-                    from: 'arenazl@gmail.com',
-                    to: 'arenazl@gmail.com',
-                    subject: 'Nueva venta a nombre de: ' + req.body.denominacion + ' ingreso al sistema!',
-                    html: '<h5>Se vendio el Lote ' + req.body.id_lote + '!! </h5> <h5> Comprador: ' + req.body.denominacion + '</h5> <h5>Dni: ' + req.body.dni + ' </h5>  <h5>Precio de venta ' + req.body.lote_total + ' </h5>  <h5>Seña: ' + req.body.refuerzo_total + '</h5> <p>Ingrese al sistema para verificar los datos</p> <p><a href="https://sisbarrios.herokuapp.com"> Ingrese a SIS-Barrios </a></p>'
+                    from: "arenazl@gmail.com",
+                    to: "arenazl@gmail.com",
+                    subject: "Nueva venta a nombre de: " +
+                        req.body.denominacion +
+                        " ingreso al sistema!",
+                    html: "<h5>Se vendio el Lote " +
+                        req.body.id_lote +
+                        "!! </h5> <h5> Comprador: " +
+                        req.body.denominacion +
+                        "</h5> <h5>Dni: " +
+                        req.body.dni +
+                        " </h5>  <h5>Precio de venta " +
+                        req.body.lote_total +
+                        " </h5>  <h5>Seña: " +
+                        req.body.refuerzo_total +
+                        '</h5> <p>Ingrese al sistema para verificar los datos</p> <p><a href="https://sisbarrios.herokuapp.com"> Ingrese a SIS-Barrios </a></p>',
                 };
                 transporter.sendMail(mailOptions, function (error, info) {
                     if (error) {
                         console.log(error);
                     }
                     else {
-                        console.log('Email sent: ' + info.response);
+                        console.log("Email sent: " + info.response);
                     }
                 });
             }
@@ -337,22 +359,22 @@ class FilesController {
 function executeSpInsert(connection, spName, values, outParams) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            console.log('executeSpInsert');
-            let placeholders = values.map(() => '?').join(',');
+            console.log("executeSpInsert");
+            let placeholders = values.map(() => "?").join(",");
             let sql = `CALL ${spName}(${placeholders});`;
-            console.log('placeholders');
+            console.log("placeholders");
             console.log(placeholders);
-            console.log('sql');
+            console.log("sql");
             console.log(sql);
             const statement = yield connection.prepare(sql);
-            console.log('values');
+            console.log("values");
             console.log(values);
             yield statement.execute(values);
             statement.close();
             yield connection.unprepare(sql);
             if (outParams.length > 0) {
-                let outPlaceholders = outParams.map(param => `@${param}`).join(',');
-                console.log('outPlaceholders');
+                let outPlaceholders = outParams.map((param) => `@${param}`).join(",");
+                console.log("outPlaceholders");
                 console.log(outPlaceholders);
                 const [outResults] = yield connection.query(`SELECT ${outPlaceholders};`);
                 return outResults[0];
@@ -364,8 +386,37 @@ function executeSpInsert(connection, spName, values, outParams) {
         }
     });
 }
+function executeSpSelect(connection, spName, values) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            console.log("executeSpSelect");
+            // Crear los marcadores de posición para los parámetros de entrada
+            let placeholders = values.map(() => "?").join(",");
+            let sql = `CALL ${spName}(${placeholders});`;
+            console.log("placeholders");
+            console.log(placeholders);
+            console.log("sql");
+            console.log(sql);
+            // Preparar y ejecutar el stored procedure
+            const statement = yield connection.prepare(sql);
+            console.log("values");
+            console.log(values);
+            const [results] = yield statement.execute(values);
+            // Cerrar la declaración preparada y deshacer la preparación
+            statement.close();
+            yield connection.unprepare(sql);
+            console.log('RESULT');
+            console.log(results);
+            // Devolver los resultados
+            return results;
+        }
+        catch (error) {
+            throw new Error(`Error al ejecutar el stored procedure: ${error.message}`);
+        }
+    });
+}
 function escribirArchivoTR(rows, info, concepto, motivo, id) {
-    const file = fs.openSync('./uploads/output_' + id + '.txt', 'w');
+    const file = fs.openSync("./uploads/output_" + id + ".txt", "w");
     // console.log(transInmediataDatos);
     for (const value of rows) {
         //CBU
@@ -373,34 +424,34 @@ function escribirArchivoTR(rows, info, concepto, motivo, id) {
         CBU = value.bloqueCBU1.toString() + value.bloqueCBU2.toString();
         //IMPORTE
         let IMPORTE = value.importe.toString();
-        IMPORTE = padStringFromLeft(IMPORTE, (12 - IMPORTE.length), '0');
+        IMPORTE = padStringFromLeft(IMPORTE, 12 - IMPORTE.length, "0");
         //CONCEPTO
         let CONCEPTO = concepto;
-        CONCEPTO = padStringFromRight(concepto, (50 - concepto.length), ' ');
+        CONCEPTO = padStringFromRight(concepto, 50 - concepto.length, " ");
         //REFERENCIA
-        let REFERENCIA = ' ';
-        REFERENCIA = padStringFromRight(REFERENCIA, (12 - REFERENCIA.length), ' ');
+        let REFERENCIA = " ";
+        REFERENCIA = padStringFromRight(REFERENCIA, 12 - REFERENCIA.length, " ");
         //EMAIL
-        let EMAIL = ' ';
-        EMAIL = padStringFromRight(EMAIL, (50 - EMAIL.length), ' ');
+        let EMAIL = " ";
+        EMAIL = padStringFromRight(EMAIL, 50 - EMAIL.length, " ");
         //RELLENO
-        let RELLENO = '';
-        RELLENO = padStringFromRight(RELLENO, (124 - RELLENO.length), ' ');
-        fs.writeSync(file, CBU + IMPORTE + CONCEPTO + motivo + REFERENCIA + EMAIL + RELLENO + '\n');
+        let RELLENO = "";
+        RELLENO = padStringFromRight(RELLENO, 124 - RELLENO.length, " ");
+        fs.writeSync(file, CBU + IMPORTE + CONCEPTO + motivo + REFERENCIA + EMAIL + RELLENO + "\n");
     }
     //DATOS FINALES
     //CANT REGISTROS FINALES
     let CANT_REGISTROS = (info.cantidadRegistroFinal + 1).toString();
-    CANT_REGISTROS = padStringFromLeft(CANT_REGISTROS, (5 - CANT_REGISTROS.length), '0');
-    console.log('Cant Reegistros: ' + info.cantidadRegistroFinal);
-    console.log('Escribe: ' + CANT_REGISTROS);
+    CANT_REGISTROS = padStringFromLeft(CANT_REGISTROS, 5 - CANT_REGISTROS.length, "0");
+    console.log("Cant Reegistros: " + info.cantidadRegistroFinal);
+    console.log("Escribe: " + CANT_REGISTROS);
     //IMPORTE TOTAL
     let IMPORTE_TOTAL = info.importeTotalFinal.toString();
-    IMPORTE_TOTAL = padStringFromLeft(IMPORTE_TOTAL, (17 - IMPORTE_TOTAL.length), '0');
+    IMPORTE_TOTAL = padStringFromLeft(IMPORTE_TOTAL, 17 - IMPORTE_TOTAL.length, "0");
     //RELLENO
-    let RELLENO = '';
-    RELLENO = padStringFromRight(RELLENO, (251 - RELLENO.length), ' ');
-    fs.writeSync(file, CANT_REGISTROS + IMPORTE_TOTAL + RELLENO + '\n');
+    let RELLENO = "";
+    RELLENO = padStringFromRight(RELLENO, 251 - RELLENO.length, " ");
+    fs.writeSync(file, CANT_REGISTROS + IMPORTE_TOTAL + RELLENO + "\n");
     fs.closeSync(file);
     return true;
 }
@@ -427,11 +478,10 @@ function parsearInfoArchivoTR(infoRowC, infoRowF) {
     info.importeTotalFinal = Number(infoRowF.substring(7, 18).trim());
     info.fillerFinal = infoRowF.substring(18, 99);
     info.marcaFinal = Number(infoRowF.substring(99, 100).trim());
-    ;
     return info;
 }
 function parsearDatosArchivoTR(rows, transfeInfoId) {
-    console.log('transfeInfoId: ' + transfeInfoId);
+    console.log("transfeInfoId: " + transfeInfoId);
     let datosRows = rows.slice(1, rows.length - 2);
     let transInmediataDatos = new Array();
     for (const row of datosRows) {
@@ -458,32 +508,27 @@ function arreglarDecimales(importe) {
 }
 function getPantallaTransferenciaDatoById(transferenciaInfoId) {
     return __awaiter(this, void 0, void 0, function* () {
-        let queryAll = "SELECT tranDato.id as orden,  concat(tranDato.bloqueCBU1, tranDato.bloqueCBU2) as CBU, tranDato.importe as Importe, tranDato.beneficiarioApeNombre as Referencia FROM heroku_55504b2b2691e53.transferencias_inmediatas_dato AS tranDato where tranDato.transferenciaInmediataInfoId = " + transferenciaInfoId;
-        queryAll = queryAll.slice(0, -1);
-        const datos = yield database_1.default.query(queryAll);
-        console.log('datos');
-        console.log(datos);
-        return datos;
+        let connection = yield database_1.default.getConnection();
+        const values = [transferenciaInfoId];
+        const result = yield executeSpSelect(connection, 'get_pantalla_transferencia_dato_by_id', values);
+        return result;
     });
 }
 function getPantallaTransferenciaInfoById(transferenciaInfoId) {
     return __awaiter(this, void 0, void 0, function* () {
-        let queryAll = "SELECT tranInfo.fecha_emision as Fecha, COUNT(tranDato.id) as CantTran, tranInfo.importeTotal as ImporteTotal, tranInfo.bloque_cbu as cbuOrigen, tranInfo.concepto as concepto FROM heroku_55504b2b2691e53.transferencias_inmediatas AS tranInfo INNER JOIN heroku_55504b2b2691e53.transferencias_inmediatas_dato AS tranDato ON tranInfo.id = tranDato.transferenciaInmediataInfoId where tranInfo.id =" + transferenciaInfoId;
-        queryAll = queryAll.slice(0, -1);
-        console.log('new query: ' + queryAll);
-        const info = yield database_1.default.query(queryAll);
-        console.log('head');
-        console.log(info);
-        return info;
+        let connection = yield database_1.default.getConnection();
+        const values = [transferenciaInfoId];
+        const result = yield executeSpSelect(connection, 'get_pantalla_transferencia_info_by_id', values);
+        return result;
     });
 }
-function padStringFromLeft(str, length, padChar = ' ') {
+function padStringFromLeft(str, length, padChar = " ") {
     let paddedStr = padChar.repeat(length);
     return paddedStr + str;
 }
-function padStringFromRight(str, length, padChar = ' ') {
+function padStringFromRight(str, length, padChar = " ") {
     let paddedStr = padChar.repeat(length);
     return str + paddedStr;
 }
-const fileController = new FilesController;
+const fileController = new FilesController();
 exports.default = fileController;
