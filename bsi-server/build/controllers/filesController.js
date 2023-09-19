@@ -240,7 +240,6 @@ class FilesController {
         return __awaiter(this, void 0, void 0, function* () {
             console.log("enter response....");
             const { id } = req.params;
-            //CAMBIAR LAS CONSULTAS POR SP EJECUTADOS
             const infoScreen = yield getPantallaTransferenciaInfoById(id);
             const dataScreen = yield getPantallaTransferenciaDatoById(id);
             //@ts-ignore
@@ -454,6 +453,14 @@ function escribirArchivoTR(rows, info, concepto, motivo, id) {
     fs.writeSync(file, CANT_REGISTROS + IMPORTE_TOTAL + RELLENO + "\n");
     fs.closeSync(file);
     return true;
+}
+function readDile() {
+    //read a look.txt file
+    fs.readFile('./uploads/look.txt', 'utf8', function (err, data) {
+        if (err)
+            throw err;
+        console.log(data);
+    });
 }
 function parsearInfoArchivoTR(infoRowC, infoRowF) {
     let info = new model_1.transInmediataInfo();

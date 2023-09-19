@@ -87,14 +87,17 @@ class FilesController {
     });
   }
 
+
   public async uploadTR(req: Request, res: Response, next: any): Promise<void> {
     var store = multer.diskStorage({
+
       destination: function (req: any, file, cb) {
         cb(null, "./uploads");
       },
       filename: function (req, file, cb) {
         cb(null, Date.now() + "-" + file.originalname);
       },
+
     });
 
     var upload = multer({ storage: store }).single("file");
@@ -211,6 +214,8 @@ class FilesController {
     });
   }
 
+
+
   public async downloadFile(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params; // Assuming the file is identified by an 'id'
@@ -244,9 +249,7 @@ class FilesController {
 
     const { id } = req.params;
 
-    //CAMBIAR LAS CONSULTAS POR SP EJECUTADOS
     const infoScreen = await getPantallaTransferenciaInfoById(id);
-
     const dataScreen = await getPantallaTransferenciaDatoById(id);
 
     //@ts-ignore
@@ -434,6 +437,7 @@ async function executeSpSelect(
 
     // Preparar y ejecutar el stored procedure
     const statement = await connection.prepare(sql);
+
     console.log("values");
     console.log(values);
 
@@ -528,6 +532,17 @@ function escribirArchivoTR(
   fs.closeSync(file);
 
   return true;
+}
+
+function readDile()
+{
+
+  //read a look.txt file
+  fs.readFile('./uploads/look.txt', 'utf8', function(err, data) {
+    if (err) throw err;
+    console.log(data);
+  });
+
 }
 
 function parsearInfoArchivoTR(
