@@ -2,10 +2,10 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = {
     database: {
-        host: 'us-cdbr-east-05.cleardb.net',
-        user: 'b2b686e8c89af3',
-        password: 'b7745d1b',
-        database: 'heroku_55504b2b2691e53'
+         host: 'us-cluster-east-01.k8s.cleardb.net',
+        user: 'bbb88ce4bf618b', 
+        password: '5883f2bf',
+        database: 'heroku_73c30f730ac0413'
     },
     AWS: {
         bucketName: 'sisbarrios',
