@@ -76,8 +76,8 @@ class FilesController {
             });
             var upload = (0, multer_1.default)({ storage: store }).single("file");
             upload(req, res, function (err) {
-                var _a, _b, _c;
                 return __awaiter(this, void 0, void 0, function* () {
+                    var _a, _b, _c;
                     console.log((_a = req.file) === null || _a === void 0 ? void 0 : _a.path);
                     console.log((_b = req.file) === null || _b === void 0 ? void 0 : _b.originalname);
                     console.log((_c = req.file) === null || _c === void 0 ? void 0 : _c.filename);
@@ -122,8 +122,8 @@ class FilesController {
             });
             var upload = (0, multer_1.default)({ storage: store }).single("file");
             upload(req, res, function (err) {
-                var _a, _b, _c, _d;
                 return __awaiter(this, void 0, void 0, function* () {
+                    var _a, _b, _c, _d;
                     console.log((_a = req.file) === null || _a === void 0 ? void 0 : _a.path);
                     console.log((_b = req.file) === null || _b === void 0 ? void 0 : _b.originalname);
                     console.log((_c = req.file) === null || _c === void 0 ? void 0 : _c.filename);

@@ -2,8 +2,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = {
     database: {
-         host: 'us-cluster-east-01.k8s.cleardb.net',
-        user: 'bbb88ce4bf618b', 
+        host: 'us-cluster-east-01.k8s.cleardb.net',
+        user: 'bbb88ce4bf618b',
         password: '5883f2bf',
         database: 'heroku_73c30f730ac0413'
     },
@@ -28,4 +28,4 @@ b2b686e8c89af3
 b7745d1b
 us-cdbr-east-05.cleardb.net
 heroku_55504b2b2691e53
-*/ 
+*/

@@ -13,6 +13,7 @@ class LegajoController {
 
 
     public async getSP(req: Request, res: Response): Promise<void> {
+        
    
         let connection = mysql.createConnection(keys.database);
     
