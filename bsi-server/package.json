@@ -9,7 +9,7 @@
   "scripts": {
     "watch": "tsc -w",
     "dev": "nodemon ./build",
-    "start": "node index.js"
+    "start": "node ./build/index.js"
   },
   "keywords": [],
   "author": "",
