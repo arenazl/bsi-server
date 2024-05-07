@@ -89,8 +89,8 @@ class FilesController {
     });
   }
 
-
   public async uploadTR(req: Request, res: Response, next: any): Promise<void> {
+
     var store = multer.diskStorage({
 
       destination: function (req: any, file, cb) {
@@ -129,6 +129,7 @@ class FilesController {
         const motivo = dataFromUI[1];
 
         try {
+          
           let connection = await pool.getConnection();
 
           //LLAMAMOS AL SP DE DETALLE
@@ -217,8 +218,8 @@ class FilesController {
     });
   }
 
-
   public async downloadFile(req: Request, res: Response): Promise<void> {
+
     try {
       const { id } = req.params; // Assuming the file is identified by an 'id'
 
@@ -298,7 +299,6 @@ class FilesController {
     });
   }
 
-
   public async download(req: Request, res: Response, next: any): Promise<void> {
     let bucketName = keys.AWS.bucketName;
     let region = keys.AWS.bucketRegion;
@@ -374,6 +374,7 @@ class FilesController {
       console.log(ex);
     }
   }
+
 }
 
 async function executeSpInsert(
@@ -383,6 +384,7 @@ async function executeSpInsert(
   outParams: string[]
 ) {
   try {
+
     console.log("executeSpInsert");
 
     let placeholders = values.map(() => "?").join(",");
@@ -475,6 +477,7 @@ function escribirArchivoTR(
   // console.log(transInmediataDatos);
 
   for (const value of rows) {
+
     //CBU
     let CBU;
     CBU = value.bloqueCBU1.toString() + value.bloqueCBU2.toString();

@@ -20,13 +20,10 @@ class UsuarioController {
             let nombre = req.body.nombre;
             let pass = req.body.password;
             let id_barrio = req.body.id_barrio;
-            let q = 'SELECT u.id, u.nombre, r.nombre rol, g.descripcion grupo, id_grupo, id_barrio, b.nombre barrio \
-                FROM usuarios u \
-                INNER JOIN roles r on u.id_rol = r.id \
-                LEFT JOIN grupos g on u.id_grupo = g.id \
-                LEFT JOIN barrios b on u.id_barrio = b.id \
-                where u.nombre =' + "'" + nombre + "'" + " and \
-                u.id_barrio = " + id_barrio;
+            let q = 'SELECT u.id, u.nombre, g.descripcion grupo, id_grupo, id_barrio \
+                FROM Usuario u \
+                LEFT JOIN Grupo g on u.id_grupo = g.id \
+                where u.nombre =' + "'" + nombre + "'";
             console.log(q);
             const usuario = yield database_1.default.query(q);
             console.log(usuario.length);

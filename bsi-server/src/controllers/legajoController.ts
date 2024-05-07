@@ -16,12 +16,12 @@ class LegajoController {
         res.json("LA PM DIOS");
     }
 
+    
     public async getSP(req: Request, res: Response): Promise<void> {
 
         let connection = mysql.createConnection(keys.database);
     
         let sql = `CALL getItems(?, ?)`;
-        
         
         connection.query(sql, ["2", "3"], (error:any, results: any, fields:any) => {
           if (error) {
