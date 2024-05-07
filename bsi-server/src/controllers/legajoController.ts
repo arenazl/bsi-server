@@ -4,6 +4,7 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import nodemailer from 'nodemailer';
+
 import { Solicitud } from '../models/model';
 import keys from '../keys';
 
@@ -11,13 +12,16 @@ import mysql from 'mysql';
 
 class LegajoController {
 
+    public async test(req: Request, res: Response):  Promise<void> {
+        res.json("LA PM DIOS");
+    }
 
     public async getSP(req: Request, res: Response): Promise<void> {
-        
-   
+
         let connection = mysql.createConnection(keys.database);
     
         let sql = `CALL getItems(?, ?)`;
+        
         
         connection.query(sql, ["2", "3"], (error:any, results: any, fields:any) => {
           if (error) {

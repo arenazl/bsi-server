@@ -17,6 +17,11 @@ const nodemailer_1 = __importDefault(require("nodemailer"));
 const keys_1 = __importDefault(require("../keys"));
 const mysql_1 = __importDefault(require("mysql"));
 class LegajoController {
+    test(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            res.json("LA PM DIOS");
+        });
+    }
     getSP(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             let connection = mysql_1.default.createConnection(keys_1.default.database);

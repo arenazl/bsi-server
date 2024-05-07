@@ -7,16 +7,18 @@ import path from "path";
 import * as fs from "fs";
 import * as mysql from "mysql2/promise";
 import keys from "./../keys";
+
 import S3 from "aws-sdk/clients/s3";
+
 import { transInmediataInfo } from "./../models/model";
 import { transInmediataDato } from "./../models/model";
 
 import nodemailer from "nodemailer";
 import { ImportExport } from "aws-sdk";
 import legajoController from "./legajoController";
-import { Pool } from "promise-mysql";
 
 class FilesController {
+
   public async list(req: Request, res: Response): Promise<any> {
     var serverFiles = [];
     const dir = path.join(__dirname, "../uploads");
@@ -201,6 +203,7 @@ class FilesController {
           escribirArchivoTR(transInmediataDatos, info, concepto, motivo, id);
 
           //DEVUELVO AL FRONT EL ID GENERADO PARA MOSTRAR LOS RESULTADOS (ESTA PANTALLA VA A LLAMAR A getResponseTR ['files/responsetr/:id] )
+          
           res.json({ id: id });
         } catch (error) {
           console.error("error:" + error);
@@ -213,7 +216,6 @@ class FilesController {
       }
     });
   }
-
 
 
   public async downloadFile(req: Request, res: Response): Promise<void> {
@@ -295,6 +297,7 @@ class FilesController {
       }
     });
   }
+
 
   public async download(req: Request, res: Response, next: any): Promise<void> {
     let bucketName = keys.AWS.bucketName;
