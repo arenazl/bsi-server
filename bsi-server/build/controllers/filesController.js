@@ -113,12 +113,14 @@ class FilesController {
     }
     uploadTR(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
+            console.log("req" + req.params);
             var store = multer_1.default.diskStorage({
                 destination: function (req, file, cb) {
-                    cb(null, "../uploads");
+                    cb(null, "./uploads");
                 },
                 filename: function (req, file, cb) {
                     cb(null, Date.now() + "-" + file.originalname);
+                    console.log("inside function" + file.originalname);
                 },
             });
             var upload = (0, multer_1.default)({ storage: store }).single("file");

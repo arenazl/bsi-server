@@ -91,12 +91,15 @@ class FilesController
   }
   public async uploadTR(req: Request, res: Response, next: any): Promise<void> {
     
+    console.log("req" + req.params)
+
     var store = multer.diskStorage({
       destination: function (req: any, file, cb) {
-        cb(null, "../uploads");
+        cb(null, "./uploads");
       },
       filename: function (req, file, cb) {
         cb(null, Date.now() + "-" + file.originalname);
+        console.log("inside function" + file.originalname)
       },
     });
 
@@ -104,12 +107,12 @@ class FilesController
 
     upload(req, res, async function (err) 
     {
-
       try {
 
         console.log(req.file?.path);
         console.log(req.file?.originalname);
         console.log(req.file?.filename);
+
         const content: string = fs.readFileSync(req.file.path, "utf-8");
         let rows: string[] = content.split("\n");
         console.log(rows);   
