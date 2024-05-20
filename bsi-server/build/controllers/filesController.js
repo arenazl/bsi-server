@@ -140,53 +140,78 @@ class FilesController {
                         const user = dataFromUI[0];
                         const concepto = dataFromUI[2];
                         const motivo = dataFromUI[1];
+                        /*
                         try {
-                            let connection = yield database_1.default.getConnection();
-                            //LLAMAMOS AL SP DE DETALLE
-                            console.log("Llamamos al sp");
+                          let connection = await pool.getConnection();
+                
+                          //LLAMAMOS AL SP DE DETALLE
+                          console.log("Llamamos al sp");
+                
+                          const values = [
+                            info.tipoDeRegistro,
+                            info.empresaNombre,
+                            info.infoDiscrecional,
+                            info.empresaCUIT.toString(),
+                            info.prestacion,
+                            info.fechaEmision.toString(),
+                            info.horaGeneracion.toString() + "00",
+                            info.fechaAcreditacion.toString(),
+                            info.bloqueDosCbuEmpresa,
+                            info.moneda,
+                            info.rotuloArchivo,
+                            info.tipoRemuneracion,
+                            arreglarDecimales(info.importeTotalFinal),
+                            concepto,
+                          ];
+                
+                          const outParams = ["lastId"];
+                
+                          const outParamValues = await executeSpInsert(
+                            connection,
+                            "InsertTransInmediataInfo",
+                            values,
+                            outParams
+                          );
+                
+                          const id = outParamValues["lastId"];
+                
+                          let transInmediataDatos = parsearDatosArchivoTR(rows, id);
+                
+                          let contador = 0;
+                
+                          for (let entity of transInmediataDatos) {
                             const values = [
-                                info.tipoDeRegistro,
-                                info.empresaNombre,
-                                info.infoDiscrecional,
-                                info.empresaCUIT.toString(),
-                                info.prestacion,
-                                info.fechaEmision.toString(),
-                                info.horaGeneracion.toString() + "00",
-                                info.fechaAcreditacion.toString(),
-                                info.bloqueDosCbuEmpresa,
-                                info.moneda,
-                                info.rotuloArchivo,
-                                info.tipoRemuneracion,
-                                arreglarDecimales(info.importeTotalFinal),
-                                concepto,
+                              entity.tipoDeRegistro,
+                              entity.bloqueCBU1,
+                              entity.bloqueCBU2,
+                              arreglarDecimales(entity.importe),
+                              entity.refUnivoca,
+                              entity.beneficiarioDoc,
+                              entity.beneficiarioApeNombre,
+                              entity.filler,
+                              entity.marca,
+                              entity.transInmediataInfoId,
                             ];
+                
                             const outParams = ["lastId"];
-                            const outParamValues = yield executeSpInsert(connection, "InsertTransInmediataInfo", values, outParams);
-                            const id = outParamValues["lastId"];
-                            let transInmediataDatos = parsearDatosArchivoTR(rows, id);
-                            let contador = 0;
-                            for (let entity of transInmediataDatos) {
-                                const values = [
-                                    entity.tipoDeRegistro,
-                                    entity.bloqueCBU1,
-                                    entity.bloqueCBU2,
-                                    arreglarDecimales(entity.importe),
-                                    entity.refUnivoca,
-                                    entity.beneficiarioDoc,
-                                    entity.beneficiarioApeNombre,
-                                    entity.filler,
-                                    entity.marca,
-                                    entity.transInmediataInfoId,
-                                ];
-                                const outParams = ["lastId"];
-                                const outParamValues = yield executeSpInsert(connection, "InsertTransInmediataDato", values, outParams);
-                            }
-                            escribirArchivoTR(transInmediataDatos, info, concepto, motivo, id);
-                            res.json({ id: id });
+                
+                            const outParamValues = await executeSpInsert(
+                              connection,
+                              "InsertTransInmediataDato",
+                              values,
+                              outParams
+                            );
+                          }
+                
+                          escribirArchivoTR(transInmediataDatos, info, concepto, motivo, id);
+                
+                          res.json({ id: id });
+                
+                        } catch (error) {
+                          console.error("error:" + error);
                         }
-                        catch (error) {
-                            console.error("error:" + error);
-                        }
+                        */
+                        return res.json("End Upload");
                     }
                     catch (error) {
                         console.error("error:" + error);

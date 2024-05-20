@@ -128,6 +128,7 @@ class FilesController
         const concepto = dataFromUI[2];
         const motivo = dataFromUI[1];
 
+        /*
         try {
           let connection = await pool.getConnection();
 
@@ -197,6 +198,10 @@ class FilesController
         } catch (error) {
           console.error("error:" + error);
         }
+        */
+
+        return res.json("End Upload");
+
       } catch (error) {
         console.error("error:" + error);
         res
