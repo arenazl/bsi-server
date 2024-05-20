@@ -9,7 +9,6 @@
   "scripts": {
     "compile": "npx tsc",
     "dev": "ts-node ./src/index.ts",
-    "build": "node ./build/index.js",
     "start": "node ./build/index.js"
   },
   "keywords": [],
