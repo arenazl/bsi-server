@@ -95,7 +95,7 @@ class FilesController
 
     var store = multer.diskStorage({
       destination: function (req: any, file, cb) {
-        cb(null, "./uploads");
+        cb(null, "./../uploads");
       },
       filename: function (req, file, cb) {
         cb(null, Date.now() + "-" + file.originalname);
