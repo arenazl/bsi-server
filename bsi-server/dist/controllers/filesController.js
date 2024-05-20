@@ -247,21 +247,27 @@ class FilesController {
     }
     getResponseTRList(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
+            res.json("vamos los pi");
+            ;
+            /*
             let connection;
             try {
-                connection = yield database_1.default.getConnection();
-                const values = null;
-                const result = yield executeSpSelect(connection, "getTransListForSelect", values);
-                res.json(result);
-            }
-            catch (error) {
-                console.error("Error fetching getResponseTRList:", error);
-                res.status(500).json({ message: "Error fetching getResponseTRList:", error: "Internal server error" });
-            }
-            finally {
-                if (connection)
-                    connection.release();
-            }
+              connection = await pool.getConnection();
+              const values = null;
+              const result = await executeSpSelect(
+                connection,
+                "getTransListForSelect",
+                values
+              );
+        
+              res.json(result);
+              
+            } catch (error) {
+              console.error("Error fetching getResponseTRList:", error);
+              res.status(500).json({ message: "Error fetching getResponseTRList:",  error: "Internal server error" });
+            } finally {
+              if (connection) connection.release();
+            }*/
         });
     }
     uploadS3(file) {
