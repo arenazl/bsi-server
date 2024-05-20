@@ -113,7 +113,9 @@ class FilesController {
     }
     uploadTR(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
+
             console.log("req" + req.params);
+            
             var store = multer_1.default.diskStorage({
                 destination: function (req, file, cb) {
                     cb(null, "./uploads");
@@ -140,6 +142,7 @@ class FilesController {
                         const user = dataFromUI[0];
                         const concepto = dataFromUI[2];
                         const motivo = dataFromUI[1];
+
                         res.json({ uploadname: req.file.filename });
                         /*
                         try {
@@ -212,7 +215,6 @@ class FilesController {
                           console.error("error:" + error);
                         }
                         */
-                        return res.json("End Upload");
                     }
                     catch (error) {
                         console.error("error:" + error);
