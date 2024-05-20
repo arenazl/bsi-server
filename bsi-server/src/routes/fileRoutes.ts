@@ -11,7 +11,7 @@ class FileRoutes {
 
     config() {
 
-        this.router.get('/', fileController.list);
+        this.router.get('/files', fileController.list);
         //this.router.post('/', gamesController.create);
         //this.router.put('/:id', gamesController.update);
         this.router.delete('/:id', fileController.delete);

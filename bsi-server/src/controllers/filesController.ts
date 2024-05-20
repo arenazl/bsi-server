@@ -93,7 +93,7 @@ class FilesController
     
     var store = multer.diskStorage({
       destination: function (req: any, file, cb) {
-        cb(null, "./uploads");
+        cb(null, "../uploads");
       },
       filename: function (req, file, cb) {
         cb(null, Date.now() + "-" + file.originalname);
@@ -253,7 +253,6 @@ class FilesController
   }
   public async getResponseTRList(req, res) : Promise<void> {
 
-
     let connection;
     try {
       connection = await pool.getConnection();
@@ -274,7 +273,6 @@ class FilesController
     }
 
   }
-
   public async uploadS3(file: any) {
     let bucketName = keys.AWS.bucketName;
     let region = keys.AWS.bucketRegion;
@@ -443,10 +441,12 @@ async function executeSpInsert(
 }
 
 async function executeSpSelect(
+
   connection: mysql.PoolConnection,
   spName: string,
   values: (string | number)[]
 ): Promise<any[]> {
+
   try {
     console.log("executeSpSelect");
 
