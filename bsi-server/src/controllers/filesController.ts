@@ -253,9 +253,7 @@ class FilesController
   }
   public async getResponseTRList(req, res) : Promise<void> {
 
-    res.json("vamos los pi");;
 
-    /*
     let connection;
     try {
       connection = await pool.getConnection();
@@ -273,7 +271,7 @@ class FilesController
       res.status(500).json({ message: "Error fetching getResponseTRList:",  error: "Internal server error" });
     } finally {
       if (connection) connection.release();
-    }*/
+    }
 
   }
 
