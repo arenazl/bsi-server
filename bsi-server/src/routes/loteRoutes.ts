@@ -14,7 +14,9 @@ class LoteRoutes {
         this.router.post('/list', loteController.list);
         this.router.put('/:id', loteController.update);
         this.router.get('/provincias', loteController.provincias);
+
         this.router.get('/localidades/:id', loteController.localidades);
+    
     }
 
 }

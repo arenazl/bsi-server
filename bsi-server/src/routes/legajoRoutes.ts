@@ -22,6 +22,7 @@ class LegajoRoutes {
         this.router.post('/fincuota', legajoController.finCuota);
         this.router.put('/:id', legajoController.update);
         this.router.delete('/:id', legajoController.delete);
+        
         this.router.post('/login', usuarioController.login);
     }
 

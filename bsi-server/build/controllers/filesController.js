@@ -135,6 +135,7 @@ class FilesController {
                         let rows = content.split("\n");
                         console.log(rows);
                         let info = parsearInfoArchivoTR(rows[0], rows[rows.length - 2]);
+                        console.log(info);
                         const dataFromUI = (_d = req.file) === null || _d === void 0 ? void 0 : _d.originalname.split("-");
                         const user = dataFromUI[0];
                         const concepto = dataFromUI[2];

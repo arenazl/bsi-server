@@ -111,13 +111,16 @@ class FilesController
 
         console.log(req.file?.path);
         console.log(req.file?.originalname);
-        console.log(req.file?.filename);
+        
+        console.log(req.file?.filename)
 
         const content: string = fs.readFileSync(req.file.path, "utf-8");
         let rows: string[] = content.split("\n");
         console.log(rows);   
 
         let info = parsearInfoArchivoTR(rows[0], rows[rows.length - 2]);
+
+        console.log(info);
 
         const dataFromUI = req.file?.originalname.split("-");
 
