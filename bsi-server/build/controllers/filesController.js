@@ -140,6 +140,7 @@ class FilesController {
                         const user = dataFromUI[0];
                         const concepto = dataFromUI[2];
                         const motivo = dataFromUI[1];
+                        res.json({ uploadname: req.file.filename });
                         /*
                         try {
                           let connection = await pool.getConnection();

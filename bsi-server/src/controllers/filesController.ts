@@ -110,8 +110,7 @@ class FilesController
       try {
 
         console.log(req.file?.path);
-        console.log(req.file?.originalname);
-        
+        console.log(req.file?.originalname);   
         console.log(req.file?.filename)
 
         const content: string = fs.readFileSync(req.file.path, "utf-8");
@@ -127,6 +126,8 @@ class FilesController
         const user = dataFromUI[0];
         const concepto = dataFromUI[2];
         const motivo = dataFromUI[1];
+
+        res.json({ uploadname: req.file.filename });
 
         /*
         try {
