@@ -145,6 +145,8 @@ class LegajoController {
         
         let queryAll = ''
 
+        
+
         //todos
         if(tg == 7) 
         {

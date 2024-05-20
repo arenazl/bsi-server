@@ -135,7 +135,6 @@ export class transInmediataDato{
   beneficiarioApeNombre: string;
   filler: string;
   marca: number;
-
   transInmediataInfoId: number;
 
 }

@@ -128,16 +128,12 @@ class FilesController {
                     console.log((_a = req.file) === null || _a === void 0 ? void 0 : _a.path);
                     console.log((_b = req.file) === null || _b === void 0 ? void 0 : _b.originalname);
                     console.log((_c = req.file) === null || _c === void 0 ? void 0 : _c.filename);
-                    // Read the contents of the txt file
                     const content = fs.readFileSync(req.file.path, "utf-8");
-                    // Separate the content into rows based on newline
                     let rows = content.split("\n");
                     console.log(rows);
                     try {
-                        //PARSEA CABECERA
                         let info = parsearInfoArchivoTR(rows[0], rows[rows.length - 2]);
                         const dataFromUI = (_d = req.file) === null || _d === void 0 ? void 0 : _d.originalname.split("-");
-                        // CONCEPTO /MOTIVO
                         const user = dataFromUI[0];
                         const concepto = dataFromUI[2];
                         const motivo = dataFromUI[1];
@@ -161,48 +157,28 @@ class FilesController {
                                 arreglarDecimales(info.importeTotalFinal),
                                 concepto,
                             ];
-                            const outParams = ["last_id"];
+                            const outParams = ["lastId"];
                             const outParamValues = yield executeSpInsert(connection, "InsertTransInmediataInfo", values, outParams);
-                            const id = outParamValues["last_id"];
-                            console.log("Termina el SP de Info. ID value: " + id);
-                            //PARSEA DETALLE
-                            /*
+                            const id = outParamValues["lastId"];
                             let transInmediataDatos = parsearDatosArchivoTR(rows, id);
-                  
                             let contador = 0;
-                  
                             for (let entity of transInmediataDatos) {
-                              const values = [
-                                entity.tipoDeRegistro,
-                                entity.bloqueCBU1,
-                                entity.bloqueCBU2,
-                                arreglarDecimales(entity.importe),
-                                entity.refUnivoca,
-                                entity.beneficiarioDoc,
-                                entity.beneficiarioApeNombre,
-                                entity.filler,
-                                entity.marca,
-                                entity.transInmediataInfoId,
-                              ];
-                  
-                              const outParams = ["id", "created_at"];
-                  
-                              //DESCOMENTAR PARA EJECUTAR
-                              const outParamValues = await executeSpInsert(
-                                connection,
-                                "insert_transferencia_inmediata_dato",
-                                values,
-                                outParams
-                              );
-                  
-                              console.log("outParamValues: " + outParamValues);
-                  
-                              //LEO EL RETORNO SI ES QUE HAY (ES UN ARRAY)
+                                const values = [
+                                    entity.tipoDeRegistro,
+                                    entity.bloqueCBU1,
+                                    entity.bloqueCBU2,
+                                    arreglarDecimales(entity.importe),
+                                    entity.refUnivoca,
+                                    entity.beneficiarioDoc,
+                                    entity.beneficiarioApeNombre,
+                                    entity.filler,
+                                    entity.marca,
+                                    entity.transInmediataInfoId,
+                                ];
+                                const outParams = ["lastId"];
+                                const outParamValues = yield executeSpInsert(connection, "InsertTransInmediataDato", values, outParams);
                             }
-                  
-                            //Armo el archivoTR
-                            escribirArchivoTR(transInmediataDatos, info, concepto, motivo, id);*/
-                            //DEVUELVO AL FRONT EL ID GENERADO PARA MOSTRAR LOS RESULTADOS (ESTA PANTALLA VA A LLAMAR A getResponseTR ['files/responsetr/:id] )
+                            escribirArchivoTR(transInmediataDatos, info, concepto, motivo, id);
                             res.json({ id: id });
                         }
                         catch (error) {
@@ -213,7 +189,7 @@ class FilesController {
                         console.error("error:" + error);
                         res
                             .status(500)
-                            .json({ message: "An error occurred while updating the data." });
+                            .json({ message: "An error occurred while updating the data.", error: error });
                     }
                 });
             });
@@ -223,15 +199,11 @@ class FilesController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { id } = req.params; // Assuming the file is identified by an 'id'
-                // TODO: Fetch the file path based on the 'id'
-                const filePath = "./uploads/output_" + id + ".txt"; // Replace with the actual file path
+                const filePath = "./uploads/output_" + id + ".txt";
                 res.download(filePath, function (err) {
                     if (err) {
-                        // Handle error, but keep in mind the response may be partially sent,
-                        // so check `res.headersSent`
                         console.error(err);
                         if (res.headersSent) {
-                            // Decide what to do: close the connection, or or just report the error.
                         }
                         else {
                             //res.status(err)
@@ -250,12 +222,46 @@ class FilesController {
     }
     getResponseTR(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log("enter response....");
-            const { id } = req.params;
-            const infoScreen = yield getPantallaTransferenciaInfoById(id);
-            const dataScreen = yield getPantallaTransferenciaDatoById(id);
-            //@ts-ignore
-            res.json({ head: infoScreen[0], data: dataScreen[0] });
+            try {
+                console.log("enter response....");
+                const { id } = req.params;
+                // Fetch the infoScreen data
+                const infoScreen = yield getPantallaTransferenciaInfoById(id);
+                if (!infoScreen || infoScreen.length === 0) {
+                    return res.status(404).json({ error: "Info screen not found" });
+                }
+                // Fetch the dataScreen data
+                const dataScreen = yield getPantallaTransferenciaDatoById(id);
+                if (!dataScreen || dataScreen.length === 0) {
+                    return res.status(404).json({ error: "Data screen not found" });
+                }
+                // Send the response
+                //@ts-ignore
+                res.json({ head: infoScreen[0], data: dataScreen });
+            }
+            catch (error) {
+                console.error("Error fetching response:", error);
+                res.status(500).json({ message: "Error fetching getResponseTR:", error: "Internal server error" });
+            }
+        });
+    }
+    getResponseTRList(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let connection;
+            try {
+                connection = yield database_1.default.getConnection();
+                const values = null;
+                const result = yield executeSpSelect(connection, "getTransListForSelect", values);
+                res.json(result);
+            }
+            catch (error) {
+                console.error("Error fetching getResponseTRList:", error);
+                res.status(500).json({ message: "Error fetching getResponseTRList:", error: "Internal server error" });
+            }
+            finally {
+                if (connection)
+                    connection.release();
+            }
         });
     }
     uploadS3(file) {
@@ -367,41 +373,43 @@ class FilesController {
         });
     }
 }
+function extractOutParams(queryResult, outParams) {
+    const output = {};
+    // Recorrer los resultados y extraer los parámetros de salida
+    queryResult.forEach((resultSet) => {
+        if (Array.isArray(resultSet)) {
+            resultSet.forEach((row) => {
+                outParams.forEach((param) => {
+                    if (row.hasOwnProperty(param)) {
+                        output[param] = row[param];
+                    }
+                });
+            });
+        }
+    });
+    return output;
+}
 function executeSpInsert(connection, spName, values, outParams) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             console.log("executeSpInsert");
             let placeholders = values.map(() => "?").join(",");
             let sql = `CALL ${spName}(${placeholders});`;
-            console.log("placeholders");
             console.log(placeholders);
             console.log("sql");
             console.log(sql);
-            const statement = yield connection.prepare(sql);
             console.log("values");
             console.log(values);
-            console.log("run execute");
-            const [rows] = yield statement.execute('SELECT * FROM usuario');
-            console.log([rows]);
-            console.log("run close");
-            yield statement.close();
-            console.log("run unprepare");
-            yield connection.unprepare(sql);
-            console.log("params length: " + outParams.length);
-            if (outParams.length > 0) {
-                let outPlaceholders = outParams.map((param) => `${param}`).join(",");
-                console.log("Parameters");
-                console.log(outParams.length);
-                console.log(outParams);
-                console.log("outPlaceholders");
-                console.log(outPlaceholders);
-                const [outResults] = yield connection.query(`SELECT ${outPlaceholders};`);
-                return outResults[0];
-            }
-            return {};
+            const [queryResult] = yield connection.execute(sql, values);
+            const outParamValues = extractOutParams(queryResult, outParams);
+            return outParamValues;
         }
         catch (error) {
             console.error(error);
+        }
+        finally {
+            if (connection)
+                connection.release();
         }
     });
 }
@@ -409,28 +417,31 @@ function executeSpSelect(connection, spName, values) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             console.log("executeSpSelect");
-            // Crear los marcadores de posición para los parámetros de entrada
-            let placeholders = values.map(() => "?").join(",");
+            let placeholders = "";
+            if (values) {
+                placeholders = values.map(() => "?").join(",");
+            }
             let sql = `CALL ${spName}(${placeholders});`;
             console.log("placeholders");
             console.log(placeholders);
             console.log("sql");
             console.log(sql);
-            // Preparar y ejecutar el stored procedure
             const statement = yield connection.prepare(sql);
             console.log("values");
             console.log(values);
             const [results] = yield statement.execute(values);
-            // Cerrar la declaración preparada y deshacer la preparación
             statement.close();
             yield connection.unprepare(sql);
-            console.log('RESULT');
+            console.log("RESULT");
             console.log(results);
-            // Devolver los resultados
-            return results;
+            return results[0];
         }
         catch (error) {
-            throw new Error(`Error al ejecutar el stored procedure: ${error.message}`);
+            console.error(error);
+        }
+        finally {
+            if (connection)
+                connection.release();
         }
     });
 }
@@ -476,7 +487,7 @@ function escribirArchivoTR(rows, info, concepto, motivo, id) {
 }
 function readDile() {
     //read a look.txt file
-    fs.readFile('./uploads/look.txt', 'utf8', function (err, data) {
+    fs.readFile("./uploads/look.txt", "utf8", function (err, data) {
         if (err)
             throw err;
         console.log(data);
@@ -535,18 +546,41 @@ function arreglarDecimales(importe) {
 }
 function getPantallaTransferenciaDatoById(transferenciaInfoId) {
     return __awaiter(this, void 0, void 0, function* () {
-        let connection = yield database_1.default.getConnection();
-        const values = [transferenciaInfoId];
-        const result = yield executeSpSelect(connection, 'get_pantalla_transferencia_dato_by_id', values);
-        return result;
+        let connection;
+        try {
+            connection = yield database_1.default.getConnection();
+            const values = [transferenciaInfoId];
+            const result = yield executeSpSelect(connection, "GetTransInmediataDatoById", values);
+            return result;
+        }
+        catch (error) {
+            console.error("Error fetching Pantalla Transferencia Dato:", error);
+            throw error;
+        }
+        finally {
+            if (connection)
+                connection.release();
+        }
     });
 }
-function getPantallaTransferenciaInfoById(transferenciaInfoId) {
+function getPantallaTransferenciaInfoById(id) {
     return __awaiter(this, void 0, void 0, function* () {
-        let connection = yield database_1.default.getConnection();
-        const values = [transferenciaInfoId];
-        const result = yield executeSpSelect(connection, 'get_pantalla_transferencia_info_by_id', values);
-        return result;
+        let connection;
+        try {
+            connection = yield database_1.default.getConnection();
+            const [rows] = yield connection.query("CALL GetTransInmediataInfoById(?)", [
+                id,
+            ]);
+            return rows;
+        }
+        catch (error) {
+            console.error("Error fetching Pantalla Transferencia Info:", error);
+            throw error;
+        }
+        finally {
+            if (connection)
+                connection.release();
+        }
     });
 }
 function padStringFromLeft(str, length, padChar = " ") {

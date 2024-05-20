@@ -17,8 +17,8 @@ import nodemailer from "nodemailer";
 import { ImportExport } from "aws-sdk";
 import legajoController from "./legajoController";
 
-class FilesController {
-
+class FilesController 
+{
   public async list(req: Request, res: Response): Promise<any> {
     var serverFiles = [];
     const dir = path.join(__dirname, "../uploads");
@@ -31,13 +31,14 @@ class FilesController {
     return res.json(serverFiles);
   }
   public async delete(req: Request, res: Response): Promise<void> {
+    //pere
+
     const { id } = req.params;
 
     await pool.query("DELETE  FROM games WHERE id = ?", [id]);
 
     res.json({ message: "The game was deleted" });
   }
-
   public async upload(req: Request, res: Response, next: any): Promise<void> {
     console.log("upload start");
 
@@ -88,48 +89,42 @@ class FilesController {
       }
     });
   }
-
   public async uploadTR(req: Request, res: Response, next: any): Promise<void> {
-
+    
     var store = multer.diskStorage({
-
       destination: function (req: any, file, cb) {
         cb(null, "./uploads");
       },
       filename: function (req, file, cb) {
         cb(null, Date.now() + "-" + file.originalname);
       },
-
     });
 
     var upload = multer({ storage: store }).single("file");
 
-    upload(req, res, async function (err) {
+    upload(req, res, async function (err) 
+    {
       console.log(req.file?.path);
       console.log(req.file?.originalname);
       console.log(req.file?.filename);
 
-      // Read the contents of the txt file
       const content: string = fs.readFileSync(req.file.path, "utf-8");
 
-      // Separate the content into rows based on newline
       let rows: string[] = content.split("\n");
 
       console.log(rows);
 
       try {
-        //PARSEA CABECERA
+
         let info = parsearInfoArchivoTR(rows[0], rows[rows.length - 2]);
 
         const dataFromUI = req.file?.originalname.split("-");
 
-        // CONCEPTO /MOTIVO
         const user = dataFromUI[0];
         const concepto = dataFromUI[2];
         const motivo = dataFromUI[1];
 
         try {
-          
           let connection = await pool.getConnection();
 
           //LLAMAMOS AL SP DE DETALLE
@@ -152,21 +147,17 @@ class FilesController {
             concepto,
           ];
 
-          const outParams = ["id", "created_at"];
+          const outParams = ["lastId"];
 
           const outParamValues = await executeSpInsert(
             connection,
-            "Insert_Transferencia_Inmediata_Info",
+            "InsertTransInmediataInfo",
             values,
             outParams
           );
-          const id = outParamValues["@id"];
-          const created_at = outParamValues["@created_at"];
 
-          console.log("Termina el SP de Info. ID value: " + id);
-          console.log("Comienza el SP de Dato:");
+          const id = outParamValues["lastId"];
 
-          //PARSEA DETALLE
           let transInmediataDatos = parsearDatosArchivoTR(rows, id);
 
           let contador = 0;
@@ -185,27 +176,20 @@ class FilesController {
               entity.transInmediataInfoId,
             ];
 
-            const outParams = ["id", "created_at"];
+            const outParams = ["lastId"];
 
-            //DESCOMENTAR PARA EJECUTAR
             const outParamValues = await executeSpInsert(
               connection,
-              "insert_transferencia_inmediata_dato",
+              "InsertTransInmediataDato",
               values,
               outParams
             );
-
-            console.log("outParamValues: " + outParamValues);
-
-            //LEO EL RETORNO SI ES QUE HAY (ES UN ARRAY)
           }
 
-          //Armo el archivoTR
           escribirArchivoTR(transInmediataDatos, info, concepto, motivo, id);
 
-          //DEVUELVO AL FRONT EL ID GENERADO PARA MOSTRAR LOS RESULTADOS (ESTA PANTALLA VA A LLAMAR A getResponseTR ['files/responsetr/:id] )
-          
           res.json({ id: id });
+
         } catch (error) {
           console.error("error:" + error);
         }
@@ -213,26 +197,22 @@ class FilesController {
         console.error("error:" + error);
         res
           .status(500)
-          .json({ message: "An error occurred while updating the data." });
+          .json({ message: "An error occurred while updating the data.", error: error});
       }
+    
     });
   }
-
   public async downloadFile(req: Request, res: Response): Promise<void> {
-
     try {
       const { id } = req.params; // Assuming the file is identified by an 'id'
 
-      // TODO: Fetch the file path based on the 'id'
-      const filePath = "./uploads/output_" + id + ".txt"; // Replace with the actual file path
+      const filePath = "./uploads/output_" + id + ".txt"; 
 
       res.download(filePath, function (err) {
-        if (err) {
-          // Handle error, but keep in mind the response may be partially sent,
-          // so check `res.headersSent`
-          console.error(err);
+        if (err) {   
+        console.error(err);
           if (res.headersSent) {
-            // Decide what to do: close the connection, or or just report the error.
+        
           } else {
             //res.status(err)
           }
@@ -245,20 +225,53 @@ class FilesController {
       res.status(500).send("Internal Server Error");
     }
   }
+  public async getResponseTR(req, res) {
+    try {
+      console.log("enter response....");
+      const { id } = req.params;
 
-  public async getResponseTR(req: Request, res: Response): Promise<any> {
-    
-    console.log("enter response....");
+      // Fetch the infoScreen data
+      const infoScreen = await getPantallaTransferenciaInfoById(id);
+      if (!infoScreen || infoScreen.length === 0) {
+        return res.status(404).json({ error: "Info screen not found" });
+      }
 
-    const { id } = req.params;
+      // Fetch the dataScreen data
+      const dataScreen = await getPantallaTransferenciaDatoById(id);
+      if (!dataScreen || dataScreen.length === 0) {
+        return res.status(404).json({ error: "Data screen not found" });
+      }
 
-    const infoScreen = await getPantallaTransferenciaInfoById(id);
-    const dataScreen = await getPantallaTransferenciaDatoById(id);
-
-    //@ts-ignore
-    res.json({ head: infoScreen[0], data: dataScreen[0] });
+      // Send the response
+      //@ts-ignore
+      res.json({ head: infoScreen[0], data: dataScreen });
+    } catch (error) {
+      
+      console.error("Error fetching response:", error);
+      res.status(500).json({ message: "Error fetching getResponseTR:",  error: "Internal server error" });
+    }
   }
+  public async getResponseTRList(req, res) {
 
+    let connection;
+    try {
+      connection = await pool.getConnection();
+      const values = null;
+      const result = await executeSpSelect(
+        connection,
+        "getTransListForSelect",
+        values
+      );
+
+      res.json(result);
+      
+    } catch (error) {
+      console.error("Error fetching getResponseTRList:", error);
+      res.status(500).json({ message: "Error fetching getResponseTRList:",  error: "Internal server error" });
+    } finally {
+      if (connection) connection.release();
+    }
+  }
   public async uploadS3(file: any) {
     let bucketName = keys.AWS.bucketName;
     let region = keys.AWS.bucketRegion;
@@ -281,7 +294,6 @@ class FilesController {
 
     return s3.upload(uploadParams).promise();
   }
-
   public async dropbox(req: Request, res: Response, next: any): Promise<void> {
     let multer1 = multer({ dest: "./uploads" });
 
@@ -298,8 +310,8 @@ class FilesController {
       }
     });
   }
-
   public async download(req: Request, res: Response, next: any): Promise<void> {
+
     let bucketName = keys.AWS.bucketName;
     let region = keys.AWS.bucketRegion;
     let accessKeyId = keys.AWS.accesKey;
@@ -327,7 +339,6 @@ class FilesController {
       throw err;
     }
   }
-
   public async sendMail(req: Request, res: Response, next: any): Promise<void> {
     let bucketName = keys.AWS.bucketName;
 
@@ -374,73 +385,81 @@ class FilesController {
       console.log(ex);
     }
   }
+}
 
+function extractOutParams(queryResult, outParams) {
+  const output = {};
+  // Recorrer los resultados y extraer los parámetros de salida
+  queryResult.forEach((resultSet) => {
+    if (Array.isArray(resultSet)) {
+      resultSet.forEach((row) => {
+        outParams.forEach((param) => {
+          if (row.hasOwnProperty(param)) {
+            output[param] = row[param];
+          }
+        });
+      });
+    }
+  });
+  return output;
 }
 
 async function executeSpInsert(
-  connection: mysql.Connection,
+
+  connection: mysql.PoolConnection,
   spName: string,
   values: (string | number)[],
   outParams: string[]
 ) {
+
   try {
 
     console.log("executeSpInsert");
 
     let placeholders = values.map(() => "?").join(",");
+
     let sql = `CALL ${spName}(${placeholders});`;
 
-    console.log("placeholders");
     console.log(placeholders);
     console.log("sql");
     console.log(sql);
-
-    const statement = await connection.prepare(sql);
-
     console.log("values");
     console.log(values);
-    await statement.execute(values);
-    statement.close();
-    await connection.unprepare(sql);
 
-    if (outParams.length > 0) {
-      let outPlaceholders = outParams.map((param) => `@${param}`).join(",");
+    const [queryResult] = await connection.execute(sql, values);
 
-      console.log("outPlaceholders");
-      console.log(outPlaceholders);
+    const outParamValues = extractOutParams(queryResult, outParams);
 
-      const [outResults]: any = await connection.query(
-        `SELECT ${outPlaceholders};`
-      );
+    return outParamValues;
 
-      return outResults[0];
-    }
-
-    return {};
   } catch (error: any) {
-    throw new Error(`Error al ejecutar el stored procedure: ${error.message}`);
+    console.error(error);
+  } finally {
+  if (connection) connection.release();
   }
 }
 
 async function executeSpSelect(
-  
-  connection: mysql.Connection,
+  connection: mysql.PoolConnection,
   spName: string,
   values: (string | number)[]
 ): Promise<any[]> {
   try {
     console.log("executeSpSelect");
 
-    // Crear los marcadores de posición para los parámetros de entrada
-    let placeholders = values.map(() => "?").join(",");
+    let placeholders = "";
+
+    if (values) {
+      placeholders = values.map(() => "?").join(",");
+    }
+
     let sql = `CALL ${spName}(${placeholders});`;
 
     console.log("placeholders");
     console.log(placeholders);
     console.log("sql");
-    console.log(sql);
+    console.log(sql)
 
-    // Preparar y ejecutar el stored procedure
     const statement = await connection.prepare(sql);
 
     console.log("values");
@@ -448,21 +467,20 @@ async function executeSpSelect(
 
     const [results]: any = await statement.execute(values);
 
-    // Cerrar la declaración preparada y deshacer la preparación
     statement.close();
     await connection.unprepare(sql);
 
-    console.log('RESULT');
+    console.log("RESULT");
     console.log(results);
 
-    // Devolver los resultados
-    return results;
-
-  
-
+    return results[0];
+    
   } catch (error: any) {
-    throw new Error(`Error al ejecutar el stored procedure: ${error.message}`);
+    console.error(error);
+  } finally {
+  if (connection) connection.release();
   }
+  
 }
 
 function escribirArchivoTR(
@@ -477,7 +495,6 @@ function escribirArchivoTR(
   // console.log(transInmediataDatos);
 
   for (const value of rows) {
-
     //CBU
     let CBU;
     CBU = value.bloqueCBU1.toString() + value.bloqueCBU2.toString();
@@ -540,15 +557,12 @@ function escribirArchivoTR(
   return true;
 }
 
-function readDile()
-{
-
+function readDile() {
   //read a look.txt file
-  fs.readFile('./uploads/look.txt', 'utf8', function(err, data) {
+  fs.readFile("./uploads/look.txt", "utf8", function (err, data) {
     if (err) throw err;
     console.log(data);
   });
-
 }
 
 function parsearInfoArchivoTR(
@@ -621,33 +635,47 @@ function arreglarDecimales(importe: number) {
 }
 
 async function getPantallaTransferenciaDatoById(transferenciaInfoId: number) {
+  let connection;
+  try {
+    connection = await pool.getConnection();
 
-  let connection = await pool.getConnection();
+    const values = [transferenciaInfoId];
+    const result = await executeSpSelect(
+      connection,
+      "GetTransInmediataDatoById",
+      values
+    );
 
-  const values = [ transferenciaInfoId ];
-
-  const result = await executeSpSelect(connection, 'get_pantalla_transferencia_dato_by_id', values)
-
-  return result;
-
+    return result;
+  } catch (error) {
+    console.error("Error fetching Pantalla Transferencia Dato:", error);
+    throw error;
+  } finally {
+    if (connection) connection.release();
+  }
 }
 
-async function getPantallaTransferenciaInfoById(transferenciaInfoId: number) {
-
-    let connection = await pool.getConnection();
-
-    const values = [ transferenciaInfoId ];
-  
-    const result = await executeSpSelect(connection, 'get_pantalla_transferencia_info_by_id', values)
-  
-    return result;
-
+async function getPantallaTransferenciaInfoById(id: number) {
+  let connection;
+  try {
+    connection = await pool.getConnection();
+    const [rows] = await connection.query("CALL GetTransInmediataInfoById(?)", [
+      id,
+    ]);
+    return rows;
+  } catch (error) {
+    console.error("Error fetching Pantalla Transferencia Info:", error);
+    throw error;
+  } finally {
+    if (connection) connection.release();
+  }
 }
 
 function padStringFromLeft(str: string, length: number, padChar = " ") {
   let paddedStr = padChar.repeat(length);
   return paddedStr + str;
 }
+
 function padStringFromRight(str: string, length: number, padChar = " ") {
   let paddedStr = padChar.repeat(length);
   return str + paddedStr;
