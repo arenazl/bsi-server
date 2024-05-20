@@ -4,15 +4,16 @@ export default {
     database: {
         //host: 'us-cluster-east-01.k8s.cleardb.net',
         //user: 'bbb88ce4bf618b', 
-        host: 'localhost',
-        user: 'root', 
-        password: 'qqqaaa',
+        //password: '5883f2bf',
+        host: 'us-cluster-east-01.k8s.cleardb.net',
+        user: 'bbb88ce4bf618b', 
+        password: '5883f2bf',
         database: 'heroku_73c30f730ac0413',
         waitForConnections: true,
         connectionLimit: 10,
         queueLimit: 0
     },
-  
+
     AWS:{
         bucketName: 'sisbarrios',
         bucketRegion: 'sa-east-1',
