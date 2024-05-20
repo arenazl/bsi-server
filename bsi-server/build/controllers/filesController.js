@@ -66,7 +66,6 @@ class FilesController {
     }
     upload(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log("upload start");
             var store = multer_1.default.diskStorage({
                 destination: function (req, file, cb) {
                     cb(null, "./../uploads");
