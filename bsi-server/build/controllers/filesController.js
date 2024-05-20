@@ -125,13 +125,13 @@ class FilesController {
             upload(req, res, function (err) {
                 return __awaiter(this, void 0, void 0, function* () {
                     var _a, _b, _c, _d;
-                    console.log((_a = req.file) === null || _a === void 0 ? void 0 : _a.path);
-                    console.log((_b = req.file) === null || _b === void 0 ? void 0 : _b.originalname);
-                    console.log((_c = req.file) === null || _c === void 0 ? void 0 : _c.filename);
-                    const content = fs.readFileSync(req.file.path, "utf-8");
-                    let rows = content.split("\n");
-                    console.log(rows);
                     try {
+                        console.log((_a = req.file) === null || _a === void 0 ? void 0 : _a.path);
+                        console.log((_b = req.file) === null || _b === void 0 ? void 0 : _b.originalname);
+                        console.log((_c = req.file) === null || _c === void 0 ? void 0 : _c.filename);
+                        const content = fs.readFileSync(req.file.path, "utf-8");
+                        let rows = content.split("\n");
+                        console.log(rows);
                         let info = parsearInfoArchivoTR(rows[0], rows[rows.length - 2]);
                         const dataFromUI = (_d = req.file) === null || _d === void 0 ? void 0 : _d.originalname.split("-");
                         const user = dataFromUI[0];
