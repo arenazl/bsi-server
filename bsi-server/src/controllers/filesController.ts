@@ -126,10 +126,7 @@ class FilesController
         const user = dataFromUI[0];
         const concepto = dataFromUI[2];
         const motivo = dataFromUI[1];
-
-        res.json({ uploadname: req.file.filename });
-
-        /*
+ 
         try {
           let connection = await pool.getConnection();
 
@@ -198,18 +195,13 @@ class FilesController
 
         } catch (error) {
           console.error("error:" + error);
-        }
-        */
-
-        return res.json("End Upload");
-
+        }           
       } catch (error) {
         console.error("error:" + error);
         res
           .status(500)
           .json({ message: "An error occurred while updating the data.", error: error});
       }
-    
     });
   }
   public async downloadFile(req: Request, res: Response): Promise<void> {
