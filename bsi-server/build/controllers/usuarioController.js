@@ -20,9 +20,8 @@ class UsuarioController {
             let nombre = req.body.nombre;
             let pass = req.body.password;
             let id_barrio = req.body.id_barrio;
-            let q = 'SELECT u.id, u.nombre, g.descripcion grupo, id_grupo, id_barrio \
+            let q = 'SELECT u.id, u.nombre \
                 FROM Usuario u \
-                LEFT JOIN Grupo g on u.id_grupo = g.id \
                 where u.nombre =' + "'" + nombre + "'";
             console.log(q);
             const usuario = yield database_1.default.query(q);

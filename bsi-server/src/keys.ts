@@ -1,37 +1,39 @@
+import fs from 'fs';
+import path from 'path';
 
-export default {
+const sslCert = fs.readFileSync(path.join(__dirname, 'crt/ca.pem'));
 
-    database: {
-        //host: 'us-cluster-east-01.k8s.cleardb.net',
-        //user: 'bbb88ce4bf618b', 
-        //password: '5883f2bf',
-        host: 'us-cluster-east-01.k8s.cleardb.net',
-        user: 'bbb88ce4bf618b', 
-        password: '5883f2bf',
-        database: 'heroku_73c30f730ac0413',
-        waitForConnections: true,
-        connectionLimit: 10,
-        queueLimit: 0
+const config = {
+  database: {
+    host: 'mysql-aiven-arenazl.e.aivencloud.com',
+    user: 'avnadmin',
+    port: 23108,
+    password: 'AVNS_Fqe0qsChCHnqSnVsvoi',
+    database: 'defaultdb',
+    ssl: {
+      ca: sslCert,
     },
+  },
 
-    AWS:{
-        bucketName: 'sisbarrios',
-        bucketRegion: 'sa-east-1',
-        accesKey:'AKIATI3QXLJ4VE3LBKFN',
-        secretKey:'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'
-    },
+  AWS: {
+    bucketName: 'sisbarrios',
+    bucketRegion: 'sa-east-1',
+    accesKey: 'AKIATI3QXLJ4VE3LBKFN',
+    secretKey: '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'
+  },
 
-    mails:{
-        documentacion: 'sisbarrios',
-        control: 'Proyectos.don.luisk41@gmail.com',
-        new:'Marcela@newlife.com',
-        cj:'bienescintiap@gmail.com ',
-        real:'pablorealstate@hotmail.com',
-        ar:'desarrolloinmobiliarioar@hotmail.com',
-        admin:'arenazl@gmail.com'
-    }
+  mails: {
+    documentacion: 'sisbarrios',
+    control: 'Proyectos.don.luisk41@gmail.com',
+    new: 'Marcela@newlife.com',
+    cj: 'bienescintiap@gmail.com',
+    real: 'pablorealstate@hotmail.com',
+    ar: 'desarrolloinmobiliarioar@hotmail.com',
+    admin: 'arenazl@gmail.com'
+  }
+};
 
-}
+export default config;
 
 /*
 b2b686e8c89af3

@@ -39,6 +39,7 @@ class FilesController
 
     res.json({ message: "The game was deleted" });
   }
+
   public async upload(req: Request, res: Response, next: any): Promise<void> {
     console.log("upload start");
 
@@ -88,24 +89,25 @@ class FilesController
         throw err;
       }
     });
+    
   }
-  public async uploadTR(req: Request, res: Response, next: any): Promise<void> {
+
+  public async uploadTR(req: Request, res: Response): Promise<void> {
     
     console.log("req" + req.params)
 
     var store = multer.diskStorage({
-      destination: function (req: any, file, cb) {
+      destination: function (req, file, cb) {
         cb(null, "./uploads");
       },
       filename: function (req, file, cb) {
         cb(null, Date.now() + "-" + file.originalname);
-        console.log("inside function" + file.originalname)
       },
     });
 
     var upload = multer({ storage: store }).single("file");
 
-    upload(req, res, async function (err) 
+    upload(req, res, async () => 
     {
       try {
 
@@ -203,7 +205,9 @@ class FilesController
           .json({ message: "An error occurred while updating the data.", error: error});
       }
     });
+    
   }
+
   public async downloadFile(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params; // Assuming the file is identified by an 'id'
@@ -253,6 +257,7 @@ class FilesController
       res.status(500).json({ message: "Error fetching getResponseTR:",  error: "Internal server error" });
     }
   }
+
   public async getResponseTRList(req, res) : Promise<void> {
 
     let connection;
@@ -275,6 +280,7 @@ class FilesController
     }
 
   }
+
   public async uploadS3(file: any) {
     let bucketName = keys.AWS.bucketName;
     let region = keys.AWS.bucketRegion;
@@ -297,6 +303,7 @@ class FilesController
 
     return s3.upload(uploadParams).promise();
   }
+
   public async dropbox(req: Request, res: Response, next: any): Promise<void> {
     let multer1 = multer({ dest: "./uploads" });
 
@@ -313,6 +320,7 @@ class FilesController
       }
     });
   }
+
   public async download(req: Request, res: Response, next: any): Promise<void> {
 
     let bucketName = keys.AWS.bucketName;
