@@ -229,12 +229,12 @@ class FilesController {
                 console.log("enter response....");
                 const { id } = req.params;
                 // Fetch the infoScreen data
-                const infoScreen = yield this.getPantallaTransferenciaInfoById(id);
+                const infoScreen = yield getPantallaTransferenciaInfoById(id);
                 if (!infoScreen || infoScreen.length === 0) {
                     return res.status(404).json({ error: "Info screen not found" });
                 }
                 // Fetch the dataScreen data
-                const dataScreen = yield this.getPantallaTransferenciaDatoById(id);
+                const dataScreen = yield getPantallaTransferenciaDatoById(id);
                 if (!dataScreen || dataScreen.length === 0) {
                     return res.status(404).json({ error: "Data screen not found" });
                 }
@@ -250,7 +250,7 @@ class FilesController {
     }
     getResponseTRForCombo(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            console.error("responsetrforcomboresponsetrforcombo");
+            console.error("getResponseTRForCombo");
             let connection;
             try {
                 connection = yield database_1.default.getConnection();
@@ -373,45 +373,6 @@ class FilesController {
             }
             catch (ex) {
                 console.log(ex);
-            }
-        });
-    }
-    getPantallaTransferenciaDatoById(transferenciaInfoId) {
-        return __awaiter(this, void 0, void 0, function* () {
-            let connection;
-            try {
-                connection = yield database_1.default.getConnection();
-                const values = [transferenciaInfoId];
-                const result = yield executeSpSelect(connection, "GetTransInmediataDatoById", values);
-                return result;
-            }
-            catch (error) {
-                console.error("Error fetching Pantalla Transferencia Dato:", error);
-                throw error;
-            }
-            finally {
-                if (connection)
-                    connection.release();
-            }
-        });
-    }
-    getPantallaTransferenciaInfoById(id) {
-        return __awaiter(this, void 0, void 0, function* () {
-            let connection;
-            try {
-                connection = yield database_1.default.getConnection();
-                const [rows] = yield connection.query("CALL GetTransInmediataInfoById(?)", [
-                    id,
-                ]);
-                return rows;
-            }
-            catch (error) {
-                console.error("Error fetching Pantalla Transferencia Info:", error);
-                throw error;
-            }
-            finally {
-                if (connection)
-                    connection.release();
             }
         });
     }
@@ -586,6 +547,45 @@ function padStringFromLeft(str, length, padChar = " ") {
 function padStringFromRight(str, length, padChar = " ") {
     let paddedStr = padChar.repeat(length);
     return str + paddedStr;
+}
+function getPantallaTransferenciaDatoById(transferenciaInfoId) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let connection;
+        try {
+            connection = yield database_1.default.getConnection();
+            const values = [transferenciaInfoId];
+            const result = yield executeSpSelect(connection, "GetTransInmediataDatoById", values);
+            return result;
+        }
+        catch (error) {
+            console.error("Error fetching Pantalla Transferencia Dato:", error);
+            throw error;
+        }
+        finally {
+            if (connection)
+                connection.release();
+        }
+    });
+}
+function getPantallaTransferenciaInfoById(id) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let connection;
+        try {
+            connection = yield database_1.default.getConnection();
+            const [rows] = yield connection.query("CALL GetTransInmediataInfoById(?)", [
+                id,
+            ]);
+            return rows;
+        }
+        catch (error) {
+            console.error("Error fetching Pantalla Transferencia Info:", error);
+            throw error;
+        }
+        finally {
+            if (connection)
+                connection.release();
+        }
+    });
 }
 const fileController = new FilesController();
 exports.default = fileController;

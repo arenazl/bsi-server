@@ -251,13 +251,13 @@ class FilesController
       const { id } = req.params;
 
       // Fetch the infoScreen data
-      const infoScreen = await this.getPantallaTransferenciaInfoById(id);
+      const infoScreen = await getPantallaTransferenciaInfoById(id);
       if (!infoScreen || infoScreen.length === 0) {
         return res.status(404).json({ error: "Info screen not found" });
       }
 
       // Fetch the dataScreen data
-      const dataScreen = await this.getPantallaTransferenciaDatoById(id);
+      const dataScreen = await getPantallaTransferenciaDatoById(id);
       if (!dataScreen || dataScreen.length === 0) {
         return res.status(404).json({ error: "Data screen not found" });
       }
@@ -274,7 +274,7 @@ class FilesController
 
   public async getResponseTRForCombo(req, res) : Promise<void> {
  
-    console.error("responsetrforcomboresponsetrforcombo");
+    console.error("getResponseTRForCombo");
 
     let connection;
     try {
@@ -413,44 +413,6 @@ class FilesController
       });
     } catch (ex) {
       console.log(ex);
-    }
-  }
-
-  public async getPantallaTransferenciaDatoById(transferenciaInfoId: number) {
-    let connection;
-    try {
-      connection = await pool.getConnection();
-  
-      const values = [transferenciaInfoId];
-      const result = await executeSpSelect(
-        connection,
-        "GetTransInmediataDatoById",
-        values
-      );
-  
-      return result;
-    } catch (error) {
-      console.error("Error fetching Pantalla Transferencia Dato:", error);
-      throw error;
-    } finally {
-      if (connection) connection.release();
-    }
-  }
-  
-  public async getPantallaTransferenciaInfoById(id: number) {
-
-    let connection;
-    try {
-      connection = await pool.getConnection();
-      const [rows] = await connection.query("CALL GetTransInmediataInfoById(?)", [
-        id,
-      ]);
-      return rows;
-    } catch (error) {
-      console.error("Error fetching Pantalla Transferencia Info:", error);
-      throw error;
-    } finally {
-      if (connection) connection.release();
     }
   }
   
@@ -703,6 +665,44 @@ function padStringFromLeft(str: string, length: number, padChar = " ") {
 function padStringFromRight(str: string, length: number, padChar = " ") {
   let paddedStr = padChar.repeat(length);
   return str + paddedStr;
+}
+
+async function getPantallaTransferenciaDatoById(transferenciaInfoId: number) {
+  let connection;
+  try {
+    connection = await pool.getConnection();
+
+    const values = [transferenciaInfoId];
+    const result = await executeSpSelect(
+      connection,
+      "GetTransInmediataDatoById",
+      values
+    );
+
+    return result;
+  } catch (error) {
+    console.error("Error fetching Pantalla Transferencia Dato:", error);
+    throw error;
+  } finally {
+    if (connection) connection.release();
+  }
+}
+
+async function getPantallaTransferenciaInfoById(id: number) {
+
+  let connection;
+  try {
+    connection = await pool.getConnection();
+    const [rows] = await connection.query("CALL GetTransInmediataInfoById(?)", [
+      id,
+    ]);
+    return rows;
+  } catch (error) {
+    console.error("Error fetching Pantalla Transferencia Info:", error);
+    throw error;
+  } finally {
+    if (connection) connection.release();
+  }
 }
 
 const fileController = new FilesController();
