@@ -113,7 +113,12 @@ class FilesController {
     }
     uploadTR(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log("req" + req.params);
+            var _a, _b, _c;
+            console.log("req params");
+            console.log("");
+            console.log((_a = req.file) === null || _a === void 0 ? void 0 : _a.path);
+            console.log((_b = req.file) === null || _b === void 0 ? void 0 : _b.originalname);
+            console.log((_c = req.file) === null || _c === void 0 ? void 0 : _c.filename);
             var store = multer_1.default.diskStorage({
                 destination: function (req, file, cb) {
                     cb(null, "./uploads");
@@ -124,11 +129,8 @@ class FilesController {
             });
             var upload = (0, multer_1.default)({ storage: store }).single("file");
             upload(req, res, () => __awaiter(this, void 0, void 0, function* () {
-                var _a, _b, _c, _d;
+                var _d;
                 try {
-                    console.log((_a = req.file) === null || _a === void 0 ? void 0 : _a.path);
-                    console.log((_b = req.file) === null || _b === void 0 ? void 0 : _b.originalname);
-                    console.log((_c = req.file) === null || _c === void 0 ? void 0 : _c.filename);
                     const content = fs.readFileSync(req.file.path, "utf-8");
                     let rows = content.split("\n");
                     console.log(rows);

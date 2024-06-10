@@ -94,7 +94,11 @@ class FilesController
 
   public async uploadTR(req: Request, res: Response): Promise<void> {
     
-    console.log("req" + req.params)
+    console.log("req params")
+    console.log("")
+    console.log(req.file?.path);
+    console.log(req.file?.originalname);   
+    console.log(req.file?.filename)
 
     var store = multer.diskStorage({
       destination: function (req, file, cb) {
@@ -111,10 +115,6 @@ class FilesController
     {
       try {
 
-        console.log(req.file?.path);
-        console.log(req.file?.originalname);   
-        console.log(req.file?.filename)
-
         const content: string = fs.readFileSync(req.file.path, "utf-8");
         let rows: string[] = content.split("\n");
         console.log(rows);   
@@ -130,6 +130,7 @@ class FilesController
         const motivo = dataFromUI[1];
  
         try {
+          
           let connection = await pool.getConnection();
 
           //LLAMAMOS AL SP DE DETALLE
