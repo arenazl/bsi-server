@@ -119,15 +119,15 @@ class FilesController
       try {
 
         console.log("upload internal start");
-
-        /*
+ 
         const content: string = fs.readFileSync(req.file.path, "utf-8");
         let rows: string[] = content.split("\n");
-        console.log(rows);   
+
+        //console.log(rows);   
 
         let info = parsearInfoArchivoTR(rows[0], rows[rows.length - 2]);
 
-        console.log(info);
+        //console.log(info);
 
         const dataFromUI = req.file?.originalname.split("-");
 
@@ -196,21 +196,20 @@ class FilesController
               values,
               outParams
             );
+            
           }
 
           escribirArchivoTR(transInmediataDatos, info, concepto, motivo, id);
-        
+          
+          res.json({ id: id });
 
-          res.json({ id: test });
-
-        } catch (error) {
+        } catch (error) 
+        {
           console.error("error:" + error);
         } 
-        */
-
-      res.json({ id: 1 });
-        
-      } catch (error) {
+             
+      } catch (error)
+      {
         console.error("error:" + error);
         res
           .status(500)

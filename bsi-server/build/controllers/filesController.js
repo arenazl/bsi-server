@@ -129,96 +129,65 @@ class FilesController {
                 console.error("error in upload:" + error);
             }
             upload(req, res, () => __awaiter(this, void 0, void 0, function* () {
+                var _a;
                 try {
                     console.log("upload internal start");
-                    /*
-                    const content: string = fs.readFileSync(req.file.path, "utf-8");
-                    let rows: string[] = content.split("\n");
-                    console.log(rows);
-            
+                    const content = fs.readFileSync(req.file.path, "utf-8");
+                    let rows = content.split("\n");
+                    //console.log(rows);   
                     let info = parsearInfoArchivoTR(rows[0], rows[rows.length - 2]);
-            
-                    console.log(info);
-            
-                    const dataFromUI = req.file?.originalname.split("-");
-            
+                    //console.log(info);
+                    const dataFromUI = (_a = req.file) === null || _a === void 0 ? void 0 : _a.originalname.split("-");
                     const user = dataFromUI[0];
                     const concepto = dataFromUI[2];
                     const motivo = dataFromUI[1];
-             
                     try {
-            
-                      let connection = await pool.getConnection();
-            
-                      //LLAMAMOS AL SP DE DETALLE
-                      console.log("Llamamos al sp");
-            
-                      const values = [
-                        info.tipoDeRegistro,
-                        info.empresaNombre,
-                        info.infoDiscrecional,
-                        info.empresaCUIT.toString(),
-                        info.prestacion,
-                        info.fechaEmision.toString(),
-                        info.horaGeneracion.toString() + "00",
-                        info.fechaAcreditacion.toString(),
-                        info.bloqueDosCbuEmpresa,
-                        info.moneda,
-                        info.rotuloArchivo,
-                        info.tipoRemuneracion,
-                        arreglarDecimales(info.importeTotalFinal),
-                        concepto,
-                      ];
-            
-                      const outParams = ["lastId"];
-            
-                      const outParamValues = await executeSpInsert(
-                        connection,
-                        "InsertTransInmediataInfo",
-                        values,
-                        outParams
-                      );
-            
-                      const id = outParamValues["lastId"];
-            
-                      let transInmediataDatos = parsearDatosArchivoTR(rows, id);
-            
-                      let contador = 0;
-            
-                      for (let entity of transInmediataDatos) {
+                        let connection = yield database_1.default.getConnection();
+                        //LLAMAMOS AL SP DE DETALLE
+                        console.log("Llamamos al sp");
                         const values = [
-                          entity.tipoDeRegistro,
-                          entity.bloqueCBU1,
-                          entity.bloqueCBU2,
-                          arreglarDecimales(entity.importe),
-                          entity.refUnivoca,
-                          entity.beneficiarioDoc,
-                          entity.beneficiarioApeNombre,
-                          entity.filler,
-                          entity.marca,
-                          entity.transInmediataInfoId,
+                            info.tipoDeRegistro,
+                            info.empresaNombre,
+                            info.infoDiscrecional,
+                            info.empresaCUIT.toString(),
+                            info.prestacion,
+                            info.fechaEmision.toString(),
+                            info.horaGeneracion.toString() + "00",
+                            info.fechaAcreditacion.toString(),
+                            info.bloqueDosCbuEmpresa,
+                            info.moneda,
+                            info.rotuloArchivo,
+                            info.tipoRemuneracion,
+                            arreglarDecimales(info.importeTotalFinal),
+                            concepto,
                         ];
-            
                         const outParams = ["lastId"];
-            
-                        const outParamValues = await executeSpInsert(
-                          connection,
-                          "InsertTransInmediataDato",
-                          values,
-                          outParams
-                        );
-                      }
-            
-                      escribirArchivoTR(transInmediataDatos, info, concepto, motivo, id);
-                    
-            
-                      res.json({ id: test });
-            
-                    } catch (error) {
-                      console.error("error:" + error);
+                        const outParamValues = yield executeSpInsert(connection, "InsertTransInmediataInfo", values, outParams);
+                        const id = outParamValues["lastId"];
+                        let transInmediataDatos = parsearDatosArchivoTR(rows, id);
+                        let contador = 0;
+                        for (let entity of transInmediataDatos) {
+                            const values = [
+                                entity.tipoDeRegistro,
+                                entity.bloqueCBU1,
+                                entity.bloqueCBU2,
+                                arreglarDecimales(entity.importe),
+                                entity.refUnivoca,
+                                entity.beneficiarioDoc,
+                                entity.beneficiarioApeNombre,
+                                entity.filler,
+                                entity.marca,
+                                entity.transInmediataInfoId,
+                            ];
+                            const outParams = ["lastId"];
+                            const outParamValues = yield executeSpInsert(connection, "InsertTransInmediataDato", values, outParams);
+                        }
+                        escribirArchivoTR(transInmediataDatos, info, concepto, motivo, id);
+                        res.json({ id: id });
                     }
-                    */
-                    res.json({ id: 1 });
+                    catch (error) {
+                        console.error("error:" + error);
+                    }
                 }
                 catch (error) {
                     console.error("error:" + error);
