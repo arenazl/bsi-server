@@ -94,27 +94,32 @@ class FilesController
 
   public async uploadTR(req: Request, res: Response): Promise<void> {
     
-    console.log("req params")
-    console.log("")
-    console.log(req.file?.path);
-    console.log(req.file?.originalname);   
-    console.log(req.file?.filename)
+    console.log("upload uploadTR");
 
-    var store = multer.diskStorage({
-      destination: function (req, file, cb) {
-        cb(null, "./uploads");
-      },
-      filename: function (req, file, cb) {
-        cb(null, Date.now() + "-" + file.originalname);
-      },
-    });
+    try { 
 
-    var upload = multer({ storage: store }).single("file");
+      var store = multer.diskStorage({
+        destination: function (req, file, cb) {
+          cb(null, "./uploads");
+        },
+        filename: function (req, file, cb) {
+          cb(null, Date.now() + "-" + file.originalname);
+        },
+      });
+
+      var upload = multer({ storage: store }).single("file");
+
+    } catch (error) {
+      console.error("error in upload:" + error);
+    }
 
     upload(req, res, async () => 
     {
       try {
 
+        console.log("upload internal start");
+
+        /*
         const content: string = fs.readFileSync(req.file.path, "utf-8");
         let rows: string[] = content.split("\n");
         console.log(rows);   
@@ -130,7 +135,7 @@ class FilesController
         const motivo = dataFromUI[1];
  
         try {
-          
+
           let connection = await pool.getConnection();
 
           //LLAMAMOS AL SP DE DETALLE
@@ -193,12 +198,17 @@ class FilesController
           }
 
           escribirArchivoTR(transInmediataDatos, info, concepto, motivo, id);
+        
 
-          res.json({ id: id });
+          res.json({ id: test });
 
         } catch (error) {
           console.error("error:" + error);
-        }           
+        } 
+        */
+
+      res.json({ id: 1 });
+        
       } catch (error) {
         console.error("error:" + error);
         res
