@@ -229,12 +229,12 @@ class FilesController {
                 console.log("enter response....");
                 const { id } = req.params;
                 // Fetch the infoScreen data
-                const infoScreen = yield getPantallaTransferenciaInfoById(id);
+                const infoScreen = yield this.getPantallaTransferenciaInfoById(id);
                 if (!infoScreen || infoScreen.length === 0) {
                     return res.status(404).json({ error: "Info screen not found" });
                 }
                 // Fetch the dataScreen data
-                const dataScreen = yield getPantallaTransferenciaDatoById(id);
+                const dataScreen = yield this.getPantallaTransferenciaDatoById(id);
                 if (!dataScreen || dataScreen.length === 0) {
                     return res.status(404).json({ error: "Data screen not found" });
                 }
@@ -248,8 +248,9 @@ class FilesController {
             }
         });
     }
-    getResponseTRList(req, res) {
+    getResponseTRForCombo(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
+            console.error("responsetrforcomboresponsetrforcombo");
             let connection;
             try {
                 connection = yield database_1.default.getConnection();
@@ -375,6 +376,45 @@ class FilesController {
             }
         });
     }
+    getPantallaTransferenciaDatoById(transferenciaInfoId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let connection;
+            try {
+                connection = yield database_1.default.getConnection();
+                const values = [transferenciaInfoId];
+                const result = yield executeSpSelect(connection, "GetTransInmediataDatoById", values);
+                return result;
+            }
+            catch (error) {
+                console.error("Error fetching Pantalla Transferencia Dato:", error);
+                throw error;
+            }
+            finally {
+                if (connection)
+                    connection.release();
+            }
+        });
+    }
+    getPantallaTransferenciaInfoById(id) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let connection;
+            try {
+                connection = yield database_1.default.getConnection();
+                const [rows] = yield connection.query("CALL GetTransInmediataInfoById(?)", [
+                    id,
+                ]);
+                return rows;
+            }
+            catch (error) {
+                console.error("Error fetching Pantalla Transferencia Info:", error);
+                throw error;
+            }
+            finally {
+                if (connection)
+                    connection.release();
+            }
+        });
+    }
 }
 function extractOutParams(queryResult, outParams) {
     const output = {};
@@ -425,18 +465,10 @@ function executeSpSelect(connection, spName, values) {
                 placeholders = values.map(() => "?").join(",");
             }
             let sql = `CALL ${spName}(${placeholders});`;
-            console.log("placeholders");
-            console.log(placeholders);
-            console.log("sql");
-            console.log(sql);
             const statement = yield connection.prepare(sql);
-            console.log("values");
-            console.log(values);
             const [results] = yield statement.execute(values);
             statement.close();
             yield connection.unprepare(sql);
-            console.log("RESULT");
-            console.log(results);
             return results[0];
         }
         catch (error) {
@@ -546,45 +578,6 @@ function parsearDatosArchivoTR(rows, transfeInfoId) {
 function arreglarDecimales(importe) {
     let valorImporte = Math.floor(importe) / 100;
     return valorImporte.toFixed(2);
-}
-function getPantallaTransferenciaDatoById(transferenciaInfoId) {
-    return __awaiter(this, void 0, void 0, function* () {
-        let connection;
-        try {
-            connection = yield database_1.default.getConnection();
-            const values = [transferenciaInfoId];
-            const result = yield executeSpSelect(connection, "GetTransInmediataDatoById", values);
-            return result;
-        }
-        catch (error) {
-            console.error("Error fetching Pantalla Transferencia Dato:", error);
-            throw error;
-        }
-        finally {
-            if (connection)
-                connection.release();
-        }
-    });
-}
-function getPantallaTransferenciaInfoById(id) {
-    return __awaiter(this, void 0, void 0, function* () {
-        let connection;
-        try {
-            connection = yield database_1.default.getConnection();
-            const [rows] = yield connection.query("CALL GetTransInmediataInfoById(?)", [
-                id,
-            ]);
-            return rows;
-        }
-        catch (error) {
-            console.error("Error fetching Pantalla Transferencia Info:", error);
-            throw error;
-        }
-        finally {
-            if (connection)
-                connection.release();
-        }
-    });
 }
 function padStringFromLeft(str, length, padChar = " ") {
     let paddedStr = padChar.repeat(length);

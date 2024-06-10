@@ -31,6 +31,7 @@ class FilesController
 
     return res.json(serverFiles);
   }
+
   public async delete(req: Request, res: Response): Promise<void> {
     //pere
 
@@ -250,13 +251,13 @@ class FilesController
       const { id } = req.params;
 
       // Fetch the infoScreen data
-      const infoScreen = await getPantallaTransferenciaInfoById(id);
+      const infoScreen = await this.getPantallaTransferenciaInfoById(id);
       if (!infoScreen || infoScreen.length === 0) {
         return res.status(404).json({ error: "Info screen not found" });
       }
 
       // Fetch the dataScreen data
-      const dataScreen = await getPantallaTransferenciaDatoById(id);
+      const dataScreen = await this.getPantallaTransferenciaDatoById(id);
       if (!dataScreen || dataScreen.length === 0) {
         return res.status(404).json({ error: "Data screen not found" });
       }
@@ -273,7 +274,7 @@ class FilesController
 
   public async getResponseTRForCombo(req, res) : Promise<void> {
  
-    console.error("getResponseTRForCombo");
+    console.error("responsetrforcomboresponsetrforcombo");
 
     let connection;
     try {
@@ -367,6 +368,7 @@ class FilesController
       throw err;
     }
   }
+
   public async sendMail(req: Request, res: Response, next: any): Promise<void> {
     let bucketName = keys.AWS.bucketName;
 
@@ -413,6 +415,45 @@ class FilesController
       console.log(ex);
     }
   }
+
+  public async getPantallaTransferenciaDatoById(transferenciaInfoId: number) {
+    let connection;
+    try {
+      connection = await pool.getConnection();
+  
+      const values = [transferenciaInfoId];
+      const result = await executeSpSelect(
+        connection,
+        "GetTransInmediataDatoById",
+        values
+      );
+  
+      return result;
+    } catch (error) {
+      console.error("Error fetching Pantalla Transferencia Dato:", error);
+      throw error;
+    } finally {
+      if (connection) connection.release();
+    }
+  }
+  
+  public async getPantallaTransferenciaInfoById(id: number) {
+
+    let connection;
+    try {
+      connection = await pool.getConnection();
+      const [rows] = await connection.query("CALL GetTransInmediataInfoById(?)", [
+        id,
+      ]);
+      return rows;
+    } catch (error) {
+      console.error("Error fetching Pantalla Transferencia Info:", error);
+      throw error;
+    } finally {
+      if (connection) connection.release();
+    }
+  }
+  
 }
 
 function extractOutParams(queryResult, outParams) {
@@ -486,23 +527,12 @@ async function executeSpSelect(
 
     let sql = `CALL ${spName}(${placeholders});`;
 
-   //console.log("placeholders");
-    //console.log(placeholders);
-    //console.log("sql");
-    //console.log(sql)
-
     const statement = await connection.prepare(sql);
-
-    //console.log("values");
-    //console.log(values);
 
     const [results]: any = await statement.execute(values);
 
     statement.close();
     await connection.unprepare(sql);
-
-    //console.log("RESULT");
-    //console.log(results);
 
     return results[0];
     
@@ -663,43 +693,6 @@ function parsearDatosArchivoTR(
 function arreglarDecimales(importe: number) {
   let valorImporte = Math.floor(importe) / 100;
   return valorImporte.toFixed(2);
-}
-
-async function getPantallaTransferenciaDatoById(transferenciaInfoId: number) {
-  let connection;
-  try {
-    connection = await pool.getConnection();
-
-    const values = [transferenciaInfoId];
-    const result = await executeSpSelect(
-      connection,
-      "GetTransInmediataDatoById",
-      values
-    );
-
-    return result;
-  } catch (error) {
-    console.error("Error fetching Pantalla Transferencia Dato:", error);
-    throw error;
-  } finally {
-    if (connection) connection.release();
-  }
-}
-
-async function getPantallaTransferenciaInfoById(id: number) {
-  let connection;
-  try {
-    connection = await pool.getConnection();
-    const [rows] = await connection.query("CALL GetTransInmediataInfoById(?)", [
-      id,
-    ]);
-    return rows;
-  } catch (error) {
-    console.error("Error fetching Pantalla Transferencia Info:", error);
-    throw error;
-  } finally {
-    if (connection) connection.release();
-  }
 }
 
 function padStringFromLeft(str: string, length: number, padChar = " ") {
