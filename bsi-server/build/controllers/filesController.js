@@ -48,7 +48,7 @@ class FilesController {
     list(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             var serverFiles = [];
-            const dir = path_1.default.join(__dirname, "../uploads");
+            const dir = path_1.default.join(__dirname, "../../uploads");
             const files = fs.readdirSync(dir);
             for (const file of files) {
                 serverFiles.push(file);
@@ -114,15 +114,20 @@ class FilesController {
     uploadTR(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             console.log("upload uploadTR");
-            var store = multer_1.default.diskStorage({
-                destination: function (req, file, cb) {
-                    cb(null, "./uploads");
-                },
-                filename: function (req, file, cb) {
-                    cb(null, Date.now() + "-" + file.originalname);
-                },
-            });
-            var upload = (0, multer_1.default)({ storage: store }).single("file");
+            try {
+                var store = multer_1.default.diskStorage({
+                    destination: function (req, file, cb) {
+                        cb(null, "./uploads");
+                    },
+                    filename: function (req, file, cb) {
+                        cb(null, Date.now() + "-" + file.originalname);
+                    },
+                });
+                var upload = (0, multer_1.default)({ storage: store }).single("file");
+            }
+            catch (error) {
+                console.error("error in upload:" + error);
+            }
             upload(req, res, () => __awaiter(this, void 0, void 0, function* () {
                 try {
                     console.log("upload internal start");

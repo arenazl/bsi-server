@@ -19,9 +19,10 @@ import legajoController from "./legajoController";
 
 class FilesController 
 {
+
   public async list(req: Request, res: Response): Promise<any> {
     var serverFiles = [];
-    const dir = path.join(__dirname, "../uploads");
+    const dir = path.join(__dirname, "../../uploads");
     const files = fs.readdirSync(dir);
 
     for (const file of files) {
