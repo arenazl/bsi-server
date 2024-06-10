@@ -242,8 +242,10 @@ class FilesController
       res.status(500).send("Internal Server Error");
     }
   }
+
   public async getResponseTR(req, res) {
     try {
+
       console.log("enter response....");
       const { id } = req.params;
 
@@ -269,12 +271,16 @@ class FilesController
     }
   }
 
-  public async getResponseTRList(req, res) : Promise<void> {
+  public async getResponseTRForCombo(req, res) : Promise<void> {
+ 
+    console.error("getResponseTRForCombo");
 
     let connection;
     try {
+
       connection = await pool.getConnection();
       const values = null;
+
       const result = await executeSpSelect(
         connection,
         "getTransListForSelect",
@@ -469,6 +475,7 @@ async function executeSpSelect(
 ): Promise<any[]> {
 
   try {
+
     console.log("executeSpSelect");
 
     let placeholders = "";
@@ -479,23 +486,23 @@ async function executeSpSelect(
 
     let sql = `CALL ${spName}(${placeholders});`;
 
-    console.log("placeholders");
-    console.log(placeholders);
-    console.log("sql");
-    console.log(sql)
+   //console.log("placeholders");
+    //console.log(placeholders);
+    //console.log("sql");
+    //console.log(sql)
 
     const statement = await connection.prepare(sql);
 
-    console.log("values");
-    console.log(values);
+    //console.log("values");
+    //console.log(values);
 
     const [results]: any = await statement.execute(values);
 
     statement.close();
     await connection.unprepare(sql);
 
-    console.log("RESULT");
-    console.log(results);
+    //console.log("RESULT");
+    //console.log(results);
 
     return results[0];
     
