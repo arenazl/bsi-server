@@ -42,31 +42,34 @@ class FilesController {
 
   public async ImportXls(req: Request, res: Response): Promise<void> {
 
-    try 
-    {
       var upload = await TempUploadProcess();
 
       upload(req, res, async () => 
-      {    
-        const rows = await readXlsxFile(req.file.path); 
-        rows.shift();
+      {
+        
+        try{
 
-        const registros: any[] = rows.filter(row => row.length > 0).map(row => {
-          const [nombre, apellido, cbu] = row;
-          return { nombre, apellido, cbu };
+          const rows = await readXlsxFile(req.file.path); 
+          rows.shift();
+  
+          const registros: any[] = rows.filter(row => row.length > 0).map(row => {
+            const [nombre, apellido, cbu] = row;
+            return { nombre, apellido, cbu };
+            });
+  
+            var result = registros;
+            res.json(result);
+
+        }
+        catch (error) 
+        {
+          console.error("error tipo de archivo: " + error);
+          res.status(500).json({message: "error tipo de archivo.",error: error.message,});
+          return;
+        }
+
       });
 
-      var result = registros;
-      res.json(result);
-
-      });
-
-    } catch (error) 
-    {
-      console.error("error parseo: " + error);
-      res.status(500).json({message: "An error occurred while updating the data.",error: error.message,});
-      return;
-    }
   }
 
   public async uploadTR(req: Request, res: Response): Promise<void> {

@@ -15,6 +15,7 @@ class Server {
         this.app = (0, express_1.default)();
         this.config();
         this.routes();
+        //this.globalErrorHandler();
     }
     config() {
         this.app.set('port', process.env.PORT || 3000);
@@ -28,20 +29,30 @@ class Server {
         res.header('Access-Control-Allow-Origin', '*');
         res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
         res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With');
-        // intercept OPTIONS method
-        if ('OPTIONS' == req.method) {
-            res.send(200);
+        if (req.method === 'OPTIONS') {
+            res.sendStatus(200);
         }
         else {
             next();
         }
     }
-    ;
     routes() {
         this.app.use('/', indexRoutes_1.default);
         this.app.use('/api/legajo', legajoRoutes_1.default);
         this.app.use('/api/file', fileRoutes_1.default);
         this.app.use('/api/lote', loteRoutes_1.default);
+    }
+    globalErrorHandler() {
+        this.app.use((err, req, res, next) => {
+            console.error(err.stack);
+            res.status(500).send({ error: 'Something went wrong!' });
+        });
+        process.on('uncaughtException', (err) => {
+            console.error('There was an uncaught error', err);
+        });
+        process.on('unhandledRejection', (reason, promise) => {
+            console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+        });
     }
     start() {
         this.app.listen(this.app.get('port'), () => {
