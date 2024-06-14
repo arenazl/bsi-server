@@ -17,9 +17,7 @@ import nodemailer from "nodemailer";
 import { ImportExport } from "aws-sdk";
 import legajoController from "./legajoController";
 
-class FilesController 
-{
-
+class FilesController {
   public async list(req: Request, res: Response): Promise<any> {
     var serverFiles = [];
     const dir = path.join(__dirname, "../../uploads");
@@ -42,92 +40,64 @@ class FilesController
     res.json({ message: "The game was deleted" });
   }
 
-  public async upload(req: Request, res: Response, next: any): Promise<void> {
-    console.log("upload start");
+  public async ImportXls(req: Request, res: Response): Promise<void> {
 
-    var store = multer.diskStorage({
-      destination: function (req: any, file, cb) {
-        cb(null, "./uploads");
-      },
-      filename: function (req, file, cb) {
-        cb(null, Date.now() + "-" + file.originalname);
-      },
-    });
+    try 
+    {
+      var upload = await TempUploadProcess();
 
-    var upload = multer({ storage: store }).single("file");
+      upload(req, res, async () => 
+      {    
+        const rows = await readXlsxFile(req.file.path); 
+        rows.shift();
 
-    upload(req, res, async function (err) {
-      console.log(req.file?.path);
-      console.log(req.file?.originalname);
-      console.log(req.file?.filename);
-
-      let bucketName = keys.AWS.bucketName;
-      let region = keys.AWS.bucketRegion;
-      let accessKeyId = keys.AWS.accesKey;
-      let secretAccessKey = keys.AWS.secretKey;
-
-      const s3 = new S3({
-        region,
-        accessKeyId,
-        secretAccessKey,
+        const registros: any[] = rows.filter(row => row.length > 0).map(row => {
+          const [nombre, apellido, cbu] = row;
+          return { nombre, apellido, cbu };
       });
 
-      //@ts-ignore
-      const fileStream = fs.createReadStream(req.file.path);
+      var result = registros;
+      res.json(result);
 
-      const uploadParams = {
-        Bucket: bucketName,
-        Body: fileStream,
-        //@ts-ignore
-        Key: req.file.filename,
-      };
+      });
 
-      try {
-        const data = await s3.upload(uploadParams).promise();
-        console.log(data);
-
-        res.json({ uploadname: req.file.filename });
-      } catch (err) {
-        throw err;
-      }
-    });
-    
+    } catch (error) 
+    {
+      console.error("error parseo: " + error);
+      res.status(500).json({message: "An error occurred while updating the data.",error: error.message,});
+      return;
+    }
   }
 
   public async uploadTR(req: Request, res: Response): Promise<void> {
+
+    try {
+
+      var upload = await TempUploadProcess();  
     
-    console.log("upload uploadTR");
+      upload(req, res, async () => {
 
-    try { 
+        let info = null;
+        let rows: string[];
 
-      var store = multer.diskStorage({
-        destination: function (req, file, cb) {
-          cb(null, "./uploads");
-        },
-        filename: function (req, file, cb) {
-          cb(null, Date.now() + "-" + file.originalname);
-        },
-      });
+        try {
+          const content: string = fs.readFileSync(req.file.path, "utf-8");
+          rows = content.split("\n");
 
-      var upload = multer({ storage: store }).single("file");
+          //console.log(rows);
 
-    } catch (error) {
-      console.error("error in upload:" + error);
-    }
-
-    upload(req, res, async () => 
-    {
-      try {
-
-        console.log("upload internal start");
- 
-        const content: string = fs.readFileSync(req.file.path, "utf-8");
-        let rows: string[] = content.split("\n");
-
-        //console.log(rows);   
-
-        let info = parsearInfoArchivoTR(rows[0], rows[rows.length - 2]);
-
+          info = parsearInfoArchivoTR(rows[0], rows[rows.length - 2]);
+        } catch (error) {
+          console.error("error parseo: " + error);
+          res
+            .status(500)
+            .json({
+              message: "An error occurred while updating the data.",
+              error: error.message,
+            });
+          return;
+        }
+      
         //console.log(info);
 
         const dataFromUI = req.file?.originalname.split("-");
@@ -135,102 +105,56 @@ class FilesController
         const user = dataFromUI[0];
         const concepto = dataFromUI[2];
         const motivo = dataFromUI[1];
- 
+
         try {
 
           let connection = await pool.getConnection();
 
-          //LLAMAMOS AL SP DE DETALLE
-          console.log("Llamamos al sp");
+          var { values, outParams } = await ParseHeader(info, concepto);
 
-          const values = [
-            info.tipoDeRegistro,
-            info.empresaNombre,
-            info.infoDiscrecional,
-            info.empresaCUIT.toString(),
-            info.prestacion,
-            info.fechaEmision.toString(),
-            info.horaGeneracion.toString() + "00",
-            info.fechaAcreditacion.toString(),
-            info.bloqueDosCbuEmpresa,
-            info.moneda,
-            info.rotuloArchivo,
-            info.tipoRemuneracion,
-            arreglarDecimales(info.importeTotalFinal),
-            concepto,
-          ];
-
-          const outParams = ["lastId"];
-
-          const outParamValues = await executeSpInsert(
-            connection,
-            "InsertTransInmediataInfo",
-            values,
-            outParams
-          );
-
-          const id = outParamValues["lastId"];
+          const id = await InserDBHeader(connection, values, outParams);
 
           let transInmediataDatos = parsearDatosArchivoTR(rows, id);
 
           let contador = 0;
 
-          for (let entity of transInmediataDatos) {
-            const values = [
-              entity.tipoDeRegistro,
-              entity.bloqueCBU1,
-              entity.bloqueCBU2,
-              arreglarDecimales(entity.importe),
-              entity.refUnivoca,
-              entity.beneficiarioDoc,
-              entity.beneficiarioApeNombre,
-              entity.filler,
-              entity.marca,
-              entity.transInmediataInfoId,
-            ];
+          for (let entity of transInmediataDatos) 
+          {
+            const values = await LoopAndParseInfo(entity);
 
             const outParams = ["lastId"];
 
-            const outParamValues = await executeSpInsert(
+            const outParamValues = await InsertDBInfo(
               connection,
-              "InsertTransInmediataDato",
               values,
               outParams
             );
-            
           }
 
           escribirArchivoTR(transInmediataDatos, info, concepto, motivo, id);
-          
-          res.json({ id: id });
 
-        } catch (error) 
-        {
-          console.error("error:" + error);
-        } 
-             
-      } catch (error)
-      {
-        console.error("error:" + error);
-        res
-          .status(500)
-          .json({ message: "An error occurred while updating the data.", error: error});
-      }
-    });
-    
+          res.json({ id: id });
+        } catch (error) {
+          console.error("error DB:" + error);
+        }
+      });
+
+    } catch (error) {
+      console.error("error in upload:" + error);
+    }
+      
   }
 
   public async downloadFile(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params; // Assuming the file is identified by an 'id'
 
-      const filePath = "./uploads/output_" + id + ".txt"; 
+      const filePath = "./uploads/output_" + id + ".txt";
 
       res.download(filePath, function (err) {
-        if (err) {   
-        console.error(err);
+        if (err) {
+          console.error(err);
           if (res.headersSent) {
-        
           } else {
             //res.status(err)
           }
@@ -246,7 +170,6 @@ class FilesController
 
   public async getResponseTR(req, res) {
     try {
-
       console.log("enter response....");
       const { id } = req.params;
 
@@ -266,19 +189,21 @@ class FilesController
       //@ts-ignore
       res.json({ head: infoScreen[0], data: dataScreen });
     } catch (error) {
-
       console.error("Error fetching response:", error);
-      res.status(500).json({ message: "Error fetching getResponseTR:",  error: "Internal server error" });
+      res
+        .status(500)
+        .json({
+          message: "Error fetching getResponseTR:",
+          error: "Internal server error",
+        });
     }
   }
 
-  public async getResponseTRForCombo(req, res) : Promise<void> {
- 
+  public async getResponseTRForCombo(req, res): Promise<void> {
     console.error("getResponseTRForCombo");
 
     let connection;
     try {
-
       connection = await pool.getConnection();
       const values = null;
 
@@ -289,14 +214,17 @@ class FilesController
       );
 
       res.json(result);
-      
     } catch (error) {
       console.error("Error fetching getResponseTRList:", error);
-      res.status(500).json({ message: "Error fetching getResponseTRList:",  error: "Internal server error" });
+      res
+        .status(500)
+        .json({
+          message: "Error fetching getResponseTRList:",
+          error: "Internal server error",
+        });
     } finally {
       if (connection) connection.release();
     }
-
   }
 
   public async uploadS3(file: any) {
@@ -340,7 +268,6 @@ class FilesController
   }
 
   public async download(req: Request, res: Response, next: any): Promise<void> {
-
     let bucketName = keys.AWS.bucketName;
     let region = keys.AWS.bucketRegion;
     let accessKeyId = keys.AWS.accesKey;
@@ -415,7 +342,6 @@ class FilesController
       console.log(ex);
     }
   }
-  
 }
 
 function extractOutParams(queryResult, outParams) {
@@ -436,15 +362,12 @@ function extractOutParams(queryResult, outParams) {
 }
 
 async function executeSpInsert(
-
   connection: mysql.PoolConnection,
   spName: string,
   values: (string | number)[],
   outParams: string[]
 ) {
-
   try {
-
     console.log("executeSpInsert");
 
     let placeholders = values.map(() => "?").join(",");
@@ -462,23 +385,19 @@ async function executeSpInsert(
     const outParamValues = extractOutParams(queryResult, outParams);
 
     return outParamValues;
-
   } catch (error: any) {
     console.error(error);
   } finally {
-  if (connection) connection.release();
+    if (connection) connection.release();
   }
 }
 
 async function executeSpSelect(
-
   connection: mysql.PoolConnection,
   spName: string,
   values: (string | number)[]
 ): Promise<any[]> {
-
   try {
-
     console.log("executeSpSelect");
 
     let placeholders = "";
@@ -497,13 +416,80 @@ async function executeSpSelect(
     await connection.unprepare(sql);
 
     return results[0];
-    
   } catch (error: any) {
     console.error(error);
   } finally {
-  if (connection) connection.release();
+    if (connection) connection.release();
   }
-  
+}
+
+async function InsertDBInfo(
+  connection: mysql.PoolConnection,
+  values: (string | number)[],
+  outParams: string[]
+) {
+  return await executeSpInsert(
+    connection,
+    "InsertTransInmediataDato",
+    values,
+    outParams
+  );
+}
+
+async function LoopAndParseInfo(entity: transInmediataDato) {
+  return [
+    entity.tipoDeRegistro,
+    entity.bloqueCBU1,
+    entity.bloqueCBU2,
+    arreglarDecimales(entity.importe),
+    entity.refUnivoca,
+    entity.beneficiarioDoc,
+    entity.beneficiarioApeNombre,
+    entity.filler,
+    entity.marca,
+    entity.transInmediataInfoId,
+  ];
+}
+
+async function InserDBHeader(
+  connection: mysql.PoolConnection,
+  values: any[],
+  outParams: string[]
+) {
+  const outParamValues = await executeSpInsert(
+    connection,
+    "InsertTransInmediataInfo",
+    values,
+    outParams
+  );
+
+  const id = outParamValues["lastId"];
+  return id;
+}
+
+async function ParseHeader(info: any, concepto: string) {
+  //LLAMAMOS AL SP DE DETALLE
+  console.log("Llamamos al sp");
+
+  const values = [
+    info.tipoDeRegistro,
+    info.empresaNombre,
+    info.infoDiscrecional,
+    info.empresaCUIT.toString(),
+    info.prestacion,
+    info.fechaEmision.toString(),
+    info.horaGeneracion.toString() + "00",
+    info.fechaAcreditacion.toString(),
+    info.bloqueDosCbuEmpresa,
+    info.moneda,
+    info.rotuloArchivo,
+    info.tipoRemuneracion,
+    arreglarDecimales(info.importeTotalFinal),
+    concepto,
+  ];
+
+  const outParams = ["lastId"];
+  return { values, outParams };
 }
 
 function escribirArchivoTR(
@@ -594,28 +580,37 @@ function parsearInfoArchivoTR(
 ): transInmediataInfo {
   let info = new transInmediataInfo();
 
-  //CABECERA
-  info.tipoDeRegistro = Number(infoRowC.substring(0, 1).trim());
-  info.empresaNombre = infoRowC.substring(1, 17);
-  info.infoDiscrecional = infoRowC.substring(17, 37);
-  info.empresaCUIT = Number(infoRowC.substring(37, 48).trim());
-  info.prestacion = infoRowC.substring(48, 58);
-  info.fechaEmision = Number(infoRowC.substring(58, 64).trim());
-  info.horaGeneracion = Number(infoRowC.substring(64, 68).trim());
-  info.fechaAcreditacion = Number(infoRowC.substring(68, 74).trim());
-  info.bloqueDosCbuEmpresa = Number(infoRowC.substring(74, 88).trim());
-  info.moneda = Number(infoRowC.substring(88, 89).trim());
-  info.rotuloArchivo = infoRowC.substring(89, 97);
-  info.tipoRemuneracion = Number(infoRowC.substring(97, 98).trim());
-  info.filler = infoRowC.substring(98, 99);
-  info.marca = Number(infoRowC.substring(99, 100).trim());
+  try {
+    //CABECERA
+    info.tipoDeRegistro = Number(infoRowC.substring(0, 1).trim());
 
-  //PARTE FINAL
-  info.tipoRegistroFinal = Number(infoRowF.substring(0, 1).trim());
-  info.cantidadRegistroFinal = Number(infoRowF.substring(1, 7).trim());
-  info.importeTotalFinal = Number(infoRowF.substring(7, 18).trim());
-  info.fillerFinal = infoRowF.substring(18, 99);
-  info.marcaFinal = Number(infoRowF.substring(99, 100).trim());
+    if (Number.isNaN(info.tipoDeRegistro)) {
+      throw new Error("Error en el tipo de registro");
+    }
+
+    info.empresaNombre = infoRowC.substring(1, 17);
+    info.infoDiscrecional = infoRowC.substring(17, 37);
+    info.empresaCUIT = Number(infoRowC.substring(37, 48).trim());
+    info.prestacion = infoRowC.substring(48, 58);
+    info.fechaEmision = Number(infoRowC.substring(58, 64).trim());
+    info.horaGeneracion = Number(infoRowC.substring(64, 68).trim());
+    info.fechaAcreditacion = Number(infoRowC.substring(68, 74).trim());
+    info.bloqueDosCbuEmpresa = Number(infoRowC.substring(74, 88).trim());
+    info.moneda = Number(infoRowC.substring(88, 89).trim());
+    info.rotuloArchivo = infoRowC.substring(89, 97);
+    info.tipoRemuneracion = Number(infoRowC.substring(97, 98).trim());
+    info.filler = infoRowC.substring(98, 99);
+    info.marca = Number(infoRowC.substring(99, 100).trim());
+
+    //PARTE FINAL
+    info.tipoRegistroFinal = Number(infoRowF.substring(0, 1).trim());
+    info.cantidadRegistroFinal = Number(infoRowF.substring(1, 7).trim());
+    info.importeTotalFinal = Number(infoRowF.substring(7, 18).trim());
+    info.fillerFinal = infoRowF.substring(18, 99);
+    info.marcaFinal = Number(infoRowF.substring(99, 100).trim());
+  } catch (error) {
+    throw error;
+  }
 
   return info;
 }
@@ -689,7 +684,6 @@ async function getPantallaTransferenciaDatoById(transferenciaInfoId: number) {
 }
 
 async function getPantallaTransferenciaInfoById(id: number) {
-
   let connection;
   try {
     connection = await pool.getConnection();
@@ -703,6 +697,22 @@ async function getPantallaTransferenciaInfoById(id: number) {
   } finally {
     if (connection) connection.release();
   }
+
+ 
+}
+
+async function TempUploadProcess() {
+  var store = multer.diskStorage({
+    destination: function (req, file, cb) {
+      cb(null, "./uploads");
+    },
+    filename: function (req, file, cb) {
+      cb(null, Date.now() + "-" + file.originalname);
+    },
+  });
+
+  var upload = multer({ storage: store }).single("file");
+  return upload;
 }
 
 const fileController = new FilesController();
