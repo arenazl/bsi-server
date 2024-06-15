@@ -17,7 +17,8 @@ import nodemailer from "nodemailer";
 import { ImportExport } from "aws-sdk";
 import legajoController from "./legajoController";
 
-class FilesController {
+class FilesController 
+{
   public async list(req: Request, res: Response): Promise<any> {
     var serverFiles = [];
     const dir = path.join(__dirname, "../../uploads");
@@ -26,7 +27,6 @@ class FilesController {
     for (const file of files) {
       serverFiles.push(file);
     }
-
     return res.json(serverFiles);
   }
 
@@ -45,21 +45,42 @@ class FilesController {
       var upload = await TempUploadProcess();
 
       upload(req, res, async () => 
-      {
-        
-        try{
+      { 
+        try
+        {
+          let connection = await pool.getConnection();
 
+          const dataFromUI = req.file?.originalname.split("-");
+
+          const USER = dataFromUI[0];
+          const CONCEPTO = dataFromUI[1];
+          const ROTULO = dataFromUI[2];
+          
           const rows = await readXlsxFile(req.file.path); 
           rows.shift();
   
           const registros: any[] = rows.filter(row => row.length > 0).map(row => {
-            const [nombre, apellido, cbu] = row;
-            return { nombre, apellido, cbu };
-            });
-  
-            var result = registros;
-            res.json(result);
 
+            const [CBU, APELLIDO, NOMBRE, IMPORTE] = row;
+            return { CBU, APELLIDO, NOMBRE, IMPORTE };
+            
+            });
+
+          const jsonResult = {
+            USER,
+            CONCEPTO,
+            ROTULO,
+            ITEMS: registros
+          };  
+
+          const outParamValues = ["@headerId"];
+
+          var result = await executeJsonInsert(connection, "insertPagoFromJson", jsonResult, outParamValues);
+
+          const id = result["@headerId"]; 
+
+          res.json({ id: id });;
+       
         }
         catch (error) 
         {
@@ -100,9 +121,7 @@ class FilesController {
             });
           return;
         }
-      
-        //console.log(info);
-
+    
         const dataFromUI = req.file?.originalname.split("-");
 
         const user = dataFromUI[0];
@@ -173,6 +192,7 @@ class FilesController {
 
   public async getResponseTR(req, res) {
     try {
+
       console.log("enter response....");
       const { id } = req.params;
 
@@ -202,7 +222,96 @@ class FilesController {
     }
   }
 
+  public async getResponsePagos(req, res) {
+
+    const { id } = req.params;
+
+    const values = [id];
+
+    try {
+      const connection = await pool.getConnection();
+      
+      const rows = await executeSpSelect(connection, 'getPageById', values);
+
+      if (rows.length === 0) {
+        return res.status(404).json({ message: 'No data found' });
+      }
+
+      const infoScreen = [];
+      const dataScreen = [];
+      let totalImporte = 0;
+
+      rows.forEach((row: any) => {
+        if (infoScreen.length === 0) {
+          infoScreen.push({
+            headerId: row.headerId,
+            USER: row.user,
+            CONCEPTO: row.concepto,
+            ROTULO: row.rotulo,
+            CANTIDAD_TRANSFERENCIAS: 0, 
+            TOTAL_IMPORTE: 0 
+          });
+        }
+
+        totalImporte += parseFloat(row.importe);
+        
+        dataScreen.push({
+          itemId: row.itemId,
+          CBU: row.cbu,
+          APELLIDO: row.apellido,
+          NOMBRE: row.nombre,
+          IMPORTE: row.importe
+        });
+        
+      });
+
+      if (infoScreen.length > 0) {
+        infoScreen[0].CANTIDAD_TRANSFERENCIAS = dataScreen.length;
+        infoScreen[0].TOTAL_IMPORTE = totalImporte;
+      }
+
+      res.json({ head: infoScreen[0], data: dataScreen });
+    } catch (error) {
+      console.error("Error fetching response:", error);
+      res.status(500).json({
+        message: "Error fetching getResponsePagos:",
+        error: "Internal server error",
+      });
+    }
+  }
+  
+
   public async getResponseTRForCombo(req, res): Promise<void> {
+
+    console.error("getResponseTRForCombo");
+
+    let connection;
+    try {
+      connection = await pool.getConnection();
+      const values = null;
+
+      const result = await executeSpSelect(
+        connection,
+        "getTransListForSelect",
+        values
+      );
+
+      res.json(result);
+    } catch (error) {
+      console.error("Error fetching getResponseTRList:", error);
+      res
+        .status(500)
+        .json({
+          message: "Error fetching getResponseTRList:",
+          error: "Internal server error",
+        });
+    } finally {
+      if (connection) connection.release();
+    }
+  }
+
+  public async getResponsePagosForCombo(req, res): Promise<void> {
+    
     console.error("getResponseTRForCombo");
 
     let connection;
@@ -347,24 +456,8 @@ class FilesController {
   }
 }
 
-function extractOutParams(queryResult, outParams) {
-  const output = {};
-  // Recorrer los resultados y extraer los parámetros de salida
-  queryResult.forEach((resultSet) => {
-    if (Array.isArray(resultSet)) {
-      resultSet.forEach((row) => {
-        outParams.forEach((param) => {
-          if (row.hasOwnProperty(param)) {
-            output[param] = row[param];
-          }
-        });
-      });
-    }
-  });
-  return output;
-}
-
 async function executeSpInsert(
+
   connection: mysql.PoolConnection,
   spName: string,
   values: (string | number)[],
@@ -388,7 +481,38 @@ async function executeSpInsert(
     const outParamValues = extractOutParams(queryResult, outParams);
 
     return outParamValues;
+
   } catch (error: any) {
+    console.error(error);
+  } finally {
+    if (connection) connection.release();
+  }
+}
+
+async function executeJsonInsert(
+  connection: mysql.PoolConnection,
+  spName: string,
+  jsonData: object,
+  outParams: string[]
+) {
+  try {
+    console.log("executeSJasonpInsert");
+
+    const sql = `CALL ${spName}(?);`;
+    const values = [JSON.stringify(jsonData)];
+
+    console.log("sql");
+    console.log(sql);
+    console.log("values");
+    console.log(values);
+
+    const [queryResult] = await connection.execute(sql, values);
+
+    const outParamValues = extractOutParams(queryResult, outParams);
+
+    return outParamValues;
+
+   } catch (error: any) {
     console.error(error);
   } finally {
     if (connection) connection.release();
@@ -424,6 +548,23 @@ async function executeSpSelect(
   } finally {
     if (connection) connection.release();
   }
+}
+
+function extractOutParams(queryResult, outParams) {
+  const output = {};
+  // Recorrer los resultados y extraer los parámetros de salida
+  queryResult.forEach((resultSet) => {
+    if (Array.isArray(resultSet)) {
+      resultSet.forEach((row) => {
+        outParams.forEach((param) => {
+          if (row.hasOwnProperty(param)) {
+            output[param] = row[param];
+          }
+        });
+      });
+    }
+  });
+  return output;
 }
 
 async function InsertDBInfo(
@@ -502,6 +643,7 @@ function escribirArchivoTR(
   motivo: string,
   id: number
 ): boolean {
+
   const file = fs.openSync("./uploads/output_" + id + ".txt", "w");
 
   // console.log(transInmediataDatos);
@@ -704,7 +846,48 @@ async function getPantallaTransferenciaInfoById(id: number) {
  
 }
 
+async function getPantallaPagosHeadById(transferenciaInfoId: number) {
+
+  let connection;
+  try {
+    connection = await pool.getConnection();
+
+    const values = [transferenciaInfoId];
+    const result = await executeSpSelect(
+      connection,
+      "GetTransInmediataDatoById",
+      values
+    );
+
+    return result;
+  } catch (error) {
+    console.error("Error fetching Pantalla Transferencia Dato:", error);
+    throw error;
+  } finally {
+    if (connection) connection.release();
+  }
+}
+
+async function getPantallaPagosInfoById(id: number) {
+  let connection;
+  try {
+    connection = await pool.getConnection();
+    const [rows] = await connection.query("CALL GetTransInmediataInfoById(?)", [
+      id,
+    ]);
+    return rows;
+  } catch (error) {
+    console.error("Error fetching Pantalla Transferencia Info:", error);
+    throw error;
+  } finally {
+    if (connection) connection.release();
+  }
+
+ 
+}
+
 async function TempUploadProcess() {
+
   var store = multer.diskStorage({
     destination: function (req, file, cb) {
       cb(null, "./uploads");

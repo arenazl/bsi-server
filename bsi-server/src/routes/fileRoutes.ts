@@ -18,7 +18,9 @@ class FileRoutes {
         this.router.post('/uploadtr', fileController.uploadTR);
         this.router.post('/importxls', fileController.ImportXls);
         this.router.get('/responsetr/:id', fileController.getResponseTR);
+        this.router.get('/pagoslist/:id', fileController.getResponsePagos);
         this.router.get('/responsetrforcombo', fileController.getResponseTRForCombo);
+        this.router.get('/responseoagosforcombo', fileController.getResponseTRForCombo);
         this.router.post('/dropbox', fileController.dropbox);
         this.router.get('/download/:id', fileController.downloadFile);
           

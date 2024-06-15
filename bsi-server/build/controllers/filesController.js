@@ -69,15 +69,30 @@ class FilesController {
         return __awaiter(this, void 0, void 0, function* () {
             var upload = yield TempUploadProcess();
             upload(req, res, () => __awaiter(this, void 0, void 0, function* () {
+                var _a;
                 try {
+                    let connection = yield database_1.default.getConnection();
+                    const dataFromUI = (_a = req.file) === null || _a === void 0 ? void 0 : _a.originalname.split("-");
+                    const USER = dataFromUI[0];
+                    const CONCEPTO = dataFromUI[1];
+                    const ROTULO = dataFromUI[2];
                     const rows = yield (0, node_1.default)(req.file.path);
                     rows.shift();
                     const registros = rows.filter(row => row.length > 0).map(row => {
-                        const [nombre, apellido, cbu] = row;
-                        return { nombre, apellido, cbu };
+                        const [CBU, APELLIDO, NOMBRE, IMPORTE] = row;
+                        return { CBU, APELLIDO, NOMBRE, IMPORTE };
                     });
-                    var result = registros;
-                    res.json(result);
+                    const jsonResult = {
+                        USER,
+                        CONCEPTO,
+                        ROTULO,
+                        ITEMS: registros
+                    };
+                    const outParamValues = ["@headerId"];
+                    var result = yield executeJsonInsert(connection, "insertPagoFromJson", jsonResult, outParamValues);
+                    const id = result["@headerId"];
+                    res.json({ id: id });
+                    ;
                 }
                 catch (error) {
                     console.error("error tipo de archivo: " + error);
@@ -111,7 +126,6 @@ class FilesController {
                         });
                         return;
                     }
-                    //console.log(info);
                     const dataFromUI = (_a = req.file) === null || _a === void 0 ? void 0 : _a.originalname.split("-");
                     const user = dataFromUI[0];
                     const concepto = dataFromUI[2];
@@ -195,7 +209,80 @@ class FilesController {
             }
         });
     }
+    getResponsePagos(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { id } = req.params;
+            const values = [id];
+            try {
+                const connection = yield database_1.default.getConnection();
+                const rows = yield executeSpSelect(connection, 'getPageById', values);
+                if (rows.length === 0) {
+                    return res.status(404).json({ message: 'No data found' });
+                }
+                const infoScreen = [];
+                const dataScreen = [];
+                let totalImporte = 0;
+                rows.forEach((row) => {
+                    if (infoScreen.length === 0) {
+                        infoScreen.push({
+                            headerId: row.headerId,
+                            USER: row.user,
+                            CONCEPTO: row.concepto,
+                            ROTULO: row.rotulo,
+                            CANTIDAD_TRANSFERENCIAS: 0,
+                            TOTAL_IMPORTE: 0
+                        });
+                    }
+                    totalImporte += parseFloat(row.importe);
+                    dataScreen.push({
+                        itemId: row.itemId,
+                        CBU: row.cbu,
+                        APELLIDO: row.apellido,
+                        NOMBRE: row.nombre,
+                        IMPORTE: row.importe
+                    });
+                });
+                if (infoScreen.length > 0) {
+                    infoScreen[0].CANTIDAD_TRANSFERENCIAS = dataScreen.length;
+                    infoScreen[0].TOTAL_IMPORTE = totalImporte;
+                }
+                res.json({ head: infoScreen[0], data: dataScreen });
+            }
+            catch (error) {
+                console.error("Error fetching response:", error);
+                res.status(500).json({
+                    message: "Error fetching getResponsePagos:",
+                    error: "Internal server error",
+                });
+            }
+        });
+    }
     getResponseTRForCombo(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            console.error("getResponseTRForCombo");
+            let connection;
+            try {
+                connection = yield database_1.default.getConnection();
+                const values = null;
+                const result = yield executeSpSelect(connection, "getTransListForSelect", values);
+                res.json(result);
+            }
+            catch (error) {
+                console.error("Error fetching getResponseTRList:", error);
+                res
+                    .status(500)
+                    .json({
+                    message: "Error fetching getResponseTRList:",
+                    error: "Internal server error",
+                });
+            }
+            finally {
+                if (connection)
+                    connection.release();
+            }
+        });
+    }
+    getResponsePagosForCombo(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             console.error("getResponseTRForCombo");
             let connection;
@@ -329,22 +416,6 @@ class FilesController {
         });
     }
 }
-function extractOutParams(queryResult, outParams) {
-    const output = {};
-    // Recorrer los resultados y extraer los parámetros de salida
-    queryResult.forEach((resultSet) => {
-        if (Array.isArray(resultSet)) {
-            resultSet.forEach((row) => {
-                outParams.forEach((param) => {
-                    if (row.hasOwnProperty(param)) {
-                        output[param] = row[param];
-                    }
-                });
-            });
-        }
-    });
-    return output;
-}
 function executeSpInsert(connection, spName, values, outParams) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -352,6 +423,29 @@ function executeSpInsert(connection, spName, values, outParams) {
             let placeholders = values.map(() => "?").join(",");
             let sql = `CALL ${spName}(${placeholders});`;
             console.log(placeholders);
+            console.log("sql");
+            console.log(sql);
+            console.log("values");
+            console.log(values);
+            const [queryResult] = yield connection.execute(sql, values);
+            const outParamValues = extractOutParams(queryResult, outParams);
+            return outParamValues;
+        }
+        catch (error) {
+            console.error(error);
+        }
+        finally {
+            if (connection)
+                connection.release();
+        }
+    });
+}
+function executeJsonInsert(connection, spName, jsonData, outParams) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            console.log("executeSJasonpInsert");
+            const sql = `CALL ${spName}(?);`;
+            const values = [JSON.stringify(jsonData)];
             console.log("sql");
             console.log(sql);
             console.log("values");
@@ -392,6 +486,22 @@ function executeSpSelect(connection, spName, values) {
                 connection.release();
         }
     });
+}
+function extractOutParams(queryResult, outParams) {
+    const output = {};
+    // Recorrer los resultados y extraer los parámetros de salida
+    queryResult.forEach((resultSet) => {
+        if (Array.isArray(resultSet)) {
+            resultSet.forEach((row) => {
+                outParams.forEach((param) => {
+                    if (row.hasOwnProperty(param)) {
+                        output[param] = row[param];
+                    }
+                });
+            });
+        }
+    });
+    return output;
 }
 function InsertDBInfo(connection, values, outParams) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -580,6 +690,45 @@ function getPantallaTransferenciaDatoById(transferenciaInfoId) {
     });
 }
 function getPantallaTransferenciaInfoById(id) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let connection;
+        try {
+            connection = yield database_1.default.getConnection();
+            const [rows] = yield connection.query("CALL GetTransInmediataInfoById(?)", [
+                id,
+            ]);
+            return rows;
+        }
+        catch (error) {
+            console.error("Error fetching Pantalla Transferencia Info:", error);
+            throw error;
+        }
+        finally {
+            if (connection)
+                connection.release();
+        }
+    });
+}
+function getPantallaPagosHeadById(transferenciaInfoId) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let connection;
+        try {
+            connection = yield database_1.default.getConnection();
+            const values = [transferenciaInfoId];
+            const result = yield executeSpSelect(connection, "GetTransInmediataDatoById", values);
+            return result;
+        }
+        catch (error) {
+            console.error("Error fetching Pantalla Transferencia Dato:", error);
+            throw error;
+        }
+        finally {
+            if (connection)
+                connection.release();
+        }
+    });
+}
+function getPantallaPagosInfoById(id) {
     return __awaiter(this, void 0, void 0, function* () {
         let connection;
         try {

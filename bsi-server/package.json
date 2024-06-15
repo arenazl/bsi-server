@@ -11,6 +11,7 @@
     "dev": "ts-node ./src/index.ts",
     "start": "node ./build/index.js"
   },
+  
   "keywords": [],
   "author": "",
   "license": "ISC",
