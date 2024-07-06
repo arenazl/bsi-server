@@ -23,6 +23,7 @@ class FileRoutes {
         this.router.get('/responseoagosforcombo', filesController_1.default.getResponseTRForCombo);
         this.router.post('/dropbox', filesController_1.default.dropbox);
         this.router.get('/download/:id', filesController_1.default.downloadFile);
+        this.router.get('/downloadPago/:id', filesController_1.default.downloadPagoFile);
         //this.router.post('/file', gamesController.file);
         //this.router.post('/download', gamesController.download);
     }

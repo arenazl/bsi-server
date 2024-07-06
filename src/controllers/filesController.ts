@@ -77,9 +77,7 @@ class FilesController {
         res.status(500).json({ message: "error tipo de archivo.", error: error.message, });
         return;
       }
-
     });
-
   }
 
   public async uploadTR(req: Request, res: Response): Promise<void> {
@@ -155,8 +153,49 @@ class FilesController {
 
   }
 
+
+  public async downloadPagoFile(req: Request, res: Response): Promise<void> {
+
+    const { id } = req.params;
+    const values = [id];
+
+    let connection;
+    try {
+
+      connection = await pool.getConnection();
+
+      const row = await executeSpSelect(connection, 'GetPagoFile', values);
+
+      const file = fs.openSync("./uploads/pago_" + id + ".txt", "w");
+
+      let line = row[0]["archivo_contenido"];
+
+      fs.writeSync(file, line + "\n");
+
+      fs.closeSync(file);
+
+      const filePath = "./uploads/pago_" + id + ".txt";
+
+      res.download(filePath, function (err) {
+      });
+
+    } catch (error) {
+      console.error("Error:", error);
+      res
+        .status(500)
+        .json({
+          message: "Error fetching:",
+          error: "Internal server error",
+        });
+    } finally {
+      if (connection) connection.release();
+    }
+
+  }
+
   public async downloadFile(req: Request, res: Response): Promise<void> {
     try {
+
       const { id } = req.params; // Assuming the file is identified by an 'id'
 
       const filePath = "./uploads/output_" + id + ".txt";

@@ -145,6 +145,37 @@ class FilesController {
             }
         });
     }
+    downloadPagoFile(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { id } = req.params;
+            const values = [id];
+            let connection;
+            try {
+                connection = yield database_1.default.getConnection();
+                const row = yield executeSpSelect(connection, 'GetPagoFile', values);
+                const file = fs.openSync("./uploads/pago_" + id + ".txt", "w");
+                let line = row[0]["archivo_contenido"];
+                fs.writeSync(file, line + "\n");
+                fs.closeSync(file);
+                const filePath = "./uploads/pago_" + id + ".txt";
+                res.download(filePath, function (err) {
+                });
+            }
+            catch (error) {
+                console.error("Error:", error);
+                res
+                    .status(500)
+                    .json({
+                    message: "Error fetching:",
+                    error: "Internal server error",
+                });
+            }
+            finally {
+                if (connection)
+                    connection.release();
+            }
+        });
+    }
     downloadFile(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
