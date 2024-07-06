@@ -12,8 +12,7 @@ import mysql from 'mysql';
 
 class LegajoController {
 
-    public async test(req: Request, res: Response):  Promise<void> {
-        
+    public async test(req: Request, res: Response):  Promise<void> {  
         res.json("LA PM DIOS");
     }
 

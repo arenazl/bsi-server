@@ -17,79 +17,68 @@ import nodemailer from "nodemailer";
 import { ImportExport } from "aws-sdk";
 import legajoController from "./legajoController";
 
-class FilesController 
-{
-  public async list(req: Request, res: Response): Promise<any> {
-    var serverFiles = [];
-    const dir = path.join(__dirname, "../../uploads");
-    const files = fs.readdirSync(dir);
-
-    for (const file of files) {
-      serverFiles.push(file);
-    }
-    return res.json(serverFiles);
-  }
-
-  public async delete(req: Request, res: Response): Promise<void> {
-    //pere
-
-    const { id } = req.params;
-
-    await pool.query("DELETE  FROM games WHERE id = ?", [id]);
-
-    res.json({ message: "The game was deleted" });
-  }
+class FilesController {
 
   public async ImportXls(req: Request, res: Response): Promise<void> {
 
-      var upload = await TempUploadProcess();
+    var upload = await TempUploadProcess();
 
-      upload(req, res, async () => 
-      { 
-        try
-        {
-          let connection = await pool.getConnection();
+    upload(req, res, async () => {
+      try {
 
-          const dataFromUI = req.file?.originalname.split("-");
+        let connection = await pool.getConnection();
 
-          const USER = dataFromUI[0];
-          //const IDORG = dataFromUI[1];
-          //const IDCONT = dataFromUI[2];
-          const CONCEPTO = dataFromUI[1];
-          const ROTULO = dataFromUI[2];
-          
-          const rows = await readXlsxFile(req.file.path); 
-          rows.shift();
-  
-          const registros: any[] = rows.filter(row => row.length > 0).map(row => {
-            const [CBU, APELLIDO, NOMBRE, IMPORTE] = row;
-            return { CBU, APELLIDO, NOMBRE, IMPORTE };     
-            });
+        const dataFromUI = req.file?.originalname.split('-');
 
-          const jsonResult = {
-            USER,
-            CONCEPTO,
-            ROTULO,
-            ITEMS: registros
-          };  
+        const IDUSER = dataFromUI[0];
+        const IDORG = dataFromUI[1];
+        const IDCONT = dataFromUI[2];
+        const CONCEPTO = dataFromUI[3];
+        const FECHAPAGO = formatDateFromFile(dataFromUI[4]);
 
-          const outParamValues = ["@headerId"];
+        const rows = await readXlsxFile(req.file.path);
 
-          var result = await executeJsonInsert(connection, "insertPagoFromJson", jsonResult, outParamValues);
+        const dataFromFourthRow = rows.slice(3);
 
-          const id = result["@headerId"]; 
+        const registros = [];
 
-          res.json({ id: id });;
-       
-        }
-        catch (error) 
-        {
-          console.error("error tipo de archivo: " + error);
-          res.status(500).json({message: "error tipo de archivo.",error: error.message,});
-          return;
+        for (let row of dataFromFourthRow) {
+          if (!row[3]) {
+            break;
+          }
+          const [CBU, CUIL, NOMBRE, IMPORTE] = row.slice(3);
+          registros.push({ CBU, CUIL, NOMBRE, IMPORTE });
         }
 
-      });
+        const jsonResult = {
+          IDUSER,
+          IDORG,
+          IDCONT,
+          CONCEPTO,
+          FECHAPAGO,
+          ITEMS: registros
+        };
+
+        console.log(jsonResult);
+
+        const outParamValues = ["PAGO_HEAD_ID"];
+
+        var result = await executeJsonInsert(connection, "insertPagoFromJson", jsonResult, outParamValues);
+
+        const id = result["PAGO_HEAD_ID"];
+
+        console.log("id: " + id);
+
+        res.json({ id: id });;
+
+      }
+      catch (error) {
+        console.error("error tipo de archivo: " + error);
+        res.status(500).json({ message: "error tipo de archivo.", error: error.message, });
+        return;
+      }
+
+    });
 
   }
 
@@ -97,8 +86,8 @@ class FilesController
 
     try {
 
-      var upload = await TempUploadProcess();  
-    
+      var upload = await TempUploadProcess();
+
       upload(req, res, async () => {
 
         let info = null;
@@ -121,7 +110,7 @@ class FilesController
             });
           return;
         }
-    
+
         const dataFromUI = req.file?.originalname.split("-");
 
         const user = dataFromUI[0];
@@ -140,8 +129,7 @@ class FilesController
 
           let contador = 0;
 
-          for (let entity of transInmediataDatos) 
-          {
+          for (let entity of transInmediataDatos) {
             const values = await LoopAndParseInfo(entity);
 
             const outParams = ["lastId"];
@@ -164,7 +152,7 @@ class FilesController
     } catch (error) {
       console.error("error in upload:" + error);
     }
-      
+
   }
 
   public async downloadFile(req: Request, res: Response): Promise<void> {
@@ -229,8 +217,9 @@ class FilesController
     const values = [id];
 
     try {
+
       const connection = await pool.getConnection();
-      
+
       const rows = await executeSpSelect(connection, 'getPageById', values);
 
       if (rows.length === 0) {
@@ -245,24 +234,25 @@ class FilesController
         if (infoScreen.length === 0) {
           infoScreen.push({
             headerId: row.headerId,
-            USER: row.user,
-            CONCEPTO: row.concepto,
-            ROTULO: row.rotulo,
-            CANTIDAD_TRANSFERENCIAS: 0, 
-            TOTAL_IMPORTE: 0 
+            CUENTA_DEBITO: row.Cuenta_Debito,
+            CONCEPTO: row.Modalidad,
+            ROTULO: row.Rotulo,
+            FECHA: row.Fecha_Acreditacion,
+            CANTIDAD_TRANSFERENCIAS: 0,
+            TOTAL_IMPORTE: 0
           });
         }
 
-        totalImporte += parseFloat(row.importe);
-        
+        totalImporte += parseFloat(row.totalImporte);
+
         dataScreen.push({
-          itemId: row.itemId,
-          CBU: row.cbu,
-          APELLIDO: row.apellido,
-          NOMBRE: row.nombre,
-          IMPORTE: row.importe
+          itemId: row.headerId,
+          CBU: row.CBU,
+          APELLIDO: row.Apellido_Nombre,
+          NOMBRE: row.Apellido_Nombre,
+          IMPORTE: row.totalImporte
         });
-        
+
       });
 
       if (infoScreen.length > 0) {
@@ -279,7 +269,6 @@ class FilesController
       });
     }
   }
-  
 
   public async getResponseTRForCombo(req, res): Promise<void> {
 
@@ -311,7 +300,7 @@ class FilesController
   }
 
   public async getResponsePagosForCombo(req, res): Promise<void> {
-    
+
     console.error("getResponseTRForCombo");
 
     let connection;
@@ -337,6 +326,23 @@ class FilesController
     } finally {
       if (connection) connection.release();
     }
+  }
+
+  public async delete(req: Request, res: Response): Promise<void> {
+    const { id } = req.params;
+    await pool.query("DELETE  FROM games WHERE id = ?", [id]);
+    res.json({ message: "The game was deleted" });
+  }
+
+  public async list(req: Request, res: Response): Promise<any> {
+    var serverFiles = [];
+    const dir = path.join(__dirname, "../../uploads");
+    const files = fs.readdirSync(dir);
+
+    for (const file of files) {
+      serverFiles.push(file);
+    }
+    return res.json(serverFiles);
   }
 
   public async uploadS3(file: any) {
@@ -454,6 +460,7 @@ class FilesController
       console.log(ex);
     }
   }
+
 }
 
 async function executeSpInsert(
@@ -489,6 +496,14 @@ async function executeSpInsert(
   }
 }
 
+function formatDateFromFile(fechaPagoRaw) {
+  // fechaPagoRaw tiene el formato YYYYMMDD
+  const year = fechaPagoRaw.substring(0, 4);
+  const month = fechaPagoRaw.substring(4, 6);
+  const day = fechaPagoRaw.substring(6, 8);
+  return `${year}-${month}-${day}`; // Formato YYYY-MM-DD
+}
+
 async function executeJsonInsert(
   connection: mysql.PoolConnection,
   spName: string,
@@ -496,7 +511,7 @@ async function executeJsonInsert(
   outParams: string[]
 ) {
   try {
-    console.log("executeSJasonpInsert");
+    console.log("execute SJasonpInsert");
 
     const sql = `CALL ${spName}(?);`;
     const values = [JSON.stringify(jsonData)];
@@ -512,7 +527,7 @@ async function executeJsonInsert(
 
     return outParamValues;
 
-   } catch (error: any) {
+  } catch (error: any) {
     console.error(error);
   } finally {
     if (connection) connection.release();
@@ -843,47 +858,7 @@ async function getPantallaTransferenciaInfoById(id: number) {
     if (connection) connection.release();
   }
 
- 
-}
 
-async function getPantallaPagosHeadById(transferenciaInfoId: number) {
-
-  let connection;
-  try {
-    connection = await pool.getConnection();
-
-    const values = [transferenciaInfoId];
-    const result = await executeSpSelect(
-      connection,
-      "GetTransInmediataDatoById",
-      values
-    );
-
-    return result;
-  } catch (error) {
-    console.error("Error fetching Pantalla Transferencia Dato:", error);
-    throw error;
-  } finally {
-    if (connection) connection.release();
-  }
-}
-
-async function getPantallaPagosInfoById(id: number) {
-  let connection;
-  try {
-    connection = await pool.getConnection();
-    const [rows] = await connection.query("CALL GetTransInmediataInfoById(?)", [
-      id,
-    ]);
-    return rows;
-  } catch (error) {
-    console.error("Error fetching Pantalla Transferencia Info:", error);
-    throw error;
-  } finally {
-    if (connection) connection.release();
-  }
-
- 
 }
 
 async function TempUploadProcess() {
