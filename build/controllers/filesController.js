@@ -46,25 +46,6 @@ const model_1 = require("./../models/model");
 const model_2 = require("./../models/model");
 const nodemailer_1 = __importDefault(require("nodemailer"));
 class FilesController {
-    list(req, res) {
-        return __awaiter(this, void 0, void 0, function* () {
-            var serverFiles = [];
-            const dir = path_1.default.join(__dirname, "../../uploads");
-            const files = fs.readdirSync(dir);
-            for (const file of files) {
-                serverFiles.push(file);
-            }
-            return res.json(serverFiles);
-        });
-    }
-    delete(req, res) {
-        return __awaiter(this, void 0, void 0, function* () {
-            //pere
-            const { id } = req.params;
-            yield database_1.default.query("DELETE  FROM games WHERE id = ?", [id]);
-            res.json({ message: "The game was deleted" });
-        });
-    }
     ImportXls(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             var upload = yield TempUploadProcess();
@@ -72,25 +53,35 @@ class FilesController {
                 var _a;
                 try {
                     let connection = yield database_1.default.getConnection();
-                    const dataFromUI = (_a = req.file) === null || _a === void 0 ? void 0 : _a.originalname.split("-");
-                    const USER = dataFromUI[0];
-                    const CONCEPTO = dataFromUI[1];
-                    const ROTULO = dataFromUI[2];
+                    const dataFromUI = (_a = req.file) === null || _a === void 0 ? void 0 : _a.originalname.split('-');
+                    const IDUSER = dataFromUI[0];
+                    const IDORG = dataFromUI[1];
+                    const IDCONT = dataFromUI[2];
+                    const CONCEPTO = dataFromUI[3];
+                    const FECHAPAGO = formatDateFromFile(dataFromUI[4]);
                     const rows = yield (0, node_1.default)(req.file.path);
-                    rows.shift();
-                    const registros = rows.filter(row => row.length > 0).map(row => {
-                        const [CBU, APELLIDO, NOMBRE, IMPORTE] = row;
-                        return { CBU, APELLIDO, NOMBRE, IMPORTE };
-                    });
+                    const dataFromFourthRow = rows.slice(3);
+                    const registros = [];
+                    for (let row of dataFromFourthRow) {
+                        if (!row[3]) {
+                            break;
+                        }
+                        const [CBU, CUIL, NOMBRE, IMPORTE] = row.slice(3);
+                        registros.push({ CBU, CUIL, NOMBRE, IMPORTE });
+                    }
                     const jsonResult = {
-                        USER,
+                        IDUSER,
+                        IDORG,
+                        IDCONT,
                         CONCEPTO,
-                        ROTULO,
+                        FECHAPAGO,
                         ITEMS: registros
                     };
-                    const outParamValues = ["@headerId"];
+                    console.log(jsonResult);
+                    const outParamValues = ["PAGO_HEAD_ID"];
                     var result = yield executeJsonInsert(connection, "insertPagoFromJson", jsonResult, outParamValues);
-                    const id = result["@headerId"];
+                    const id = result["PAGO_HEAD_ID"];
+                    console.log("id: " + id);
                     res.json({ id: id });
                     ;
                 }
@@ -226,20 +217,21 @@ class FilesController {
                     if (infoScreen.length === 0) {
                         infoScreen.push({
                             headerId: row.headerId,
-                            USER: row.user,
-                            CONCEPTO: row.concepto,
-                            ROTULO: row.rotulo,
+                            CUENTA_DEBITO: row.Cuenta_Debito,
+                            CONCEPTO: row.Modalidad,
+                            ROTULO: row.Rotulo,
+                            FECHA: row.Fecha_Acreditacion,
                             CANTIDAD_TRANSFERENCIAS: 0,
                             TOTAL_IMPORTE: 0
                         });
                     }
-                    totalImporte += parseFloat(row.importe);
+                    totalImporte += parseFloat(row.totalImporte);
                     dataScreen.push({
-                        itemId: row.itemId,
-                        CBU: row.cbu,
-                        APELLIDO: row.apellido,
-                        NOMBRE: row.nombre,
-                        IMPORTE: row.importe
+                        itemId: row.headerId,
+                        CBU: row.CBU,
+                        APELLIDO: row.Apellido_Nombre,
+                        NOMBRE: row.Apellido_Nombre,
+                        IMPORTE: row.totalImporte
                     });
                 });
                 if (infoScreen.length > 0) {
@@ -305,6 +297,24 @@ class FilesController {
                 if (connection)
                     connection.release();
             }
+        });
+    }
+    delete(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { id } = req.params;
+            yield database_1.default.query("DELETE  FROM games WHERE id = ?", [id]);
+            res.json({ message: "The game was deleted" });
+        });
+    }
+    list(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            var serverFiles = [];
+            const dir = path_1.default.join(__dirname, "../../uploads");
+            const files = fs.readdirSync(dir);
+            for (const file of files) {
+                serverFiles.push(file);
+            }
+            return res.json(serverFiles);
         });
     }
     uploadS3(file) {
@@ -440,10 +450,17 @@ function executeSpInsert(connection, spName, values, outParams) {
         }
     });
 }
+function formatDateFromFile(fechaPagoRaw) {
+    // fechaPagoRaw tiene el formato YYYYMMDD
+    const year = fechaPagoRaw.substring(0, 4);
+    const month = fechaPagoRaw.substring(4, 6);
+    const day = fechaPagoRaw.substring(6, 8);
+    return `${year}-${month}-${day}`; // Formato YYYY-MM-DD
+}
 function executeJsonInsert(connection, spName, jsonData, outParams) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            console.log("executeSJasonpInsert");
+            console.log("execute SJasonpInsert");
             const sql = `CALL ${spName}(?);`;
             const values = [JSON.stringify(jsonData)];
             console.log("sql");
@@ -690,45 +707,6 @@ function getPantallaTransferenciaDatoById(transferenciaInfoId) {
     });
 }
 function getPantallaTransferenciaInfoById(id) {
-    return __awaiter(this, void 0, void 0, function* () {
-        let connection;
-        try {
-            connection = yield database_1.default.getConnection();
-            const [rows] = yield connection.query("CALL GetTransInmediataInfoById(?)", [
-                id,
-            ]);
-            return rows;
-        }
-        catch (error) {
-            console.error("Error fetching Pantalla Transferencia Info:", error);
-            throw error;
-        }
-        finally {
-            if (connection)
-                connection.release();
-        }
-    });
-}
-function getPantallaPagosHeadById(transferenciaInfoId) {
-    return __awaiter(this, void 0, void 0, function* () {
-        let connection;
-        try {
-            connection = yield database_1.default.getConnection();
-            const values = [transferenciaInfoId];
-            const result = yield executeSpSelect(connection, "GetTransInmediataDatoById", values);
-            return result;
-        }
-        catch (error) {
-            console.error("Error fetching Pantalla Transferencia Dato:", error);
-            throw error;
-        }
-        finally {
-            if (connection)
-                connection.release();
-        }
-    });
-}
-function getPantallaPagosInfoById(id) {
     return __awaiter(this, void 0, void 0, function* () {
         let connection;
         try {
