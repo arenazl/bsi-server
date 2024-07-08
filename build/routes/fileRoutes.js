@@ -20,7 +20,7 @@ class FileRoutes {
         this.router.get('/responsetr/:id', filesController_1.default.getResponseTR);
         this.router.get('/pagoslist/:id', filesController_1.default.getResponsePagos);
         this.router.get('/responsetrforcombo', filesController_1.default.getResponseTRForCombo);
-        this.router.get('/responseoagosforcombo', filesController_1.default.getResponseTRForCombo);
+        this.router.get('/responsepagosforcombo', filesController_1.default.getResponsePagosForCombo);
         this.router.post('/dropbox', filesController_1.default.dropbox);
         this.router.get('/download/:id', filesController_1.default.downloadFile);
         this.router.get('/downloadPago/:id', filesController_1.default.downloadPagoFile);

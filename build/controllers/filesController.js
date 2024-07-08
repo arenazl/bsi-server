@@ -307,20 +307,20 @@ class FilesController {
     }
     getResponsePagosForCombo(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            console.error("getResponseTRForCombo");
+            console.error("getResponsePagosForCombo");
             let connection;
             try {
                 connection = yield database_1.default.getConnection();
                 const values = null;
-                const result = yield executeSpSelect(connection, "getTransListForSelect", values);
+                const result = yield executeSpSelect(connection, "getPagosListForSelect", values);
                 res.json(result);
             }
             catch (error) {
-                console.error("Error fetching getResponseTRList:", error);
+                console.error("Error fetching getResponsePagosForCombo:", error);
                 res
                     .status(500)
                     .json({
-                    message: "Error fetching getResponseTRList:",
+                    message: "Error fetching getResponsePagosForCombo:",
                     error: "Internal server error",
                 });
             }

@@ -38,6 +38,7 @@ class FilesController {
 
         const rows = await readXlsxFile(req.file.path);
 
+
         const dataFromFourthRow = rows.slice(3);
 
         const registros = [];
@@ -340,7 +341,7 @@ class FilesController {
 
   public async getResponsePagosForCombo(req, res): Promise<void> {
 
-    console.error("getResponseTRForCombo");
+    console.error("getResponsePagosForCombo");
 
     let connection;
     try {
@@ -349,17 +350,17 @@ class FilesController {
 
       const result = await executeSpSelect(
         connection,
-        "getTransListForSelect",
+        "getPagosListForSelect",
         values
       );
 
       res.json(result);
     } catch (error) {
-      console.error("Error fetching getResponseTRList:", error);
+      console.error("Error fetching getResponsePagosForCombo:", error);
       res
         .status(500)
         .json({
-          message: "Error fetching getResponseTRList:",
+          message: "Error fetching getResponsePagosForCombo:",
           error: "Internal server error",
         });
     } finally {
