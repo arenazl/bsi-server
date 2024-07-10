@@ -38,7 +38,6 @@ class FilesController {
 
         const rows = await readXlsxFile(req.file.path);
 
-
         const dataFromFourthRow = rows.slice(3);
 
         const registros = [];
@@ -154,6 +153,30 @@ class FilesController {
 
   }
 
+  public async getContratosBotones(req: Request, res: Response): Promise<void> {
+
+    const id_user = req.body.user;
+    const id_organismo = req.body.contrato;
+
+    const values = [id_user, id_organismo];
+
+    let connection;
+
+    try {
+
+      connection = await pool.getConnection();
+
+      const row = await executeSpSelect(connection, 'ObtenerContratos', values);
+
+      res.json(row);
+
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ message: "Error fetching:", error: "Internal server error" });
+    } finally {
+      if (connection) connection.release();
+    }
+  }
 
   public async downloadPagoFile(req: Request, res: Response): Promise<void> {
 

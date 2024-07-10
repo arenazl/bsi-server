@@ -24,7 +24,7 @@ class FileRoutes {
         this.router.post('/dropbox', fileController.dropbox);
         this.router.get('/download/:id', fileController.downloadFile);
         this.router.get('/downloadPago/:id', fileController.downloadPagoFile);
-
+        this.router.post('/contratosbotones', fileController.getContratosBotones);
         //this.router.post('/file', gamesController.file);
         //this.router.post('/download', gamesController.download);
     }

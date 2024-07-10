@@ -13,7 +13,7 @@ class Server {
         this.app = express();
         this.config();
         this.routes();
-        //this.globalErrorHandler();
+        this.globalErrorHandler();
     }
 
     config(): void {

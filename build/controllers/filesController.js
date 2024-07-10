@@ -145,6 +145,27 @@ class FilesController {
             }
         });
     }
+    getContratosBotones(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const id_user = req.body.user;
+            const id_organismo = req.body.contrato;
+            const values = [id_user, id_organismo];
+            let connection;
+            try {
+                connection = yield database_1.default.getConnection();
+                const row = yield executeSpSelect(connection, 'ObtenerContratos', values);
+                res.json(row);
+            }
+            catch (error) {
+                console.error("Error:", error);
+                res.status(500).json({ message: "Error fetching:", error: "Internal server error" });
+            }
+            finally {
+                if (connection)
+                    connection.release();
+            }
+        });
+    }
     downloadPagoFile(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             const { id } = req.params;
