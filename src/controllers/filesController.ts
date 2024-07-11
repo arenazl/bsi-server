@@ -30,6 +30,9 @@ class FilesController {
 
         const dataFromUI = req.file?.originalname.split('-');
 
+        console.log("originalname" + req.file?.originalname);
+        console.log("datafromui" + dataFromUI);
+
         const IDUSER = dataFromUI[0];
         const IDORG = dataFromUI[1];
         const IDCONT = dataFromUI[2];

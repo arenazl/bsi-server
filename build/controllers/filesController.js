@@ -50,10 +50,12 @@ class FilesController {
         return __awaiter(this, void 0, void 0, function* () {
             var upload = yield TempUploadProcess();
             upload(req, res, () => __awaiter(this, void 0, void 0, function* () {
-                var _a;
+                var _a, _b;
                 try {
                     let connection = yield database_1.default.getConnection();
                     const dataFromUI = (_a = req.file) === null || _a === void 0 ? void 0 : _a.originalname.split('-');
+                    console.log("originalname" + ((_b = req.file) === null || _b === void 0 ? void 0 : _b.originalname));
+                    console.log("datafromui" + dataFromUI);
                     const IDUSER = dataFromUI[0];
                     const IDORG = dataFromUI[1];
                     const IDCONT = dataFromUI[2];
