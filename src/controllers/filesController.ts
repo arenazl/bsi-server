@@ -24,13 +24,16 @@ class FilesController {
     var upload = await TempUploadProcess();
 
     upload(req, res, async () => {
+
       try {
+
 
         let connection = await pool.getConnection();
 
         const dataFromUI = req.file?.originalname.split('-');
 
         console.log("originalname" + req.file?.originalname);
+        console.log("datafromui" + dataFromUI);
         console.log("datafromui" + dataFromUI);
 
         const IDUSER = dataFromUI[0];

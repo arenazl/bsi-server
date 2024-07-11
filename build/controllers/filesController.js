@@ -56,6 +56,7 @@ class FilesController {
                     const dataFromUI = (_a = req.file) === null || _a === void 0 ? void 0 : _a.originalname.split('-');
                     console.log("originalname" + ((_b = req.file) === null || _b === void 0 ? void 0 : _b.originalname));
                     console.log("datafromui" + dataFromUI);
+                    console.log("datafromui" + dataFromUI);
                     const IDUSER = dataFromUI[0];
                     const IDORG = dataFromUI[1];
                     const IDCONT = dataFromUI[2];
