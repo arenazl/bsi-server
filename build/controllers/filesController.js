@@ -57,8 +57,9 @@ class FilesController {
                     const IDUSER = dataFromUI[0];
                     const IDORG = dataFromUI[1];
                     const IDCONT = dataFromUI[2];
-                    const CONCEPTO = dataFromUI[3];
+                    let CONCEPTO = dataFromUI[3];
                     const FECHAPAGO = formatDateFromFile(dataFromUI[4]);
+                    CONCEPTO = CONCEPTO.replace('.', '-');
                     const rows = yield (0, node_1.default)(req.file.path);
                     const dataFromFourthRow = rows.slice(3);
                     const registros = [];
@@ -270,7 +271,7 @@ class FilesController {
                         infoScreen.push({
                             headerId: row.headerId,
                             CUENTA_DEBITO: row.Cuenta_Debito,
-                            CONCEPTO: row.Modalidad,
+                            CONCEPTO: row.Prestacion,
                             ROTULO: row.Rotulo,
                             FECHA: row.Fecha_Acreditacion,
                             CANTIDAD_TRANSFERENCIAS: 0,
