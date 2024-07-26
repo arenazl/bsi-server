@@ -25,6 +25,7 @@ class FileRoutes {
         this.router.get('/download/:id', filesController_1.default.downloadFile);
         this.router.get('/downloadPago/:id', filesController_1.default.downloadPagoFile);
         this.router.post('/contratosbotones', filesController_1.default.getContratosBotones);
+        this.router.post('/ObtenerContratoById', filesController_1.default.getContratoById);
         //this.router.post('/file', gamesController.file);
         //this.router.post('/download', gamesController.download);
     }

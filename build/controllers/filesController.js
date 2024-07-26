@@ -53,7 +53,7 @@ class FilesController {
                 var _a, _b;
                 try {
                     let connection = yield database_1.default.getConnection();
-                    const dataFromUI = (_a = req.file) === null || _a === void 0 ? void 0 : _a.originalname.split('-');
+                    const dataFromUI = (_a = req.file) === null || _a === void 0 ? void 0 : _a.originalname.split("-");
                     console.log("originalname" + ((_b = req.file) === null || _b === void 0 ? void 0 : _b.originalname));
                     console.log("datafromui" + dataFromUI);
                     console.log("datafromui" + dataFromUI);
@@ -62,7 +62,7 @@ class FilesController {
                     const IDCONT = dataFromUI[2];
                     let CONCEPTO = dataFromUI[3];
                     const FECHAPAGO = formatDateFromFile(dataFromUI[4]);
-                    CONCEPTO = CONCEPTO.replace('.', '-');
+                    CONCEPTO = CONCEPTO.replace(".", "-");
                     const rows = yield (0, node_1.default)(req.file.path);
                     const dataFromFourthRow = rows.slice(3);
                     const registros = [];
@@ -79,7 +79,7 @@ class FilesController {
                         IDCONT,
                         CONCEPTO,
                         FECHAPAGO,
-                        ITEMS: registros
+                        ITEMS: registros,
                     };
                     console.log(jsonResult);
                     const outParamValues = ["PAGO_HEAD_ID"];
@@ -87,11 +87,12 @@ class FilesController {
                     const id = result["PAGO_HEAD_ID"];
                     console.log("id: " + id);
                     res.json({ id: id });
-                    ;
                 }
                 catch (error) {
                     console.error("error tipo de archivo: " + error);
-                    res.status(500).json({ message: "error tipo de archivo.", error: error.message, });
+                    res
+                        .status(500)
+                        .json({ message: "error tipo de archivo.", error: error.message });
                     return;
                 }
             }));
@@ -113,9 +114,7 @@ class FilesController {
                     }
                     catch (error) {
                         console.error("error parseo: " + error);
-                        res
-                            .status(500)
-                            .json({
+                        res.status(500).json({
                             message: "An error occurred while updating the data.",
                             error: error.message,
                         });
@@ -128,13 +127,13 @@ class FilesController {
                     try {
                         let connection = yield database_1.default.getConnection();
                         var { values, outParams } = yield ParseHeader(info, concepto);
-                        const id = yield InserDBHeader(connection, values, outParams);
+                        const id = yield InsertTransInmediataInfo(connection, values, outParams);
                         let transInmediataDatos = parsearDatosArchivoTR(rows, id);
                         let contador = 0;
                         for (let entity of transInmediataDatos) {
                             const values = yield LoopAndParseInfo(entity);
                             const outParams = ["lastId"];
-                            const outParamValues = yield InsertDBInfo(connection, values, outParams);
+                            const outParamValues = yield InsertTransInmediataDato(connection, values, outParams);
                         }
                         escribirArchivoTR(transInmediataDatos, info, concepto, motivo, id);
                         res.json({ id: id });
@@ -157,12 +156,38 @@ class FilesController {
             let connection;
             try {
                 connection = yield database_1.default.getConnection();
-                const row = yield executeSpSelect(connection, 'ObtenerContratos', values);
+                const row = yield executeSpSelect(connection, "ObtenerContratos", values);
                 res.json(row);
             }
             catch (error) {
                 console.error("Error:", error);
-                res.status(500).json({ message: "Error fetching:", error: "Internal server error" });
+                res
+                    .status(500)
+                    .json({ message: "Error fetching:", error: "Internal server error" });
+            }
+            finally {
+                if (connection)
+                    connection.release();
+            }
+        });
+    }
+    getContratoById(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const id_user = req.body.id_user;
+            const id_organismo = req.body.id_organismo;
+            const id_contrato = req.body.id_contrato;
+            const values = [id_user, id_organismo, id_contrato];
+            let connection;
+            try {
+                connection = yield database_1.default.getConnection();
+                const row = yield executeSpSelect(connection, "ObtenerContratoById", values);
+                res.json(row);
+            }
+            catch (error) {
+                console.error("Error:", error);
+                res
+                    .status(500)
+                    .json({ message: "Error fetching:", error: "Internal server error" });
             }
             finally {
                 if (connection)
@@ -177,20 +202,17 @@ class FilesController {
             let connection;
             try {
                 connection = yield database_1.default.getConnection();
-                const row = yield executeSpSelect(connection, 'GetPagoFile', values);
+                const row = yield executeSpSelect(connection, "GetPagoFile", values);
                 const file = fs.openSync("./uploads/pago_" + id + ".txt", "w");
                 let line = row[0]["archivo_contenido"];
                 fs.writeSync(file, line + "\n");
                 fs.closeSync(file);
                 const filePath = "./uploads/pago_" + id + ".txt";
-                res.download(filePath, function (err) {
-                });
+                res.download(filePath, function (err) { });
             }
             catch (error) {
                 console.error("Error:", error);
-                res
-                    .status(500)
-                    .json({
+                res.status(500).json({
                     message: "Error fetching:",
                     error: "Internal server error",
                 });
@@ -247,9 +269,7 @@ class FilesController {
             }
             catch (error) {
                 console.error("Error fetching response:", error);
-                res
-                    .status(500)
-                    .json({
+                res.status(500).json({
                     message: "Error fetching getResponseTR:",
                     error: "Internal server error",
                 });
@@ -262,9 +282,9 @@ class FilesController {
             const values = [id];
             try {
                 const connection = yield database_1.default.getConnection();
-                const rows = yield executeSpSelect(connection, 'getPageById', values);
+                const rows = yield executeSpSelect(connection, "getPageById", values);
                 if (rows.length === 0) {
-                    return res.status(404).json({ message: 'No data found' });
+                    return res.status(404).json({ message: "No data found" });
                 }
                 const infoScreen = [];
                 const dataScreen = [];
@@ -278,7 +298,7 @@ class FilesController {
                             ROTULO: row.Rotulo,
                             FECHA: row.Fecha_Acreditacion,
                             CANTIDAD_TRANSFERENCIAS: 0,
-                            TOTAL_IMPORTE: 0
+                            TOTAL_IMPORTE: 0,
                         });
                     }
                     totalImporte += parseFloat(row.totalImporte);
@@ -287,7 +307,7 @@ class FilesController {
                         CBU: row.CBU,
                         APELLIDO: row.Apellido_Nombre,
                         NOMBRE: row.Apellido_Nombre,
-                        IMPORTE: row.totalImporte
+                        IMPORTE: row.totalImporte,
                     });
                 });
                 if (infoScreen.length > 0) {
@@ -317,9 +337,7 @@ class FilesController {
             }
             catch (error) {
                 console.error("Error fetching getResponseTRList:", error);
-                res
-                    .status(500)
-                    .json({
+                res.status(500).json({
                     message: "Error fetching getResponseTRList:",
                     error: "Internal server error",
                 });
@@ -342,9 +360,7 @@ class FilesController {
             }
             catch (error) {
                 console.error("Error fetching getResponsePagosForCombo:", error);
-                res
-                    .status(500)
-                    .json({
+                res.status(500).json({
                     message: "Error fetching getResponsePagosForCombo:",
                     error: "Internal server error",
                 });
@@ -576,7 +592,7 @@ function extractOutParams(queryResult, outParams) {
     });
     return output;
 }
-function InsertDBInfo(connection, values, outParams) {
+function InsertTransInmediataDato(connection, values, outParams) {
     return __awaiter(this, void 0, void 0, function* () {
         return yield executeSpInsert(connection, "InsertTransInmediataDato", values, outParams);
     });
@@ -597,7 +613,7 @@ function LoopAndParseInfo(entity) {
         ];
     });
 }
-function InserDBHeader(connection, values, outParams) {
+function InsertTransInmediataInfo(connection, values, outParams) {
     return __awaiter(this, void 0, void 0, function* () {
         const outParamValues = yield executeSpInsert(connection, "InsertTransInmediataInfo", values, outParams);
         const id = outParamValues["lastId"];
