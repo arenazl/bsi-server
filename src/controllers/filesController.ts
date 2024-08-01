@@ -18,7 +18,8 @@ import { ImportExport } from "aws-sdk";
 import legajoController from "./legajoController";
 
 class FilesController {
-  public async ImportXls(req: Request, res: Response): Promise<void> {
+
+  public async ImportXlsPagos(req: Request, res: Response): Promise<void> {
     var upload = await TempUploadProcess();
 
     upload(req, res, async () => {
@@ -86,6 +87,61 @@ class FilesController {
         return;
       }
     });
+  }
+
+  public async ImportXlsAltas(req: Request, res: Response): Promise<void> {
+
+    var upload = await TempUploadProcess();
+
+    upload(req, res, async () => {
+      try {
+        let connection = await pool.getConnection();
+
+        const dataFromUI = req.file?.originalname.split("-");
+
+        console.log("originalname" + req.file?.originalname);
+        console.log("datafromui" + dataFromUI);
+        console.log("datafromui" + dataFromUI);
+
+        const IDUSER = dataFromUI[0];
+        const IDORG = dataFromUI[1];
+        const IDCONT = dataFromUI[2];
+
+        const rows = await readXlsxFile(req.file.path);
+
+        const dataFromFourthRow = rows.slice(4);
+
+        const registros = [];
+
+        for (let row of dataFromFourthRow) {
+          if (!row[4]) {
+            break;
+          }
+          const [CUIL, Tipo_Doc, Nro_Doc, Apellidos, Nombres, Fecha_Nacimiento, Sexo] = row;
+          registros.push({ CUIL, Tipo_Doc, Nro_Doc, Apellidos, Nombres, Fecha_Nacimiento, Sexo });
+        }
+
+        const jsonResult = {
+          ITEMS: registros,
+        };
+
+        const outParams = [];
+
+        const results = await executeJsonSelect(connection, "ValidarDatosAltaCuenta", jsonResult, outParams);
+
+        console.log("posterior al sp");
+        console.log(results);
+
+        res.json(results);
+      } catch (error) {
+        console.error("Error:", error);
+        res
+          .status(500)
+          .json({ message: "Error fetching:", error: "Internal server error" });
+      }
+
+    });
+
   }
 
   public async uploadTR(req: Request, res: Response): Promise<void> {
@@ -630,6 +686,47 @@ async function executeSpSelect(
     if (connection) connection.release();
   }
 }
+
+async function executeJsonSelect(
+  connection: mysql.PoolConnection,
+  spName: string,
+  jsonData: object,
+  outParams: string[]
+): Promise<any[]> {
+  try {
+
+    const sql = `CALL ${spName}(?);`;
+    const values = [JSON.stringify(jsonData)];
+
+    console.log("sql");
+    console.log(sql);
+    console.log("values");
+    console.log(values);
+
+    const statement = await connection.prepare(sql);
+    const [results]: any = await statement.execute(values);
+
+    console.log('results full');
+    console.log(results);
+
+    statement.close();
+
+    await connection.unprepare(sql);
+
+    return results[0];
+
+  } catch (error: any) {
+    console.error(error);
+  } finally {
+    if (connection) {
+      connection.release();
+    }
+
+  }
+}
+
+
+
 
 function extractOutParams(queryResult, outParams) {
   const output = {};

@@ -46,7 +46,7 @@ const model_1 = require("./../models/model");
 const model_2 = require("./../models/model");
 const nodemailer_1 = __importDefault(require("nodemailer"));
 class FilesController {
-    ImportXls(req, res) {
+    ImportXlsPagos(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             var upload = yield TempUploadProcess();
             upload(req, res, () => __awaiter(this, void 0, void 0, function* () {
@@ -87,6 +87,48 @@ class FilesController {
                     const id = result["PAGO_HEAD_ID"];
                     console.log("id: " + id);
                     res.json({ id: id });
+                }
+                catch (error) {
+                    console.error("error tipo de archivo: " + error);
+                    res
+                        .status(500)
+                        .json({ message: "error tipo de archivo.", error: error.message });
+                    return;
+                }
+            }));
+        });
+    }
+    ImportXlsAltas(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            var upload = yield TempUploadProcess();
+            upload(req, res, () => __awaiter(this, void 0, void 0, function* () {
+                var _a, _b;
+                try {
+                    let connection = yield database_1.default.getConnection();
+                    const dataFromUI = (_a = req.file) === null || _a === void 0 ? void 0 : _a.originalname.split("-");
+                    console.log("originalname" + ((_b = req.file) === null || _b === void 0 ? void 0 : _b.originalname));
+                    console.log("datafromui" + dataFromUI);
+                    console.log("datafromui" + dataFromUI);
+                    const IDUSER = dataFromUI[0];
+                    const IDORG = dataFromUI[1];
+                    const IDCONT = dataFromUI[2];
+                    const rows = yield (0, node_1.default)(req.file.path);
+                    const dataFromFourthRow = rows.slice(4);
+                    const registros = [];
+                    for (let row of dataFromFourthRow) {
+                        if (!row[4]) {
+                            break;
+                        }
+                        const [CUIL, Tipo_Doc, Nro_Doc, Apellidos, Nombres, Fecha_Nacimiento, Sexo] = row;
+                        registros.push({ CUIL, Tipo_Doc, Nro_Doc, Apellidos, Nombres, Fecha_Nacimiento, Sexo });
+                    }
+                    const jsonResult = {
+                        ITEMS: registros,
+                    };
+                    console.log(jsonResult);
+                    const outParams = [];
+                    const results = yield executeJsonSelect(connection, "ValidarDatosAltaCuenta", jsonResult, outParams);
+                    res.json({ results });
                 }
                 catch (error) {
                     console.error("error tipo de archivo: " + error);
@@ -573,6 +615,31 @@ function executeSpSelect(connection, spName, values) {
         finally {
             if (connection)
                 connection.release();
+        }
+    });
+}
+function executeJsonSelect(connection, spName, jsonData, outParams) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const sql = `CALL ${spName}(?);`;
+            const values = [JSON.stringify(jsonData)];
+            console.log("sql");
+            console.log(sql);
+            console.log("values");
+            console.log(values);
+            const statement = yield connection.prepare(sql);
+            const [results] = yield statement.execute(values);
+            statement.close();
+            yield connection.unprepare(sql);
+            return results[0];
+        }
+        catch (error) {
+            console.error(error);
+        }
+        finally {
+            if (connection) {
+                connection.release();
+            }
         }
     });
 }
