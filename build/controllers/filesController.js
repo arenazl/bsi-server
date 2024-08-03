@@ -125,17 +125,17 @@ class FilesController {
                     const jsonResult = {
                         ITEMS: registros,
                     };
-                    console.log(jsonResult);
                     const outParams = [];
                     const results = yield executeJsonSelect(connection, "ValidarDatosAltaCuenta", jsonResult, outParams);
-                    res.json({ results });
+                    console.log("posterior al sp");
+                    console.log(results);
+                    res.json(results);
                 }
                 catch (error) {
-                    console.error("error tipo de archivo: " + error);
+                    console.error("Error:", error);
                     res
                         .status(500)
-                        .json({ message: "error tipo de archivo.", error: error.message });
-                    return;
+                        .json({ message: "Error fetching:", error: "Internal server error" });
                 }
             }));
         });
@@ -629,6 +629,8 @@ function executeJsonSelect(connection, spName, jsonData, outParams) {
             console.log(values);
             const statement = yield connection.prepare(sql);
             const [results] = yield statement.execute(values);
+            console.log('results full');
+            console.log(results);
             statement.close();
             yield connection.unprepare(sql);
             return results[0];
