@@ -639,6 +639,7 @@ async function executeJsonInsert(
     const sql = `CALL ${spName}(?);`;
     const values = [JSON.stringify(jsonData)];
 
+
     console.log("sql");
     console.log(sql);
     console.log("values");
