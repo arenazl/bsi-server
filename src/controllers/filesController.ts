@@ -16,6 +16,7 @@ import { transInmediataDato } from "./../models/model";
 import nodemailer from "nodemailer";
 import { ImportExport } from "aws-sdk";
 import legajoController from "./legajoController";
+import { TipoModulo } from "../enums/enums";
 
 class FilesController {
 
@@ -111,6 +112,9 @@ class FilesController {
 
         const dataFromFourthRow = rows.slice(4);
 
+        //console.log('infro cruda')
+        //console.log(dataFromFourthRow)
+
         const registros = [];
 
         for (let row of dataFromFourthRow) {
@@ -120,10 +124,13 @@ class FilesController {
           const [CUIL, Tipo_Doc, Nro_Doc, Apellidos, Nombres, Fecha_Nacimiento, Sexo] = row;
           registros.push({ CUIL, Tipo_Doc, Nro_Doc, Apellidos, Nombres, Fecha_Nacimiento, Sexo });
         }
-
         const jsonResult = {
           ITEMS: registros,
         };
+
+
+        console.log('cantidad');
+        console.log(registros.length);
 
         const outParams = [];
 
@@ -143,6 +150,7 @@ class FilesController {
     });
 
   }
+
 
   public async uploadTR(req: Request, res: Response): Promise<void> {
     try {
@@ -261,17 +269,21 @@ class FilesController {
     }
   }
 
-  public async downloadPagoFile(req: Request, res: Response): Promise<void> {
+
+  public async downloadOutputFile(req: Request, res: Response): Promise<void> {
+
+    const { tipomodulo } = req.params;
     const { id } = req.params;
+
     const values = [id];
 
     let connection;
     try {
       connection = await pool.getConnection();
 
-      const row = await executeSpSelect(connection, "GetPagoFile", values);
+      const row = await executeSpSelect(connection, this.getSpNameForTxt(tipomodulo as TipoModulo), values);
 
-      const file = fs.openSync("./uploads/pago_" + id + ".txt", "w");
+      const file = fs.openSync(`./uploads/${tipomodulo}_{id}.txt`, "w");
 
       let line = row[0]["archivo_contenido"];
 
@@ -279,7 +291,7 @@ class FilesController {
 
       fs.closeSync(file);
 
-      const filePath = "./uploads/pago_" + id + ".txt";
+      const filePath = `./uploads/pago_${id}.txt`;
 
       res.download(filePath, function (err) { });
     } catch (error) {
@@ -292,6 +304,23 @@ class FilesController {
       if (connection) connection.release();
     }
   }
+
+
+
+  private getSpNameForTxt(tipoModulo: TipoModulo) {
+
+    switch (tipoModulo) {
+      case TipoModulo.PAGOS:
+        return 'GetPagoFile';
+      case TipoModulo.TRANSFERENCIAS:
+        return 'GetFileTransferencias';
+      case TipoModulo.ALTAS:
+        return 'GenerarArchivoAltaCuentas';
+      default:
+        return '';
+    }
+  }
+
 
   public async downloadFile(req: Request, res: Response): Promise<void> {
     try {
@@ -700,10 +729,10 @@ async function executeJsonSelect(
     const sql = `CALL ${spName}(?);`;
     const values = [JSON.stringify(jsonData)];
 
-    console.log("sql");
-    console.log(sql);
-    console.log("values");
-    console.log(values);
+    //console.log("sql");
+    //console.log(sql);
+    //console.log("values");
+    //console.log(values);
 
     const statement = await connection.prepare(sql);
     const [results]: any = await statement.execute(values);
