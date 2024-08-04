@@ -128,6 +128,7 @@ class FilesController {
           ITEMS: registros,
         };
 
+        let json = jsonResult;
 
         console.log('cantidad');
         console.log(registros.length);
@@ -304,8 +305,6 @@ class FilesController {
       if (connection) connection.release();
     }
   }
-
-
 
   private getSpNameForTxt(tipoModulo: TipoModulo) {
 
@@ -729,10 +728,10 @@ async function executeJsonSelect(
     const sql = `CALL ${spName}(?);`;
     const values = [JSON.stringify(jsonData)];
 
-    //console.log("sql");
-    //console.log(sql);
-    //console.log("values");
-    //console.log(values);
+    console.log("sql");
+    console.log(sql);
+    console.log("values");
+    console.log(values);
 
     const statement = await connection.prepare(sql);
     const [results]: any = await statement.execute(values);
