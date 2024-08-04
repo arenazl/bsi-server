@@ -45,6 +45,7 @@ const s3_1 = __importDefault(require("aws-sdk/clients/s3"));
 const model_1 = require("./../models/model");
 const model_2 = require("./../models/model");
 const nodemailer_1 = __importDefault(require("nodemailer"));
+const enums_1 = require("../enums/enums");
 class FilesController {
     ImportXlsPagos(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -114,6 +115,8 @@ class FilesController {
                     const IDCONT = dataFromUI[2];
                     const rows = yield (0, node_1.default)(req.file.path);
                     const dataFromFourthRow = rows.slice(4);
+                    //console.log('infro cruda')
+                    //console.log(dataFromFourthRow)
                     const registros = [];
                     for (let row of dataFromFourthRow) {
                         if (!row[4]) {
@@ -125,6 +128,9 @@ class FilesController {
                     const jsonResult = {
                         ITEMS: registros,
                     };
+                    let json = jsonResult;
+                    console.log('cantidad');
+                    console.log(registros.length);
                     const outParams = [];
                     const results = yield executeJsonSelect(connection, "ValidarDatosAltaCuenta", jsonResult, outParams);
                     console.log("posterior al sp");
@@ -237,19 +243,20 @@ class FilesController {
             }
         });
     }
-    downloadPagoFile(req, res) {
+    downloadOutputFile(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
+            const { tipomodulo } = req.params;
             const { id } = req.params;
             const values = [id];
             let connection;
             try {
                 connection = yield database_1.default.getConnection();
-                const row = yield executeSpSelect(connection, "GetPagoFile", values);
-                const file = fs.openSync("./uploads/pago_" + id + ".txt", "w");
+                const row = yield executeSpSelect(connection, this.getSpNameForTxt(tipomodulo), values);
+                const file = fs.openSync(`./uploads/${tipomodulo}_{id}.txt`, "w");
                 let line = row[0]["archivo_contenido"];
                 fs.writeSync(file, line + "\n");
                 fs.closeSync(file);
-                const filePath = "./uploads/pago_" + id + ".txt";
+                const filePath = `./uploads/pago_${id}.txt`;
                 res.download(filePath, function (err) { });
             }
             catch (error) {
@@ -264,6 +271,18 @@ class FilesController {
                     connection.release();
             }
         });
+    }
+    getSpNameForTxt(tipoModulo) {
+        switch (tipoModulo) {
+            case enums_1.TipoModulo.PAGOS:
+                return 'GetPagoFile';
+            case enums_1.TipoModulo.TRANSFERENCIAS:
+                return 'GetFileTransferencias';
+            case enums_1.TipoModulo.ALTAS:
+                return 'GenerarArchivoAltaCuentas';
+            default:
+                return '';
+        }
     }
     downloadFile(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
