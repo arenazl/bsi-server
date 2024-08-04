@@ -346,6 +346,7 @@ class FilesController {
   }
 
   public async getResponsePagos(req, res) {
+
     const { id } = req.params;
 
     const values = [id];
