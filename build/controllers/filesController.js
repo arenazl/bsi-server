@@ -49,7 +49,10 @@ const enums_1 = require("../enums/enums");
 class FilesController {
     ImportXlsPagos(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            var upload = yield TempUploadProcess();
+            const values = [];
+            let connection = yield database_1.default.getConnection();
+            const row = yield executeSpSelect(connection, "getNextPageId", values);
+            var upload = yield TempUploadProcess(enums_1.TipoModulo.PAGOS, row[0]["nextId"]);
             upload(req, res, () => __awaiter(this, void 0, void 0, function* () {
                 var _a, _b;
                 try {
@@ -101,7 +104,10 @@ class FilesController {
     }
     ImportXlsAltas(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            var upload = yield TempUploadProcess();
+            const values = [];
+            let connection = yield database_1.default.getConnection();
+            const row = yield executeSpSelect(connection, "getNextPageId", values);
+            var upload = yield TempUploadProcess(enums_1.TipoModulo.ALTAS, row[0]["nextId"]);
             upload(req, res, () => __awaiter(this, void 0, void 0, function* () {
                 var _a, _b;
                 try {
@@ -149,7 +155,7 @@ class FilesController {
     uploadTR(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                var upload = yield TempUploadProcess();
+                var upload = yield TempUploadProcess(enums_1.TipoModulo.TRANSFERENCIAS, 1);
                 upload(req, res, () => __awaiter(this, void 0, void 0, function* () {
                     var _a;
                     let info = null;
@@ -251,12 +257,14 @@ class FilesController {
             let connection;
             try {
                 connection = yield database_1.default.getConnection();
-                const row = yield executeSpSelect(connection, this.getSpNameForTxt(tipomodulo), values);
-                const file = fs.openSync(`./uploads/${tipomodulo}_{id}.txt`, "w");
+                const row = yield executeSpSelect(connection, getSpNameForTxt(tipomodulo), values);
+                const file = fs.openSync(`./uploads/${tipomodulo}_${id}.txt`, "w");
+                console.log("row");
+                console.log(row);
                 let line = row[0]["archivo_contenido"];
                 fs.writeSync(file, line + "\n");
                 fs.closeSync(file);
-                const filePath = `./uploads/pago_${id}.txt`;
+                const filePath = `./uploads/${tipomodulo}_${id}.txt`;
                 res.download(filePath, function (err) { });
             }
             catch (error) {
@@ -271,18 +279,6 @@ class FilesController {
                     connection.release();
             }
         });
-    }
-    getSpNameForTxt(tipoModulo) {
-        switch (tipoModulo) {
-            case enums_1.TipoModulo.PAGOS:
-                return 'GetPagoFile';
-            case enums_1.TipoModulo.TRANSFERENCIAS:
-                return 'GetFileTransferencias';
-            case enums_1.TipoModulo.ALTAS:
-                return 'GenerarArchivoAltaCuentas';
-            default:
-                return '';
-        }
     }
     downloadFile(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -685,6 +681,20 @@ function InsertTransInmediataDato(connection, values, outParams) {
         return yield executeSpInsert(connection, "InsertTransInmediataDato", values, outParams);
     });
 }
+function getSpNameForTxt(tipoModulo) {
+    console.log("tipoModulo");
+    console.log(tipoModulo);
+    switch (tipoModulo) {
+        case enums_1.TipoModulo.PAGOS:
+            return 'GetPagoFile';
+        case enums_1.TipoModulo.TRANSFERENCIAS:
+            return 'GetFileTransferencias';
+        case enums_1.TipoModulo.ALTAS:
+            return 'GenerarArchivoAltaCuentas';
+        default:
+            return '';
+    }
+}
 function LoopAndParseInfo(entity) {
     return __awaiter(this, void 0, void 0, function* () {
         return [
@@ -886,14 +896,20 @@ function getPantallaTransferenciaInfoById(id) {
         }
     });
 }
-function TempUploadProcess() {
+function TempUploadProcess(TipoModulo, Id) {
     return __awaiter(this, void 0, void 0, function* () {
+        let fileName = "input" +
+            "_" +
+            TipoModulo +
+            "_" +
+            Id +
+            ".xlsx";
         var store = multer_1.default.diskStorage({
             destination: function (req, file, cb) {
                 cb(null, "./uploads");
             },
             filename: function (req, file, cb) {
-                cb(null, Date.now() + "-" + file.originalname);
+                cb(null, fileName);
             },
         });
         var upload = (0, multer_1.default)({ storage: store }).single("file");

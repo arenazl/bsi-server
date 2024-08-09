@@ -21,7 +21,12 @@ import { TipoModulo } from "../enums/enums";
 class FilesController {
 
   public async ImportXlsPagos(req: Request, res: Response): Promise<void> {
-    var upload = await TempUploadProcess();
+
+    const values = [];
+    let connection = await pool.getConnection();
+    const row = await executeSpSelect(connection, "getNextPageId", values);
+
+    var upload = await TempUploadProcess(TipoModulo.PAGOS, row[0]["nextId"]);
 
     upload(req, res, async () => {
       try {
@@ -88,11 +93,17 @@ class FilesController {
         return;
       }
     });
+
   }
+
 
   public async ImportXlsAltas(req: Request, res: Response): Promise<void> {
 
-    var upload = await TempUploadProcess();
+    const values = [];
+    let connection = await pool.getConnection();
+    const row = await executeSpSelect(connection, "getNextPageId", values);
+
+    var upload = await TempUploadProcess(TipoModulo.ALTAS, row[0]["nextId"]);
 
     upload(req, res, async () => {
       try {
@@ -155,7 +166,8 @@ class FilesController {
 
   public async uploadTR(req: Request, res: Response): Promise<void> {
     try {
-      var upload = await TempUploadProcess();
+
+      var upload = await TempUploadProcess(TipoModulo.TRANSFERENCIAS, 1);
 
       upload(req, res, async () => {
         let info = null;
@@ -243,7 +255,6 @@ class FilesController {
     }
   }
 
-
   public async getContratoById(req: Request, res: Response): Promise<void> {
 
     const id_user = req.body.id_user;
@@ -270,7 +281,6 @@ class FilesController {
     }
   }
 
-
   public async downloadOutputFile(req: Request, res: Response): Promise<void> {
 
     const { tipomodulo } = req.params;
@@ -282,9 +292,12 @@ class FilesController {
     try {
       connection = await pool.getConnection();
 
-      const row = await executeSpSelect(connection, this.getSpNameForTxt(tipomodulo as TipoModulo), values);
+      const row = await executeSpSelect(connection, getSpNameForTxt(tipomodulo as TipoModulo), values);
 
-      const file = fs.openSync(`./uploads/${tipomodulo}_{id}.txt`, "w");
+      const file = fs.openSync(`./uploads/${tipomodulo}_${id}.txt`, "w");
+
+      console.log("row");
+      console.log(row);
 
       let line = row[0]["archivo_contenido"];
 
@@ -292,9 +305,10 @@ class FilesController {
 
       fs.closeSync(file);
 
-      const filePath = `./uploads/pago_${id}.txt`;
+      const filePath = `./uploads/${tipomodulo as TipoModulo}_${id}.txt`;
 
       res.download(filePath, function (err) { });
+
     } catch (error) {
       console.error("Error:", error);
       res.status(500).json({
@@ -305,21 +319,6 @@ class FilesController {
       if (connection) connection.release();
     }
   }
-
-  private getSpNameForTxt(tipoModulo: TipoModulo) {
-
-    switch (tipoModulo) {
-      case TipoModulo.PAGOS:
-        return 'GetPagoFile';
-      case TipoModulo.TRANSFERENCIAS:
-        return 'GetFileTransferencias';
-      case TipoModulo.ALTAS:
-        return 'GenerarArchivoAltaCuentas';
-      default:
-        return '';
-    }
-  }
-
 
   public async downloadFile(req: Request, res: Response): Promise<void> {
     try {
@@ -710,6 +709,7 @@ async function executeSpSelect(
     await connection.unprepare(sql);
 
     return results[0];
+
   } catch (error: any) {
     console.error(error);
   } finally {
@@ -755,9 +755,6 @@ async function executeJsonSelect(
   }
 }
 
-
-
-
 function extractOutParams(queryResult, outParams) {
   const output = {};
   // Recorrer los resultados y extraer los parámetros de salida
@@ -786,6 +783,23 @@ async function InsertTransInmediataDato(
     values,
     outParams
   );
+}
+
+function getSpNameForTxt(tipoModulo: TipoModulo) {
+
+  console.log("tipoModulo");
+  console.log(tipoModulo);
+
+  switch (tipoModulo) {
+    case TipoModulo.PAGOS:
+      return 'GetPagoFile';
+    case TipoModulo.TRANSFERENCIAS:
+      return 'GetFileTransferencias';
+    case TipoModulo.ALTAS:
+      return 'GenerarArchivoAltaCuentas';
+    default:
+      return '';
+  }
 }
 
 async function LoopAndParseInfo(entity: transInmediataDato) {
@@ -1051,13 +1065,21 @@ async function getPantallaTransferenciaInfoById(id: number) {
   }
 }
 
-async function TempUploadProcess() {
+async function TempUploadProcess(TipoModulo: TipoModulo, Id: number) {
+
+  let fileName = "input" +
+    "_" +
+    TipoModulo +
+    "_" +
+    Id +
+    ".xlsx";
+
   var store = multer.diskStorage({
     destination: function (req, file, cb) {
       cb(null, "./uploads");
     },
     filename: function (req, file, cb) {
-      cb(null, Date.now() + "-" + file.originalname);
+      cb(null, fileName);
     },
   });
 
