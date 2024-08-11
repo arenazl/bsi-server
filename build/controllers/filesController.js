@@ -121,8 +121,6 @@ class FilesController {
                     const IDCONT = dataFromUI[2];
                     const rows = yield (0, node_1.default)(req.file.path);
                     const dataFromFourthRow = rows.slice(4);
-                    //console.log('infro cruda')
-                    //console.log(dataFromFourthRow)
                     const registros = [];
                     for (let row of dataFromFourthRow) {
                         if (!row[4]) {
@@ -139,9 +137,23 @@ class FilesController {
                     console.log(registros.length);
                     const outParams = [];
                     const results = yield executeJsonSelect(connection, "ValidarDatosAltaCuenta", jsonResult, outParams);
-                    console.log("posterior al sp");
-                    console.log(results);
-                    res.json(results);
+                    const allValid = results.every(item => item.es_valido === 1);
+                    let payload = null;
+                    if (allValid) {
+                        payload = {
+                            estado: 'OK',
+                            nextid: row[0]["nextId"],
+                            items: results
+                        };
+                    }
+                    else {
+                        payload = {
+                            estado: 'ERROR',
+                            mensaje: 'Algunos registros no son válidos',
+                            items: results
+                        };
+                    }
+                    res.json(payload);
                 }
                 catch (error) {
                     console.error("Error:", error);
@@ -150,6 +162,14 @@ class FilesController {
                         .json({ message: "Error fetching:", error: "Internal server error" });
                 }
             }));
+        });
+    }
+    ExportXlsAltas(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const id_user = req.body.id_user;
+            const id_organismo = req.body.id_organismo;
+            const id_contrato = req.body.id_contrato;
+            const items = req.body.items;
         });
     }
     uploadTR(req, res) {

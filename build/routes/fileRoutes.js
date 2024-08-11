@@ -18,6 +18,7 @@ class FileRoutes {
         this.router.post('/uploadtr', filesController_1.default.uploadTR);
         this.router.post('/importxlspagos', filesController_1.default.ImportXlsPagos);
         this.router.post('/importxlsaltas', filesController_1.default.ImportXlsAltas);
+        this.router.post('/exportxlsaltas', filesController_1.default.ExportXlsAltas);
         this.router.get('/responsetr/:id', filesController_1.default.getResponseTR);
         this.router.get('/pagoslist/:id', filesController_1.default.getResponsePagos);
         this.router.get('/responsetrforcombo', filesController_1.default.getResponseTRForCombo);

@@ -177,6 +177,14 @@ class FilesController {
 
   }
 
+  public async ExportXlsAltas(req: Request, res: Response): Promise<void> {
+
+    const id_user = req.body.id_user;
+    const id_organismo = req.body.id_organismo;
+    const id_contrato = req.body.id_contrato;
+    const items = req.body.items;
+
+  }
 
   public async uploadTR(req: Request, res: Response): Promise<void> {
     try {
