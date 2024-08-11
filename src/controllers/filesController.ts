@@ -123,9 +123,6 @@ class FilesController {
 
         const dataFromFourthRow = rows.slice(4);
 
-        //console.log('infro cruda')
-        //console.log(dataFromFourthRow)
-
         const registros = [];
 
         for (let row of dataFromFourthRow) {
@@ -148,10 +145,27 @@ class FilesController {
 
         const results = await executeJsonSelect(connection, "ValidarDatosAltaCuenta", jsonResult, outParams);
 
-        console.log("posterior al sp");
-        console.log(results);
+        const allValid = results.every(item => item.es_valido === 1);
 
-        res.json(results);
+        let payload = null;
+
+        if (allValid) {
+          payload = {
+            estado: 'OK',
+            nextid: row[0]["nextId"],
+            items: results
+          };
+        }
+        else {
+          payload = {
+            estado: 'ERROR',
+            mensaje: 'Algunos registros no son válidos',
+            items: results
+          };
+        }
+
+        res.json(payload);
+
       } catch (error) {
         console.error("Error:", error);
         res
