@@ -17,7 +17,9 @@ class UsuarioController {
     login(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             console.log(req.body);
-            const values = [req.body.nombre, req.body.password];
+            let nombre = 'mv'; //req.body.nombre;S  
+            let pass = 'password123'; //req.body.password;
+            const values = [nombre, pass];
             const connection = yield database_1.default.getConnection();
             const rows = yield executeSpSelect(connection, 'sp_login_user', values);
             return res.json(rows[0]);

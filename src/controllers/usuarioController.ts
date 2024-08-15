@@ -10,8 +10,10 @@ class UsuarioController {
 
         console.log(req.body);
 
-        const values = [req.body.nombre, req.body.password];
+        let nombre = 'mv'; //req.body.nombre;S  
+        let pass = 'password123'; //req.body.password;
 
+        const values = [nombre, pass];
         const connection = await pool.getConnection();
         
         const rows = await executeSpSelect(connection, 'sp_login_user', values); 
