@@ -38,10 +38,11 @@ class FilesController {
         console.log("datafromui" + dataFromUI);
         console.log("datafromui" + dataFromUI);
 
-        const IDUSER = dataFromUI[0];
-        const IDORG = dataFromUI[1];
-        const IDCONT = dataFromUI[2];
+        let IDUSER = dataFromUI[0];
+        let IDORG = dataFromUI[1];
+        let IDCONT = dataFromUI[2];
         let CONCEPTO = dataFromUI[3];
+
         const FECHAPAGO = formatDateFromFile(dataFromUI[4]);
 
         CONCEPTO = CONCEPTO.replace(".", "-");
@@ -411,6 +412,7 @@ class FilesController {
 
       const infoScreen = [];
       const dataScreen = [];
+      
       let totalImporte = 0;
 
       rows.forEach((row: any) => {

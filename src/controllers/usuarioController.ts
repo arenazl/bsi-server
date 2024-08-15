@@ -10,17 +10,13 @@ class UsuarioController {
 
         console.log(req.body);
 
-        let nombre = 'mv'; //req.body.nombre;
-        let pass = 'password123'; //req.body.password;
-
-        const values = [nombre, pass];
+        const values = [req.body.nombre, req.body.password];
 
         const connection = await pool.getConnection();
         
         const rows = await executeSpSelect(connection, 'sp_login_user', values); 
 
-        return res.json(rows[0]);
-
+        return res.json(rows[0])
     }  
 
 }
@@ -111,8 +107,11 @@ async function executeSpInsert(
   
       statement.close();
       await connection.unprepare(sql);
+
+      console.log("results");
   
       return results[0];
+
     } catch (error: any) {
       console.error(error);
     } finally {

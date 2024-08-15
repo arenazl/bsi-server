@@ -17,9 +17,7 @@ class UsuarioController {
     login(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             console.log(req.body);
-            let nombre = 'mv'; //req.body.nombre;
-            let pass = 'password123'; //req.body.password;
-            const values = [nombre, pass];
+            const values = [req.body.nombre, req.body.password];
             const connection = yield database_1.default.getConnection();
             const rows = yield executeSpSelect(connection, 'sp_login_user', values);
             return res.json(rows[0]);
@@ -86,6 +84,7 @@ function executeSpSelect(connection, spName, values) {
             const [results] = yield statement.execute(values);
             statement.close();
             yield connection.unprepare(sql);
+            console.log("results");
             return results[0];
         }
         catch (error) {
