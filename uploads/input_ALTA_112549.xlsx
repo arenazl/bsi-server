@@ -1,0 +1,73 @@
+USE defaultdb;
+
+SET @json = '{
+    "IDUSER":"1",
+    "IDORG":"71",
+    "IDCONT":"10",
+    "CONCEPTO":"JUDICIAL",
+    "FECHAPAGO":"2024-08-15",
+    "ITEMS":[
+        {
+            "CBU":"2014033270370645158028",
+            "CUIL":20215026435,
+            "NOMBRE":"DIEGO DULAU",
+            "IMPORTE":1914640.33
+        },
+        {
+            "CBU":"2014033270370645249317",
+            "CUIL":20250866721,
+            "NOMBRE":"MAURICIO CESAREO",
+            "IMPORTE":1808982.22
+        },
+        {
+            "CBU":"2014033270370640219177",
+            "CUIL":20271393114,
+            "NOMBRE":"LEONARDO LEONE",
+            "IMPORTE":1645734
+        },
+        {
+            "CBU":"2014033270370645045703",
+            "CUIL":20317444525,
+            "NOMBRE":"MARIANO DUARTE",
+            "IMPORTE":1808982
+        },
+        {
+            "CBU":"2014033270370645128218",
+            "CUIL":27255670544,
+            "NOMBRE":"VERONICA GUERENDIAIN",
+            "IMPORTE":954937
+        },
+        {
+            "CBU":"2014033270370645249333",
+            "CUIL":27270552930,
+            "NOMBRE":"ROCIO ECHEVERRIA",
+            "IMPORTE":1800836
+        },
+        {
+            "CBU":"2014033270370645255295",
+            "CUIL":20436570512,
+            "NOMBRE":"FRANCISCO BASOALTO PIO",
+            "IMPORTE":811619
+        },
+        {
+            "CBU":"2014039900363455030765",
+            "CUIL":20248447762,
+            "NOMBRE":"LUCIANO MINOLI",
+            "IMPORTE":1459378
+        },
+        {
+            "CBU":"2014033270370645201080",
+            "CUIL":20440473696,
+            "NOMBRE":"SAMUEL LABORDE",
+            "IMPORTE":1377760
+        },
+        {
+            "CBU":"2014033270370645256178",
+            "CUIL":20400653217,
+            "NOMBRE":"MANUEL IZQUIERO",
+            "IMPORTE":1027979
+        }
+    ]
+}';
+
+CALL PAGO_VALIDAR_ENTRADA(@json);

@@ -13,7 +13,7 @@ var TipoPantalla;
 })(TipoPantalla || (exports.TipoPantalla = TipoPantalla = {}));
 var TipoModulo;
 (function (TipoModulo) {
-    TipoModulo["TRANSFERENCIAS"] = "transferencias";
-    TipoModulo["PAGOS"] = "pagos";
-    TipoModulo["ALTAS"] = "altas";
+    TipoModulo["TRANSFERENCIAS"] = "TRANSFERENCIA";
+    TipoModulo["PAGOS"] = "PAGO";
+    TipoModulo["ALTAS"] = "ALTA";
 })(TipoModulo || (exports.TipoModulo = TipoModulo = {}));

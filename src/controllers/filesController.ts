@@ -20,13 +20,247 @@ import { TipoModulo } from "../enums/enums";
 
 class FilesController {
 
+  public async PagoValidarEntrada(req: Request, res: Response): Promise<void> {
+
+    var upload = await TempUploadProcess(TipoModulo.PAGOS);
+
+    upload(req, res, async () => {
+
+      try {
+
+        let connection = await pool.getConnection();
+
+        const dataFromUI = req.file?.originalname.split("-");
+
+        let IDUSER = dataFromUI[0];
+        let IDORG = dataFromUI[1];
+        let IDCONT = dataFromUI[2];
+        let CONCEPTO = dataFromUI[3];
+        CONCEPTO = CONCEPTO.replace(".", "-");
+        const FECHAPAGO = formatDateFromFile(dataFromUI[4]);
+
+        const rows = await readXlsxFile(req.file.path);
+
+        const dataFromFourthRow = rows.slice(3);
+
+        const registros = [];
+
+        for (let row of dataFromFourthRow) {
+          if (!row[3]) {
+            break;
+          }
+          const [CBU, CUIL, NOMBRE, IMPORTE] = row.slice(3);
+          registros.push({ CBU, CUIL, NOMBRE, IMPORTE });
+        }
+
+        const jsonResult = {
+          IDUSER,
+          IDORG,
+          IDCONT,
+          CONCEPTO,
+          FECHAPAGO,
+          ITEMS: registros,
+        };
+
+        console.log(jsonResult);
+
+        const outParamValues = ["ID", "ESTADO", "DESCRIPCION"];
+
+        var result = await executeJsonInsert(
+          connection,
+          "PAGO_VALIDAR_ENTRADA",
+          jsonResult,
+          outParamValues
+        );
+
+        const ID = result["ID"];
+        const ESTADO = result["ESTADO"];
+        const DESCRIPCION = result["DESCRIPCION"];
+;
+        res.json({ ID: ID, ESTADO: ESTADO, DESCRIPCION: DESCRIPCION });
+
+      } catch (error) {
+        console.error("error tipo de archivo: " + error);
+        res
+          .status(500)
+          .json({ message: "error tipo de archivo.", error: error.message });
+        return;
+      }
+    });
+      
+ 
+  }
+
+  public async CuentaValidarEntrada(req: Request, res: Response): Promise<void> {
+
+    var upload = await TempUploadProcess(TipoModulo.ALTAS);
+
+    upload(req, res, async () => {
+      try {
+        let connection = await pool.getConnection();
+
+        const dataFromUI = req.file?.originalname.split("-");
+
+        const IDUSER = dataFromUI[0];
+        const IDORG = dataFromUI[1];
+        const IDCONT = dataFromUI[2];
+        const ROTULO = dataFromUI[3];
+        const ENTE = dataFromUI[4];
+
+
+        const rows = await readXlsxFile(req.file.path);
+
+        const dataFromFourthRow = rows.slice(4);
+
+        
+        const registros = [];
+
+        for (let row of dataFromFourthRow) {
+          if (!row[4]) {
+            break;
+          }
+          const [CUIL, Tipo_Doc, Nro_Doc, Apellidos, Nombres, Fecha_Nacimiento, Sexo] = row;
+          registros.push({ CUIL, Tipo_Doc, Nro_Doc, Apellidos, Nombres, Fecha_Nacimiento, Sexo });
+        }
+        const jsonResult = {
+          IDUSER,
+          IDORG,
+          IDCONT,
+          ROTULO,
+          ENTE,
+          ITEMS: registros,
+        };
+
+        console.log(jsonResult);
+
+        const outParamValues = ["ID", "ESTADO", "DESCRIPCION"];
+
+        var result = await executeJsonInsert(
+          connection,
+          "CUENTA_VALIDAR_ENTRADA",
+          jsonResult,
+          outParamValues
+        );
+
+        const ID = result["ID"];
+        const ESTADO = result["ESTADO"];
+        const DESCRIPCION = result["DESCRIPCION"];
+;
+        res.json({ ID: ID, ESTADO: ESTADO, DESCRIPCION: DESCRIPCION });
+
+      } catch (error) {
+        console.error("Error:", error);
+        res
+          .status(500)
+          .json({ message: "Error fetching:", error: "Internal server error" });
+      }
+
+    });
+
+  }
+
+  public async PagoObtenerResumen(req: Request, res: Response): Promise<void> {
+
+    const { id } = req.params;
+  
+    let connection;
+  
+    try {
+      connection = await pool.getConnection();
+  
+      const params = { id };
+  
+      const row = await executeSpJsonReturn(connection, "PAGO_OBTENER_RESUMEN", params);
+  
+      res.json(row);
+
+    } catch (error) {
+      console.error("Error:", error);
+      res
+        .status(500)
+        .json({ message: "Error fetching:", error: "Internal server error" });
+    } finally {
+      if (connection) connection.release();
+    }
+
+  }
+
+  public async CuentaObtenerResumen(req: Request, res: Response): Promise<void> {
+
+    const { id } = req.params;
+  
+    let connection;
+  
+    try {
+      connection = await pool.getConnection();
+  
+      const params = { id };
+  
+      const row = await executeSpJsonReturn(connection, "CUENTA_OBTENER_RESUMEN", params);
+  
+      res.json(row);
+
+    } catch (error) {
+      console.error("Error:", error);
+      res
+        .status(500)
+        .json({ message: "Error fetching:", error: "Internal server error" });
+    } finally {
+      if (connection) connection.release();
+    }
+  }
+
+  public async PagoMetadataUI(req: Request, res: Response): Promise<void> {
+
+    let connection;
+  
+    try {
+      connection = await pool.getConnection();
+  
+      const params = { };
+  
+      const row = await executeSpJsonReturn(connection, "PAGO_METADATA_UI", params);
+  
+      res.json(row);
+
+    } catch (error) {
+      console.error("Error:", error);
+      res
+        .status(500)
+        .json({ message: "Error fetching:", error: "Internal server error" });
+    } finally {
+      if (connection) connection.release();
+    }
+  }
+
+  public async CuentaMetadataUI(req: Request, res: Response): Promise<void> {
+
+    let connection;
+  
+    try {
+      connection = await pool.getConnection();
+  
+      const params = {  };
+  
+      const row = await executeSpJsonReturn(connection, "CUENTA_METADATA_UI", params);
+  
+      res.json(row);
+
+    } catch (error) {
+      console.error("Error:", error);
+      res
+        .status(500)
+        .json({ message: "Error fetching:", error: "Internal server error" });
+    } finally {
+      if (connection) connection.release();
+    }
+  }
+
   public async ImportXlsPagos(req: Request, res: Response): Promise<void> {
 
     const values = [];
-    let connection = await pool.getConnection();
-    const row = await executeSpSelect(connection, "getNextPageId", values);
 
-    var upload = await TempUploadProcess(TipoModulo.PAGOS, row[0]["nextId"]);
+    var upload = await TempUploadProcess(TipoModulo.PAGOS);
 
     upload(req, res, async () => {
       try {
@@ -42,7 +276,6 @@ class FilesController {
         let IDORG = dataFromUI[1];
         let IDCONT = dataFromUI[2];
         let CONCEPTO = dataFromUI[3];
-
         const FECHAPAGO = formatDateFromFile(dataFromUI[4]);
 
         CONCEPTO = CONCEPTO.replace(".", "-");
@@ -97,14 +330,13 @@ class FilesController {
 
   }
 
-
   public async ImportXlsAltas(req: Request, res: Response): Promise<void> {
 
     const values = [];
     let connection = await pool.getConnection();
     const row = await executeSpSelect(connection, "getNextPageId", values);
 
-    var upload = await TempUploadProcess(TipoModulo.ALTAS, row[0]["nextId"]);
+    var upload = await TempUploadProcess(TipoModulo.ALTAS);
 
     upload(req, res, async () => {
       try {
@@ -138,6 +370,9 @@ class FilesController {
         };
 
         let json = jsonResult;
+
+        console.log('entrada');
+        console.log(json);
 
         console.log('cantidad');
         console.log(registros.length);
@@ -190,7 +425,7 @@ class FilesController {
   public async uploadTR(req: Request, res: Response): Promise<void> {
     try {
 
-      var upload = await TempUploadProcess(TipoModulo.TRANSFERENCIAS, 1);
+      var upload = await TempUploadProcess(TipoModulo.TRANSFERENCIAS);
 
       upload(req, res, async () => {
         let info = null;
@@ -741,6 +976,46 @@ async function executeSpSelect(
   }
 }
 
+
+async function executeSpJsonReturn(
+
+  connection: mysql.PoolConnection,
+  spName: string,
+  params: Record<string, string | number> | (string | number)[]
+): Promise<any> {
+  try {
+    console.log("executeSpSelect");
+
+    let values: (string | number)[];
+
+    if (Array.isArray(params)) {
+      values = params;
+    } else {
+      values = Object.values(params);
+    }
+
+    let placeholders = values.map(() => "?").join(",");
+
+    let sql = `CALL ${spName}(${placeholders});`;
+
+    const statement = await connection.prepare(sql);
+
+    const [results]: any = await statement.execute(values);
+
+    statement.close();
+    await connection.unprepare(sql);
+
+    // Devolver el resultado como un JSON
+    return results[0];
+
+  } catch (error: any) {
+    console.error(error);
+    throw error;
+  } finally {
+    if (connection) connection.release();
+  }
+}
+
 async function executeJsonSelect(
   connection: mysql.PoolConnection,
   spName: string,
@@ -816,11 +1091,11 @@ function getSpNameForTxt(tipoModulo: TipoModulo) {
 
   switch (tipoModulo) {
     case TipoModulo.PAGOS:
-      return 'GetPagoFile';
+      return 'PAGO_OBTENER_ARCHIVO_BY_ID';
     case TipoModulo.TRANSFERENCIAS:
       return 'GetFileTransferencias';
     case TipoModulo.ALTAS:
-      return 'GenerarArchivoAltaCuentas';
+      return 'CUENTA_OBTENER_ARCHIVO_BY_ID';
     default:
       return '';
   }
@@ -1089,14 +1364,12 @@ async function getPantallaTransferenciaInfoById(id: number) {
   }
 }
 
-async function TempUploadProcess(TipoModulo: TipoModulo, Id: number) {
+async function TempUploadProcess(TipoModulo: TipoModulo) {
 
-  let fileName = "input" +
-    "_" +
-    TipoModulo +
-    "_" +
-    Id +
-    ".xlsx";
+  const randomNumber = Math.floor(100000 + Math.random() * 900000);
+
+  let fileName = "input" + "_" + TipoModulo + "_" + randomNumber +".xlsx";
+
 
   var store = multer.diskStorage({
     destination: function (req, file, cb) {

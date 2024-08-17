@@ -47,12 +47,196 @@ const model_2 = require("./../models/model");
 const nodemailer_1 = __importDefault(require("nodemailer"));
 const enums_1 = require("../enums/enums");
 class FilesController {
+    PagoValidarEntrada(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            var upload = yield TempUploadProcess(enums_1.TipoModulo.PAGOS);
+            upload(req, res, () => __awaiter(this, void 0, void 0, function* () {
+                var _a;
+                try {
+                    let connection = yield database_1.default.getConnection();
+                    const dataFromUI = (_a = req.file) === null || _a === void 0 ? void 0 : _a.originalname.split("-");
+                    let IDUSER = dataFromUI[0];
+                    let IDORG = dataFromUI[1];
+                    let IDCONT = dataFromUI[2];
+                    let CONCEPTO = dataFromUI[3];
+                    CONCEPTO = CONCEPTO.replace(".", "-");
+                    const FECHAPAGO = formatDateFromFile(dataFromUI[4]);
+                    const rows = yield (0, node_1.default)(req.file.path);
+                    const dataFromFourthRow = rows.slice(3);
+                    const registros = [];
+                    for (let row of dataFromFourthRow) {
+                        if (!row[3]) {
+                            break;
+                        }
+                        const [CBU, CUIL, NOMBRE, IMPORTE] = row.slice(3);
+                        registros.push({ CBU, CUIL, NOMBRE, IMPORTE });
+                    }
+                    const jsonResult = {
+                        IDUSER,
+                        IDORG,
+                        IDCONT,
+                        CONCEPTO,
+                        FECHAPAGO,
+                        ITEMS: registros,
+                    };
+                    console.log(jsonResult);
+                    const outParamValues = ["ID", "ESTADO", "DESCRIPCION"];
+                    var result = yield executeJsonInsert(connection, "PAGO_VALIDAR_ENTRADA", jsonResult, outParamValues);
+                    const ID = result["ID"];
+                    const ESTADO = result["ESTADO"];
+                    const DESCRIPCION = result["DESCRIPCION"];
+                    ;
+                    res.json({ ID: ID, ESTADO: ESTADO, DESCRIPCION: DESCRIPCION });
+                }
+                catch (error) {
+                    console.error("error tipo de archivo: " + error);
+                    res
+                        .status(500)
+                        .json({ message: "error tipo de archivo.", error: error.message });
+                    return;
+                }
+            }));
+        });
+    }
+    CuentaValidarEntrada(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            var upload = yield TempUploadProcess(enums_1.TipoModulo.ALTAS);
+            upload(req, res, () => __awaiter(this, void 0, void 0, function* () {
+                var _a;
+                try {
+                    let connection = yield database_1.default.getConnection();
+                    const dataFromUI = (_a = req.file) === null || _a === void 0 ? void 0 : _a.originalname.split("-");
+                    const IDUSER = dataFromUI[0];
+                    const IDORG = dataFromUI[1];
+                    const IDCONT = dataFromUI[2];
+                    const ROTULO = dataFromUI[3];
+                    const ENTE = dataFromUI[4];
+                    const rows = yield (0, node_1.default)(req.file.path);
+                    const dataFromFourthRow = rows.slice(4);
+                    const registros = [];
+                    for (let row of dataFromFourthRow) {
+                        if (!row[4]) {
+                            break;
+                        }
+                        const [CUIL, Tipo_Doc, Nro_Doc, Apellidos, Nombres, Fecha_Nacimiento, Sexo] = row;
+                        registros.push({ CUIL, Tipo_Doc, Nro_Doc, Apellidos, Nombres, Fecha_Nacimiento, Sexo });
+                    }
+                    const jsonResult = {
+                        IDUSER,
+                        IDORG,
+                        IDCONT,
+                        ROTULO,
+                        ENTE,
+                        ITEMS: registros,
+                    };
+                    console.log(jsonResult);
+                    const outParamValues = ["ID", "ESTADO", "DESCRIPCION"];
+                    var result = yield executeJsonInsert(connection, "CUENTA_VALIDAR_ENTRADA", jsonResult, outParamValues);
+                    const ID = result["ID"];
+                    const ESTADO = result["ESTADO"];
+                    const DESCRIPCION = result["DESCRIPCION"];
+                    ;
+                    res.json({ ID: ID, ESTADO: ESTADO, DESCRIPCION: DESCRIPCION });
+                }
+                catch (error) {
+                    console.error("Error:", error);
+                    res
+                        .status(500)
+                        .json({ message: "Error fetching:", error: "Internal server error" });
+                }
+            }));
+        });
+    }
+    PagoObtenerResumen(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { id } = req.params;
+            let connection;
+            try {
+                connection = yield database_1.default.getConnection();
+                const params = { id };
+                const row = yield executeSpJsonReturn(connection, "PAGO_OBTENER_RESUMEN", params);
+                res.json(row);
+            }
+            catch (error) {
+                console.error("Error:", error);
+                res
+                    .status(500)
+                    .json({ message: "Error fetching:", error: "Internal server error" });
+            }
+            finally {
+                if (connection)
+                    connection.release();
+            }
+        });
+    }
+    CuentaObtenerResumen(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { id } = req.params;
+            let connection;
+            try {
+                connection = yield database_1.default.getConnection();
+                const params = { id };
+                const row = yield executeSpJsonReturn(connection, "CUENTA_OBTENER_RESUMEN", params);
+                res.json(row);
+            }
+            catch (error) {
+                console.error("Error:", error);
+                res
+                    .status(500)
+                    .json({ message: "Error fetching:", error: "Internal server error" });
+            }
+            finally {
+                if (connection)
+                    connection.release();
+            }
+        });
+    }
+    PagoMetadataUI(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let connection;
+            try {
+                connection = yield database_1.default.getConnection();
+                const params = {};
+                const row = yield executeSpJsonReturn(connection, "PAGO_METADATA_UI", params);
+                res.json(row);
+            }
+            catch (error) {
+                console.error("Error:", error);
+                res
+                    .status(500)
+                    .json({ message: "Error fetching:", error: "Internal server error" });
+            }
+            finally {
+                if (connection)
+                    connection.release();
+            }
+        });
+    }
+    CuentaMetadataUI(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let connection;
+            try {
+                connection = yield database_1.default.getConnection();
+                const params = {};
+                const row = yield executeSpJsonReturn(connection, "CUENTA_METADATA_UI", params);
+                res.json(row);
+            }
+            catch (error) {
+                console.error("Error:", error);
+                res
+                    .status(500)
+                    .json({ message: "Error fetching:", error: "Internal server error" });
+            }
+            finally {
+                if (connection)
+                    connection.release();
+            }
+        });
+    }
     ImportXlsPagos(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             const values = [];
-            let connection = yield database_1.default.getConnection();
-            const row = yield executeSpSelect(connection, "getNextPageId", values);
-            var upload = yield TempUploadProcess(enums_1.TipoModulo.PAGOS, row[0]["nextId"]);
+            var upload = yield TempUploadProcess(enums_1.TipoModulo.PAGOS);
             upload(req, res, () => __awaiter(this, void 0, void 0, function* () {
                 var _a, _b;
                 try {
@@ -107,7 +291,7 @@ class FilesController {
             const values = [];
             let connection = yield database_1.default.getConnection();
             const row = yield executeSpSelect(connection, "getNextPageId", values);
-            var upload = yield TempUploadProcess(enums_1.TipoModulo.ALTAS, row[0]["nextId"]);
+            var upload = yield TempUploadProcess(enums_1.TipoModulo.ALTAS);
             upload(req, res, () => __awaiter(this, void 0, void 0, function* () {
                 var _a, _b;
                 try {
@@ -133,6 +317,8 @@ class FilesController {
                         ITEMS: registros,
                     };
                     let json = jsonResult;
+                    console.log('entrada');
+                    console.log(json);
                     console.log('cantidad');
                     console.log(registros.length);
                     const outParams = [];
@@ -175,7 +361,7 @@ class FilesController {
     uploadTR(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                var upload = yield TempUploadProcess(enums_1.TipoModulo.TRANSFERENCIAS, 1);
+                var upload = yield TempUploadProcess(enums_1.TipoModulo.TRANSFERENCIAS);
                 upload(req, res, () => __awaiter(this, void 0, void 0, function* () {
                     var _a;
                     let info = null;
@@ -653,6 +839,36 @@ function executeSpSelect(connection, spName, values) {
         }
     });
 }
+function executeSpJsonReturn(connection, spName, params) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            console.log("executeSpSelect");
+            let values;
+            if (Array.isArray(params)) {
+                values = params;
+            }
+            else {
+                values = Object.values(params);
+            }
+            let placeholders = values.map(() => "?").join(",");
+            let sql = `CALL ${spName}(${placeholders});`;
+            const statement = yield connection.prepare(sql);
+            const [results] = yield statement.execute(values);
+            statement.close();
+            yield connection.unprepare(sql);
+            // Devolver el resultado como un JSON
+            return results[0];
+        }
+        catch (error) {
+            console.error(error);
+            throw error;
+        }
+        finally {
+            if (connection)
+                connection.release();
+        }
+    });
+}
 function executeJsonSelect(connection, spName, jsonData, outParams) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -706,11 +922,11 @@ function getSpNameForTxt(tipoModulo) {
     console.log(tipoModulo);
     switch (tipoModulo) {
         case enums_1.TipoModulo.PAGOS:
-            return 'GetPagoFile';
+            return 'PAGO_OBTENER_ARCHIVO_BY_ID';
         case enums_1.TipoModulo.TRANSFERENCIAS:
             return 'GetFileTransferencias';
         case enums_1.TipoModulo.ALTAS:
-            return 'GenerarArchivoAltaCuentas';
+            return 'CUENTA_OBTENER_ARCHIVO_BY_ID';
         default:
             return '';
     }
@@ -916,14 +1132,10 @@ function getPantallaTransferenciaInfoById(id) {
         }
     });
 }
-function TempUploadProcess(TipoModulo, Id) {
+function TempUploadProcess(TipoModulo) {
     return __awaiter(this, void 0, void 0, function* () {
-        let fileName = "input" +
-            "_" +
-            TipoModulo +
-            "_" +
-            Id +
-            ".xlsx";
+        const randomNumber = Math.floor(100000 + Math.random() * 900000);
+        let fileName = "input" + "_" + TipoModulo + "_" + randomNumber + ".xlsx";
         var store = multer_1.default.diskStorage({
             destination: function (req, file, cb) {
                 cb(null, "./uploads");

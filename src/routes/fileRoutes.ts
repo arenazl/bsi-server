@@ -28,6 +28,19 @@ class FileRoutes {
         this.router.get('/downloadtxtfile/:tipomodulo/:id', fileController.downloadOutputFile);
         this.router.post('/contratosbotones', fileController.getContratosBotones);
         this.router.post('/ObtenerContratoById', fileController.getContratoById);
+
+        this.router.post('/CuentaValidarEntrada', fileController.CuentaValidarEntrada);
+        this.router.post('/PagoValidarEntrada', fileController.PagoValidarEntrada);
+
+        this.router.get('/CUENTA_OBTENER_RESUMEN/:id', fileController.CuentaObtenerResumen);
+        this.router.get('/PAGO_OBTENER_RESUMEN/:id', fileController.PagoObtenerResumen);
+
+        this.router.get('/PAGO_METADATA_UI', fileController.PagoMetadataUI);
+        this.router.get('/CUENTA_METADATA_UI', fileController.CuentaMetadataUI);
+
+        
+
+
         //this.router.post('/file', gamesController.file);
         //this.router.post('/download', gamesController.download);
     }
