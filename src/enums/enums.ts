@@ -11,7 +11,12 @@ export enum TipoPantalla {
 }
 
 export enum TipoModulo {
-    TRANSFERENCIAS = 'TRANSFERENCIA',
-    PAGOS = 'PAGO',
-    ALTAS = 'ALTA'
+    TRANSFERENCIA = 'TRANSFERENCIA',
+    PAGO = 'PAGO',
+    CUENTA = 'CUENTA'
+}
+
+export enum TipoMetada {
+    IMPORT = 'IMPORT',
+    LIST = 'LIST',
 }

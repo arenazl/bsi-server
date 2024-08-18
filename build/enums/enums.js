@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TipoModulo = exports.TipoPantalla = void 0;
+exports.TipoMetada = exports.TipoModulo = exports.TipoPantalla = void 0;
 var TipoPantalla;
 (function (TipoPantalla) {
     TipoPantalla[TipoPantalla["PAGO_HABERES"] = 1] = "PAGO_HABERES";
@@ -13,7 +13,12 @@ var TipoPantalla;
 })(TipoPantalla || (exports.TipoPantalla = TipoPantalla = {}));
 var TipoModulo;
 (function (TipoModulo) {
-    TipoModulo["TRANSFERENCIAS"] = "TRANSFERENCIA";
-    TipoModulo["PAGOS"] = "PAGO";
-    TipoModulo["ALTAS"] = "ALTA";
+    TipoModulo["TRANSFERENCIA"] = "TRANSFERENCIA";
+    TipoModulo["PAGO"] = "PAGO";
+    TipoModulo["CUENTA"] = "CUENTA";
 })(TipoModulo || (exports.TipoModulo = TipoModulo = {}));
+var TipoMetada;
+(function (TipoMetada) {
+    TipoMetada["IMPORT"] = "IMPORT";
+    TipoMetada["LIST"] = "LIST";
+})(TipoMetada || (exports.TipoMetada = TipoMetada = {}));

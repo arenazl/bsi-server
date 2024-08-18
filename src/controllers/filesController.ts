@@ -16,13 +16,13 @@ import { transInmediataDato } from "./../models/model";
 import nodemailer from "nodemailer";
 import { ImportExport } from "aws-sdk";
 import legajoController from "./legajoController";
-import { TipoModulo } from "../enums/enums";
+import { TipoMetada, TipoModulo } from "../enums/enums";
 
 class FilesController {
 
   public async PagoValidarEntrada(req: Request, res: Response): Promise<void> {
 
-    var upload = await TempUploadProcess(TipoModulo.PAGOS);
+    var upload = await TempUploadProcess(TipoModulo.PAGO);
 
     upload(req, res, async () => {
 
@@ -68,7 +68,7 @@ class FilesController {
 
         var result = await executeJsonInsert(
           connection,
-          "PAGO_VALIDAR_ENTRADA",
+          "PAGO_VALIDAR_INSERTAR_ENTRADA",
           jsonResult,
           outParamValues
         );
@@ -93,7 +93,7 @@ class FilesController {
 
   public async CuentaValidarEntrada(req: Request, res: Response): Promise<void> {
 
-    var upload = await TempUploadProcess(TipoModulo.ALTAS);
+    var upload = await TempUploadProcess(TipoModulo.CUENTA);
 
     upload(req, res, async () => {
       try {
@@ -137,7 +137,7 @@ class FilesController {
 
         var result = await executeJsonInsert(
           connection,
-          "CUENTA_VALIDAR_ENTRADA",
+          "CUENTA_VALIDAR_INSERTAR_ENTRADA",
           jsonResult,
           outParamValues
         );
@@ -210,16 +210,23 @@ class FilesController {
     }
   }
 
-  public async PagoMetadataUI(req: Request, res: Response): Promise<void> {
+  public async getMetadataUI(req: Request, res: Response): Promise<void> {
+
+    const { tipomodulo } = req.params;
+    const { tipometada } = req.params;
+
+    console.log("tipomodulo: " + tipomodulo);
+    console.log("tipometada: " + tipometada);
 
     let connection;
   
     try {
+    
       connection = await pool.getConnection();
   
       const params = { };
   
-      const row = await executeSpJsonReturn(connection, "PAGO_METADATA_UI", params);
+      const row = await executeSpJsonReturn(connection, getSpNameForMetada(tipomodulo as TipoModulo, tipometada as TipoMetada ) , params);
   
       res.json(row);
 
@@ -232,6 +239,7 @@ class FilesController {
       if (connection) connection.release();
     }
   }
+
 
   public async CuentaMetadataUI(req: Request, res: Response): Promise<void> {
 
@@ -260,7 +268,7 @@ class FilesController {
 
     const values = [];
 
-    var upload = await TempUploadProcess(TipoModulo.PAGOS);
+    var upload = await TempUploadProcess(TipoModulo.PAGO);
 
     upload(req, res, async () => {
       try {
@@ -336,7 +344,7 @@ class FilesController {
     let connection = await pool.getConnection();
     const row = await executeSpSelect(connection, "getNextPageId", values);
 
-    var upload = await TempUploadProcess(TipoModulo.ALTAS);
+    var upload = await TempUploadProcess(TipoModulo.CUENTA);
 
     upload(req, res, async () => {
       try {
@@ -425,7 +433,7 @@ class FilesController {
   public async uploadTR(req: Request, res: Response): Promise<void> {
     try {
 
-      var upload = await TempUploadProcess(TipoModulo.TRANSFERENCIAS);
+      var upload = await TempUploadProcess(TipoModulo.TRANSFERENCIA);
 
       upload(req, res, async () => {
         let info = null;
@@ -550,7 +558,7 @@ class FilesController {
     try {
       connection = await pool.getConnection();
 
-      const row = await executeSpSelect(connection, getSpNameForTxt(tipomodulo as TipoModulo), values);
+      const row = await executeSpSelect(connection, getSpNameForMetada(tipomodulo as TipoModulo, TipoMetada.LIST), values);
 
       const file = fs.openSync(`./uploads/${tipomodulo}_${id}.txt`, "w");
 
@@ -689,25 +697,28 @@ class FilesController {
     }
   }
 
-  public async getResponseTRForCombo(req, res): Promise<void> {
-    console.error("getResponseTRForCombo");
+  public async getListForCombo(req, res): Promise<void> {
+
+    let { tipomodulo } = req.params;
+
+    let values = [ tipomodulo ];
 
     let connection;
     try {
-      connection = await pool.getConnection();
-      const values = null;
 
+      connection = await pool.getConnection();
+    
       const result = await executeSpSelect(
         connection,
-        "getTransListForSelect",
+        "GET_LIST_FOR_COMBO",
         values
       );
 
       res.json(result);
     } catch (error) {
-      console.error("Error fetching getResponseTRList:", error);
+      console.error("Error fetching getListForCombo:", error);
       res.status(500).json({
-        message: "Error fetching getResponseTRList:",
+        message: "Error fetching getListForCombo:",
         error: "Internal server error",
       });
     } finally {
@@ -1084,18 +1095,19 @@ async function InsertTransInmediataDato(
   );
 }
 
-function getSpNameForTxt(tipoModulo: TipoModulo) {
 
-  console.log("tipoModulo");
-  console.log(tipoModulo);
-
-  switch (tipoModulo) {
-    case TipoModulo.PAGOS:
-      return 'PAGO_OBTENER_ARCHIVO_BY_ID';
-    case TipoModulo.TRANSFERENCIAS:
+function getSpNameForMetada(tipoModulo: TipoModulo, tipometada: TipoMetada) {
+  switch (true) {
+    case tipoModulo === TipoModulo.PAGO && tipometada === TipoMetada.LIST:
+      return 'PAGO_METADATA_UI';
+    case tipoModulo === TipoModulo.CUENTA && tipometada === TipoMetada.LIST:
+      return 'CUENTA_METADATA_UI';
+    case tipoModulo === TipoModulo.TRANSFERENCIA && tipometada === TipoMetada.LIST:
       return 'GetFileTransferencias';
-    case TipoModulo.ALTAS:
-      return 'CUENTA_OBTENER_ARCHIVO_BY_ID';
+    case tipoModulo === TipoModulo.PAGO && tipometada === TipoMetada.IMPORT:
+      return 'PAGOS_IMPORT_METADATA_UI';
+    case tipoModulo === TipoModulo.CUENTA && tipometada === TipoMetada.IMPORT:
+      return 'CUENTAS_IMPORT_METADATA_UI';
     default:
       return '';
   }

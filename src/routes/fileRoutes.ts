@@ -21,7 +21,7 @@ class FileRoutes {
         this.router.post('/exportxlsaltas', fileController.ExportXlsAltas);
         this.router.get('/responsetr/:id', fileController.getResponseTR);
         this.router.get('/pagoslist/:id', fileController.getResponsePagos);
-        this.router.get('/responsetrforcombo', fileController.getResponseTRForCombo);
+   
         this.router.get('/responsepagosforcombo', fileController.getResponsePagosForCombo);
         this.router.post('/dropbox', fileController.dropbox);
         this.router.get('/download/:id', fileController.downloadFile);
@@ -35,11 +35,9 @@ class FileRoutes {
         this.router.get('/CUENTA_OBTENER_RESUMEN/:id', fileController.CuentaObtenerResumen);
         this.router.get('/PAGO_OBTENER_RESUMEN/:id', fileController.PagoObtenerResumen);
 
-        this.router.get('/PAGO_METADATA_UI', fileController.PagoMetadataUI);
-        this.router.get('/CUENTA_METADATA_UI', fileController.CuentaMetadataUI);
+        this.router.get('/GET_METADATA_UI/:tipomodulo/:tipometada', fileController.getMetadataUI);
 
-        
-
+        this.router.get('/LIST_FOR_COMBO/:tipomodulo', fileController.getListForCombo);
 
         //this.router.post('/file', gamesController.file);
         //this.router.post('/download', gamesController.download);

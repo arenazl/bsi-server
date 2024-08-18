@@ -49,7 +49,7 @@ const enums_1 = require("../enums/enums");
 class FilesController {
     PagoValidarEntrada(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            var upload = yield TempUploadProcess(enums_1.TipoModulo.PAGOS);
+            var upload = yield TempUploadProcess(enums_1.TipoModulo.PAGO);
             upload(req, res, () => __awaiter(this, void 0, void 0, function* () {
                 var _a;
                 try {
@@ -81,7 +81,7 @@ class FilesController {
                     };
                     console.log(jsonResult);
                     const outParamValues = ["ID", "ESTADO", "DESCRIPCION"];
-                    var result = yield executeJsonInsert(connection, "PAGO_VALIDAR_ENTRADA", jsonResult, outParamValues);
+                    var result = yield executeJsonInsert(connection, "PAGO_VALIDAR_INSERTAR_ENTRADA", jsonResult, outParamValues);
                     const ID = result["ID"];
                     const ESTADO = result["ESTADO"];
                     const DESCRIPCION = result["DESCRIPCION"];
@@ -100,7 +100,7 @@ class FilesController {
     }
     CuentaValidarEntrada(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            var upload = yield TempUploadProcess(enums_1.TipoModulo.ALTAS);
+            var upload = yield TempUploadProcess(enums_1.TipoModulo.CUENTA);
             upload(req, res, () => __awaiter(this, void 0, void 0, function* () {
                 var _a;
                 try {
@@ -131,7 +131,7 @@ class FilesController {
                     };
                     console.log(jsonResult);
                     const outParamValues = ["ID", "ESTADO", "DESCRIPCION"];
-                    var result = yield executeJsonInsert(connection, "CUENTA_VALIDAR_ENTRADA", jsonResult, outParamValues);
+                    var result = yield executeJsonInsert(connection, "CUENTA_VALIDAR_INSERTAR_ENTRADA", jsonResult, outParamValues);
                     const ID = result["ID"];
                     const ESTADO = result["ESTADO"];
                     const DESCRIPCION = result["DESCRIPCION"];
@@ -191,13 +191,17 @@ class FilesController {
             }
         });
     }
-    PagoMetadataUI(req, res) {
+    getMetadataUI(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
+            const { tipomodulo } = req.params;
+            const { tipometada } = req.params;
+            console.log("tipomodulo: " + tipomodulo);
+            console.log("tipometada: " + tipometada);
             let connection;
             try {
                 connection = yield database_1.default.getConnection();
                 const params = {};
-                const row = yield executeSpJsonReturn(connection, "PAGO_METADATA_UI", params);
+                const row = yield executeSpJsonReturn(connection, getSpNameForMetada(tipomodulo, tipometada), params);
                 res.json(row);
             }
             catch (error) {
@@ -236,7 +240,7 @@ class FilesController {
     ImportXlsPagos(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             const values = [];
-            var upload = yield TempUploadProcess(enums_1.TipoModulo.PAGOS);
+            var upload = yield TempUploadProcess(enums_1.TipoModulo.PAGO);
             upload(req, res, () => __awaiter(this, void 0, void 0, function* () {
                 var _a, _b;
                 try {
@@ -291,7 +295,7 @@ class FilesController {
             const values = [];
             let connection = yield database_1.default.getConnection();
             const row = yield executeSpSelect(connection, "getNextPageId", values);
-            var upload = yield TempUploadProcess(enums_1.TipoModulo.ALTAS);
+            var upload = yield TempUploadProcess(enums_1.TipoModulo.CUENTA);
             upload(req, res, () => __awaiter(this, void 0, void 0, function* () {
                 var _a, _b;
                 try {
@@ -361,7 +365,7 @@ class FilesController {
     uploadTR(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                var upload = yield TempUploadProcess(enums_1.TipoModulo.TRANSFERENCIAS);
+                var upload = yield TempUploadProcess(enums_1.TipoModulo.TRANSFERENCIA);
                 upload(req, res, () => __awaiter(this, void 0, void 0, function* () {
                     var _a;
                     let info = null;
@@ -463,7 +467,7 @@ class FilesController {
             let connection;
             try {
                 connection = yield database_1.default.getConnection();
-                const row = yield executeSpSelect(connection, getSpNameForTxt(tipomodulo), values);
+                const row = yield executeSpSelect(connection, getSpNameForMetada(tipomodulo, enums_1.TipoMetada.LIST), values);
                 const file = fs.openSync(`./uploads/${tipomodulo}_${id}.txt`, "w");
                 console.log("row");
                 console.log(row);
@@ -588,20 +592,20 @@ class FilesController {
             }
         });
     }
-    getResponseTRForCombo(req, res) {
+    getListForCombo(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            console.error("getResponseTRForCombo");
+            let { tipomodulo } = req.params;
+            let values = [tipomodulo];
             let connection;
             try {
                 connection = yield database_1.default.getConnection();
-                const values = null;
-                const result = yield executeSpSelect(connection, "getTransListForSelect", values);
+                const result = yield executeSpSelect(connection, "GET_LIST_FOR_COMBO", values);
                 res.json(result);
             }
             catch (error) {
-                console.error("Error fetching getResponseTRList:", error);
+                console.error("Error fetching getListForCombo:", error);
                 res.status(500).json({
-                    message: "Error fetching getResponseTRList:",
+                    message: "Error fetching getListForCombo:",
                     error: "Internal server error",
                 });
             }
@@ -917,16 +921,18 @@ function InsertTransInmediataDato(connection, values, outParams) {
         return yield executeSpInsert(connection, "InsertTransInmediataDato", values, outParams);
     });
 }
-function getSpNameForTxt(tipoModulo) {
-    console.log("tipoModulo");
-    console.log(tipoModulo);
-    switch (tipoModulo) {
-        case enums_1.TipoModulo.PAGOS:
-            return 'PAGO_OBTENER_ARCHIVO_BY_ID';
-        case enums_1.TipoModulo.TRANSFERENCIAS:
+function getSpNameForMetada(tipoModulo, tipometada) {
+    switch (true) {
+        case tipoModulo === enums_1.TipoModulo.PAGO && tipometada === enums_1.TipoMetada.LIST:
+            return 'PAGO_METADATA_UI';
+        case tipoModulo === enums_1.TipoModulo.CUENTA && tipometada === enums_1.TipoMetada.LIST:
+            return 'CUENTA_METADATA_UI';
+        case tipoModulo === enums_1.TipoModulo.TRANSFERENCIA && tipometada === enums_1.TipoMetada.LIST:
             return 'GetFileTransferencias';
-        case enums_1.TipoModulo.ALTAS:
-            return 'CUENTA_OBTENER_ARCHIVO_BY_ID';
+        case tipoModulo === enums_1.TipoModulo.PAGO && tipometada === enums_1.TipoMetada.IMPORT:
+            return 'PAGOS_IMPORT_METADATA_UI';
+        case tipoModulo === enums_1.TipoModulo.CUENTA && tipometada === enums_1.TipoMetada.IMPORT:
+            return 'CUENTAS_IMPORT_METADATA_UI';
         default:
             return '';
     }
