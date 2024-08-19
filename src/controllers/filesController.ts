@@ -240,6 +240,36 @@ class FilesController {
     }
   }
 
+  public async getImportMetadataUI(req: Request, res: Response): Promise<void> {
+
+    const { tipomodulo } = req.params;
+    const { contrato } = req.params;
+
+    console.log("tipomodulo: " + tipomodulo);
+    console.log("contrato: " + contrato);
+
+    let connection;
+  
+    try {
+    
+      connection = await pool.getConnection();
+  
+      const params = { tipomodulo, contrato };
+  
+      const row = await executeSpJsonReturn(connection, 'IMPORT_FORM_METADATA_UI' , params);
+  
+      res.json(row);
+
+    } catch (error) {
+      console.error("Error:", error);
+      res
+        .status(500)
+        .json({ message: "Error fetching:", error: "Internal server error" });
+    } finally {
+      if (connection) connection.release();
+    }
+  }
+
   public async CuentaMetadataUI(req: Request, res: Response): Promise<void> {
 
     let connection;

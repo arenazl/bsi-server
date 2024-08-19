@@ -32,6 +32,7 @@ class FileRoutes {
         this.router.get('/CUENTA_OBTENER_RESUMEN/:id', filesController_1.default.CuentaObtenerResumen);
         this.router.get('/PAGO_OBTENER_RESUMEN/:id', filesController_1.default.PagoObtenerResumen);
         this.router.get('/GET_METADATA_UI/:tipomodulo/:tipometada', filesController_1.default.getMetadataUI);
+        this.router.get('/GET_IMPORT_METADATA_UI/:tipomodulo/:contrato', filesController_1.default.getImportMetadataUI);
         this.router.get('/LIST_FOR_COMBO/:tipomodulo', filesController_1.default.getListForCombo);
         //this.router.post('/file', gamesController.file);
         //this.router.post('/download', gamesController.download);

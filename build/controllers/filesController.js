@@ -216,6 +216,31 @@ class FilesController {
             }
         });
     }
+    getImportMetadataUI(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { tipomodulo } = req.params;
+            const { contrato } = req.params;
+            console.log("tipomodulo: " + tipomodulo);
+            console.log("contrato: " + contrato);
+            let connection;
+            try {
+                connection = yield database_1.default.getConnection();
+                const params = { tipomodulo, contrato };
+                const row = yield executeSpJsonReturn(connection, 'IMPORT_FORM_METADATA_UI', params);
+                res.json(row);
+            }
+            catch (error) {
+                console.error("Error:", error);
+                res
+                    .status(500)
+                    .json({ message: "Error fetching:", error: "Internal server error" });
+            }
+            finally {
+                if (connection)
+                    connection.release();
+            }
+        });
+    }
     CuentaMetadataUI(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             let connection;

@@ -37,6 +37,8 @@ class FileRoutes {
 
         this.router.get('/GET_METADATA_UI/:tipomodulo/:tipometada', fileController.getMetadataUI);
 
+        this.router.get('/GET_IMPORT_METADATA_UI/:tipomodulo/:contrato', fileController.getImportMetadataUI);
+
         this.router.get('/LIST_FOR_COMBO/:tipomodulo', fileController.getListForCombo);
 
         //this.router.post('/file', gamesController.file);
