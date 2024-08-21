@@ -21,4 +21,5 @@ var TipoMetada;
 (function (TipoMetada) {
     TipoMetada["IMPORT"] = "IMPORT";
     TipoMetada["LIST"] = "LIST";
+    TipoMetada["EXPORT"] = "EXPORT";
 })(TipoMetada || (exports.TipoMetada = TipoMetada = {}));

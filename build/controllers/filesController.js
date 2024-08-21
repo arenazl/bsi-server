@@ -492,7 +492,7 @@ class FilesController {
             let connection;
             try {
                 connection = yield database_1.default.getConnection();
-                const row = yield executeSpSelect(connection, getSpNameForMetada(tipomodulo, enums_1.TipoMetada.LIST), values);
+                const row = yield executeSpSelect(connection, getSpNameForMetada(tipomodulo, enums_1.TipoMetada.EXPORT), values);
                 const file = fs.openSync(`./uploads/${tipomodulo}_${id}.txt`, "w");
                 console.log("row");
                 console.log(row);
@@ -952,12 +952,14 @@ function getSpNameForMetada(tipoModulo, tipometada) {
             return 'PAGO_METADATA_UI';
         case tipoModulo === enums_1.TipoModulo.CUENTA && tipometada === enums_1.TipoMetada.LIST:
             return 'CUENTA_METADATA_UI';
-        case tipoModulo === enums_1.TipoModulo.TRANSFERENCIA && tipometada === enums_1.TipoMetada.LIST:
-            return 'GetFileTransferencias';
         case tipoModulo === enums_1.TipoModulo.PAGO && tipometada === enums_1.TipoMetada.IMPORT:
             return 'PAGOS_IMPORT_METADATA_UI';
         case tipoModulo === enums_1.TipoModulo.CUENTA && tipometada === enums_1.TipoMetada.IMPORT:
             return 'CUENTAS_IMPORT_METADATA_UI';
+        case tipoModulo === enums_1.TipoModulo.PAGO && tipometada === enums_1.TipoMetada.EXPORT:
+            return 'PAGO_OBTENER_ARCHIVO_BY_ID';
+        case tipoModulo === enums_1.TipoModulo.CUENTA && tipometada === enums_1.TipoMetada.EXPORT:
+            return 'CUENTA_OBTENER_ARCHIVO_BY_ID';
         default:
             return '';
     }

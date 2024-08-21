@@ -587,7 +587,7 @@ class FilesController {
     try {
       connection = await pool.getConnection();
 
-      const row = await executeSpSelect(connection, getSpNameForMetada(tipomodulo as TipoModulo, TipoMetada.LIST), values);
+      const row = await executeSpSelect(connection, getSpNameForMetada(tipomodulo as TipoModulo, TipoMetada.EXPORT), values);
 
       const file = fs.openSync(`./uploads/${tipomodulo}_${id}.txt`, "w");
 
@@ -1131,12 +1131,14 @@ function getSpNameForMetada(tipoModulo: TipoModulo, tipometada: TipoMetada) {
       return 'PAGO_METADATA_UI';
     case tipoModulo === TipoModulo.CUENTA && tipometada === TipoMetada.LIST:
       return 'CUENTA_METADATA_UI';
-    case tipoModulo === TipoModulo.TRANSFERENCIA && tipometada === TipoMetada.LIST:
-      return 'GetFileTransferencias';
     case tipoModulo === TipoModulo.PAGO && tipometada === TipoMetada.IMPORT:
       return 'PAGOS_IMPORT_METADATA_UI';
-    case tipoModulo === TipoModulo.CUENTA && tipometada === TipoMetada.IMPORT:
+    case tipoModulo === TipoModulo.CUENTA && tipometada === TipoMetada.IMPORT: 
       return 'CUENTAS_IMPORT_METADATA_UI';
+    case tipoModulo === TipoModulo.PAGO && tipometada === TipoMetada.EXPORT:
+      return 'PAGO_OBTENER_ARCHIVO_BY_ID';
+    case tipoModulo === TipoModulo.CUENTA && tipometada === TipoMetada.EXPORT:
+      return 'CUENTA_OBTENER_ARCHIVO_BY_ID';
     default:
       return '';
   }

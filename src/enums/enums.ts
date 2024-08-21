@@ -19,4 +19,5 @@ export enum TipoModulo {
 export enum TipoMetada {
     IMPORT = 'IMPORT',
     LIST = 'LIST',
+    EXPORT = 'EXPORT',
 }
