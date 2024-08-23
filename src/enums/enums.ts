@@ -10,14 +10,26 @@ export enum TipoPantalla {
     ALTA_CUENTAS = 3
 }
 
+
 export enum TipoModulo {
-    TRANSFERENCIA = 'TRANSFERENCIA',
+    TRANSFERENCIAS = 'TRANSFERENCIA',
     PAGO = 'PAGO',
-    CUENTA = 'CUENTA'
+    CUENTA = 'CUENTA',
+    NOMINA = 'NOMINA'
 }
 
 export enum TipoMetada {
     IMPORT = 'IMPORT',
     LIST = 'LIST',
-    EXPORT = 'EXPORT',
+      FILL = 'FILL'
 }
+
+export enum TipoData {
+    EXPORT = 'EXPORT',
+    LIST = 'LIST',
+    FILL = 'FILL'
+}
+
+
+
+

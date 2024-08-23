@@ -16,453 +16,14 @@ import { transInmediataDato } from "./../models/model";
 import nodemailer from "nodemailer";
 import { ImportExport } from "aws-sdk";
 import legajoController from "./legajoController";
-import { TipoMetada, TipoModulo } from "../enums/enums";
+import { TipoData, TipoMetada, TipoModulo } from "../enums/enums";import { get } from "http";
 
 class FilesController {
-
-  public async PagoValidarEntrada(req: Request, res: Response): Promise<void> {
-
-    var upload = await TempUploadProcess(TipoModulo.PAGO);
-
-    upload(req, res, async () => {
-
-      try {
-
-        let connection = await pool.getConnection();
-
-        const dataFromUI = req.file?.originalname.split("-");
-
-        let IDUSER = dataFromUI[0];
-        let IDORG = dataFromUI[1];
-        let IDCONT = dataFromUI[2];
-        let CONCEPTO = dataFromUI[3];
-        CONCEPTO = CONCEPTO.replace(".", "-");
-        const FECHAPAGO = formatDateFromFile(dataFromUI[4]);
-
-        const rows = await readXlsxFile(req.file.path);
-
-        const dataFromFourthRow = rows.slice(3);
-
-        const registros = [];
-
-        for (let row of dataFromFourthRow) {
-          if (!row[3]) {
-            break;
-          }
-          const [CBU, CUIL, NOMBRE, IMPORTE] = row.slice(3);
-          registros.push({ CBU, CUIL, NOMBRE, IMPORTE });
-        }
-
-        const jsonResult = {
-          IDUSER,
-          IDORG,
-          IDCONT,
-          CONCEPTO,
-          FECHAPAGO,
-          ITEMS: registros,
-        };
-
-        console.log(jsonResult);
-
-        const outParamValues = ["ID", "ESTADO", "DESCRIPCION"];
-
-        var result = await executeJsonInsert(
-          connection,
-          "PAGO_VALIDAR_INSERTAR_ENTRADA",
-          jsonResult,
-          outParamValues
-        );
-
-        const ID = result["ID"];
-        const ESTADO = result["ESTADO"];
-        const DESCRIPCION = result["DESCRIPCION"];
-;
-        res.json({ ID: ID, ESTADO: ESTADO, DESCRIPCION: DESCRIPCION });
-
-      } catch (error) {
-        console.error("error tipo de archivo: " + error);
-        res
-          .status(500)
-          .json({ message: "error tipo de archivo.", error: error.message });
-        return;
-      }
-    });
-      
- 
-  }
-
-  public async CuentaValidarEntrada(req: Request, res: Response): Promise<void> {
-
-    var upload = await TempUploadProcess(TipoModulo.CUENTA);
-
-    upload(req, res, async () => {
-      try {
-        let connection = await pool.getConnection();
-
-        const dataFromUI = req.file?.originalname.split("-");
-
-        const IDUSER = dataFromUI[0];
-        const IDORG = dataFromUI[1];
-        const IDCONT = dataFromUI[2];
-        const ROTULO = dataFromUI[3];
-        const ENTE = dataFromUI[4];
-
-
-        const rows = await readXlsxFile(req.file.path);
-
-        const dataFromFourthRow = rows.slice(4);
-
-        
-        const registros = [];
-
-        for (let row of dataFromFourthRow) {
-          if (!row[4]) {
-            break;
-          }
-          const [CUIL, Tipo_Doc, Nro_Doc, Apellidos, Nombres, Fecha_Nacimiento, Sexo] = row;
-          registros.push({ CUIL, Tipo_Doc, Nro_Doc, Apellidos, Nombres, Fecha_Nacimiento, Sexo });
-        }
-        const jsonResult = {
-          IDUSER,
-          IDORG,
-          IDCONT,
-          ROTULO,
-          ENTE,
-          ITEMS: registros,
-        };
-
-        console.log(jsonResult);
-
-        const outParamValues = ["ID", "ESTADO", "DESCRIPCION"];
-
-        var result = await executeJsonInsert(
-          connection,
-          "CUENTA_VALIDAR_INSERTAR_ENTRADA",
-          jsonResult,
-          outParamValues
-        );
-
-        const ID = result["ID"];
-        const ESTADO = result["ESTADO"];
-        const DESCRIPCION = result["DESCRIPCION"];
-;
-        res.json({ ID: ID, ESTADO: ESTADO, DESCRIPCION: DESCRIPCION });
-
-      } catch (error) {
-        console.error("Error:", error);
-        res
-          .status(500)
-          .json({ message: "Error fetching:", error: "Internal server error" });
-      }
-
-    });
-
-  }
-
-  public async PagoObtenerResumen(req: Request, res: Response): Promise<void> {
-
-    const { id } = req.params;
-  
-    let connection;
-  
-    try {
-      connection = await pool.getConnection();
-  
-      const params = { id };
-  
-      const row = await executeSpJsonReturn(connection, "PAGO_OBTENER_RESUMEN", params);
-  
-      res.json(row);
-
-    } catch (error) {
-      console.error("Error:", error);
-      res
-        .status(500)
-        .json({ message: "Error fetching:", error: "Internal server error" });
-    } finally {
-      if (connection) connection.release();
-    }
-
-  }
-
-  public async CuentaObtenerResumen(req: Request, res: Response): Promise<void> {
-
-    const { id } = req.params;
-  
-    let connection;
-  
-    try {
-      connection = await pool.getConnection();
-  
-      const params = { id };
-  
-      const row = await executeSpJsonReturn(connection, "CUENTA_OBTENER_RESUMEN", params);
-  
-      res.json(row);
-
-    } catch (error) {
-      console.error("Error:", error);
-      res
-        .status(500)
-        .json({ message: "Error fetching:", error: "Internal server error" });
-    } finally {
-      if (connection) connection.release();
-    }
-  }
-
-  public async getMetadataUI(req: Request, res: Response): Promise<void> {
-
-    const { tipomodulo } = req.params;
-    const { tipometada } = req.params;
-
-    console.log("tipomodulo: " + tipomodulo);
-    console.log("tipometada: " + tipometada);
-
-    let connection;
-  
-    try {
-    
-      connection = await pool.getConnection();
-  
-      const params = { };
-  
-      const row = await executeSpJsonReturn(connection, getSpNameForMetada(tipomodulo as TipoModulo, tipometada as TipoMetada ) , params);
-  
-      res.json(row);
-
-    } catch (error) {
-      console.error("Error:", error);
-      res
-        .status(500)
-        .json({ message: "Error fetching:", error: "Internal server error" });
-    } finally {
-      if (connection) connection.release();
-    }
-  }
-
-  public async getImportMetadataUI(req: Request, res: Response): Promise<void> {
-
-    const { tipomodulo } = req.params;
-    const { contrato } = req.params;
-
-    console.log("tipomodulo: " + tipomodulo);
-    console.log("contrato: " + contrato);
-
-    let connection;
-  
-    try {
-    
-      connection = await pool.getConnection();
-  
-      const params = { tipomodulo, contrato };
-  
-      const row = await executeSpJsonReturn(connection, 'IMPORT_FORM_METADATA_UI' , params);
-  
-      res.json(row);
-
-    } catch (error) {
-      console.error("Error:", error);
-      res
-        .status(500)
-        .json({ message: "Error fetching:", error: "Internal server error" });
-    } finally {
-      if (connection) connection.release();
-    }
-  }
-
-  public async CuentaMetadataUI(req: Request, res: Response): Promise<void> {
-
-    let connection;
-  
-    try {
-      connection = await pool.getConnection();
-  
-      const params = {  };
-  
-      const row = await executeSpJsonReturn(connection, "CUENTA_METADATA_UI", params);
-  
-      res.json(row);
-
-    } catch (error) {
-      console.error("Error:", error);
-      res
-        .status(500)
-        .json({ message: "Error fetching:", error: "Internal server error" });
-    } finally {
-      if (connection) connection.release();
-    }
-  }
-
-  public async ImportXlsPagos(req: Request, res: Response): Promise<void> {
-
-    const values = [];
-
-    var upload = await TempUploadProcess(TipoModulo.PAGO);
-
-    upload(req, res, async () => {
-      try {
-        let connection = await pool.getConnection();
-
-        const dataFromUI = req.file?.originalname.split("-");
-
-        console.log("originalname" + req.file?.originalname);
-        console.log("datafromui" + dataFromUI);
-        console.log("datafromui" + dataFromUI);
-
-        let IDUSER = dataFromUI[0];
-        let IDORG = dataFromUI[1];
-        let IDCONT = dataFromUI[2];
-        let CONCEPTO = dataFromUI[3];
-        const FECHAPAGO = formatDateFromFile(dataFromUI[4]);
-
-        CONCEPTO = CONCEPTO.replace(".", "-");
-
-        const rows = await readXlsxFile(req.file.path);
-
-        const dataFromFourthRow = rows.slice(3);
-
-        const registros = [];
-
-        for (let row of dataFromFourthRow) {
-          if (!row[3]) {
-            break;
-          }
-          const [CBU, CUIL, NOMBRE, IMPORTE] = row.slice(3);
-          registros.push({ CBU, CUIL, NOMBRE, IMPORTE });
-        }
-
-        const jsonResult = {
-          IDUSER,
-          IDORG,
-          IDCONT,
-          CONCEPTO,
-          FECHAPAGO,
-          ITEMS: registros,
-        };
-
-        console.log(jsonResult);
-
-        const outParamValues = ["PAGO_HEAD_ID"];
-
-        var result = await executeJsonInsert(
-          connection,
-          "insertPagoFromJson",
-          jsonResult,
-          outParamValues
-        );
-
-        const id = result["PAGO_HEAD_ID"];
-
-        console.log("id: " + id);
-
-        res.json({ id: id });
-      } catch (error) {
-        console.error("error tipo de archivo: " + error);
-        res
-          .status(500)
-          .json({ message: "error tipo de archivo.", error: error.message });
-        return;
-      }
-    });
-
-  }
-
-  public async ImportXlsAltas(req: Request, res: Response): Promise<void> {
-
-    const values = [];
-    let connection = await pool.getConnection();
-    const row = await executeSpSelect(connection, "getNextPageId", values);
-
-    var upload = await TempUploadProcess(TipoModulo.CUENTA);
-
-    upload(req, res, async () => {
-      try {
-        let connection = await pool.getConnection();
-
-        const dataFromUI = req.file?.originalname.split("-");
-
-        console.log("originalname" + req.file?.originalname);
-        console.log("datafromui" + dataFromUI);
-        console.log("datafromui" + dataFromUI);
-
-        const IDUSER = dataFromUI[0];
-        const IDORG = dataFromUI[1];
-        const IDCONT = dataFromUI[2];
-
-        const rows = await readXlsxFile(req.file.path);
-
-        const dataFromFourthRow = rows.slice(4);
-
-        const registros = [];
-
-        for (let row of dataFromFourthRow) {
-          if (!row[4]) {
-            break;
-          }
-          const [CUIL, Tipo_Doc, Nro_Doc, Apellidos, Nombres, Fecha_Nacimiento, Sexo] = row;
-          registros.push({ CUIL, Tipo_Doc, Nro_Doc, Apellidos, Nombres, Fecha_Nacimiento, Sexo });
-        }
-        const jsonResult = {
-          ITEMS: registros,
-        };
-
-        let json = jsonResult;
-
-        console.log('entrada');
-        console.log(json);
-
-        console.log('cantidad');
-        console.log(registros.length);
-
-        const outParams = [];
-
-        const results = await executeJsonSelect(connection, "ValidarDatosAltaCuenta", jsonResult, outParams);
-
-        const allValid = results.every(item => item.es_valido === 1);
-
-        let payload = null;
-
-        if (allValid) {
-          payload = {
-            estado: 'OK',
-            nextid: row[0]["nextId"],
-            items: results
-          };
-        }
-        else {
-          payload = {
-            estado: 'ERROR',
-            mensaje: 'Algunos registros no son válidos',
-            items: results
-          };
-        }
-
-        res.json(payload);
-
-      } catch (error) {
-        console.error("Error:", error);
-        res
-          .status(500)
-          .json({ message: "Error fetching:", error: "Internal server error" });
-      }
-
-    });
-
-  }
-
-  public async ExportXlsAltas(req: Request, res: Response): Promise<void> {
-
-    const id_user = req.body.id_user;
-    const id_organismo = req.body.id_organismo;
-    const id_contrato = req.body.id_contrato;
-    const items = req.body.items;
-
-  }
 
   public async uploadTR(req: Request, res: Response): Promise<void> {
     try {
 
-      var upload = await TempUploadProcess(TipoModulo.TRANSFERENCIA);
+      var upload = await TempUploadProcess();
 
       upload(req, res, async () => {
         let info = null;
@@ -519,9 +80,243 @@ class FilesController {
         } catch (error) {
           console.error("error DB:" + error);
         }
+
       });
+
     } catch (error) {
       console.error("error in upload:" + error);
+    }
+
+  }
+
+  public async getResponseTR(req, res) {
+    try {
+      console.log("enter response....");
+      const { id } = req.params;
+
+      // Fetch the infoScreen data
+      const infoScreen = await getPantallaTransferenciaInfoById(id);
+      if (!infoScreen || infoScreen.length === 0) {
+        return res.status(404).json({ error: "Info screen not found" });
+      }
+
+      // Fetch the dataScreen data
+      const dataScreen = await getPantallaTransferenciaDatoById(id);
+      if (!dataScreen || dataScreen.length === 0) {
+        return res.status(404).json({ error: "Data screen not found" });
+      }
+
+      // Send the response
+      //@ts-ignore
+      res.json({ head: infoScreen[0], data: dataScreen });
+    } catch (error) {
+      console.error("Error fetching response:", error);
+      res.status(500).json({
+        message: "Error fetching getResponseTR:",
+        error: "Internal server error",
+      });
+    }
+  }
+
+  public async postValidateInsert(req: Request, res: Response): Promise<void> {
+
+    var upload = await TempUploadProcess();
+  
+    upload(req, res, async () => {
+      let connection;
+      try {
+        connection = await pool.getConnection();
+  
+        // Dividir el nombre del archivo en partes
+        const dataFromUI = req.file?.originalname.split("-");
+  
+        // Asumimos que el primer campo determina el tipo de módulo
+        const TIPO_MODULO = dataFromUI[0];
+  
+        // Construcción del objeto JSON sin TIPO_MODULO
+        const jsonResult: any = {
+          ITEMS: [],// Aquí se agregarán los registros del Excel más adelante
+          fileContent: undefined
+        };
+
+        // Obtener la configuración según el tipo de módulo
+        const config = mappings[TIPO_MODULO];
+  
+        if (config) {
+          // Iterar sobre los campos y asignar los valores desde dataFromUI
+          config.fields.forEach((field, index) => {
+            let value = dataFromUI[index + 1]; // Ajustamos el índice porque dataFromUI[0] es TIPO_MODULO
+  
+            // Realizar reemplazo específico si es necesario
+            if (field === 'CONCEPTO') {
+              value = value.replace(".", "-");
+            }
+  
+            // Si el campo es FECHAPAGO, formatear la fecha
+            if (field === 'FECHAPAGO') {
+              value = formatDateFromFile(value);
+            }
+  
+            // Asignar el valor al campo correspondiente en el objeto JSON
+            jsonResult[field] = value;     
+          });
+
+
+          if (TIPO_MODULO === 'NOMINA') {
+            // Leer el contenido del archivo TXT
+
+            fs.readFile(req.file.path, "utf8", function (err, data) {
+
+              jsonResult.fileContent = data;
+
+              const spName = `${TIPO_MODULO}_VALIDAR_INSERTAR_ENTRADA`;
+  
+              // Parámetros de salida
+              const outParamValues = ["ID", "ESTADO", "DESCRIPCION"];
+    
+              // Ejecutar el stored procedure con el objeto JSON resultante
+              const result = executeJsonInsert(connection, spName, jsonResult, outParamValues);
+    
+              const ID = result["ID"];
+              const ESTADO = result["ESTADO"];
+              const DESCRIPCION = result["DESCRIPCION"];
+      
+              res.json({ ID, ESTADO, DESCRIPCION });
+
+            });
+
+          } else {  
+
+            // Procesar el archivo Excel y agregar los items al jsonResult 
+            const rows = await readXlsxFile(req.file.path);
+            const dataFromRows = rows.slice(config.startRow);
+    
+            for (let row of dataFromRows) {
+              if ((TIPO_MODULO === 'PAGO' && !row[3]) || (TIPO_MODULO === 'CUENTA' && !row[4])) {
+                break;
+              }
+    
+              if (TIPO_MODULO === 'PAGO') {
+                const [CBU, CUIL, NOMBRE, IMPORTE] = row.slice(3);
+                jsonResult.ITEMS.push({ CBU, CUIL, NOMBRE, IMPORTE });
+              } else if (TIPO_MODULO === 'CUENTA') {
+                const [CUIL, Tipo_Doc, Nro_Doc, Apellidos, Nombres, Fecha_Nacimiento, Sexo] = row;
+                jsonResult.ITEMS.push({ CUIL, Tipo_Doc, Nro_Doc, Apellidos, Nombres, Fecha_Nacimiento, Sexo });
+              }
+            }
+
+            const spName = `${TIPO_MODULO}_VALIDAR_INSERTAR_ENTRADA`;
+
+            // Parámetros de salida
+            const outParamValues = ["ID", "ESTADO", "DESCRIPCION"];
+  
+            // Ejecutar el stored procedure con el objeto JSON resultante
+            const result = await executeJsonInsert(connection, spName, jsonResult, outParamValues);
+  
+            const ID = result["ID"];
+            const ESTADO = result["ESTADO"];
+            const DESCRIPCION = result["DESCRIPCION"];
+    
+            res.json({ ID, ESTADO, DESCRIPCION });
+
+          }   
+
+      }
+
+      } catch (error) {
+        console.error("Error durante la operación:", error);
+        res.status(500).json({ message: "Internal server error", error: error.message });
+      } finally {
+        if (connection) connection.release();
+      }
+    });
+  }
+  
+  public async getResumen(req: Request, res: Response): Promise<void> {
+
+    let { tipomodulo } = req.params;
+    let { id } = req.params;
+
+    let connection;
+
+    try {
+      connection = await pool.getConnection();
+
+      const params = { id };
+
+      const row = await executeSpJsonReturn(connection, getSpNameForData(tipomodulo as TipoModulo, TipoData.LIST) , params);
+
+      res.json(row);
+
+    } catch (error) {
+      console.error("Error:", error);
+      res
+        .status(500)
+        .json({ message: "Error fetching:", error: "Internal server error" });
+    } finally {
+      if (connection) connection.release();
+    }
+
+  }
+
+  public async getFill(req: Request, res: Response): Promise<void> {
+
+    let { tipomodulo } = req.params;
+    let { id } = req.params;
+
+    let connection;
+
+    try {
+      connection = await pool.getConnection();
+
+      const params = { id };
+
+      const row = await executeSpJsonReturn(connection, getSpNameForData(tipomodulo as TipoModulo, TipoData.FILL) , params);
+
+      res.json(row);
+
+    } catch (error) {
+      console.error("Error:", error);
+      res
+        .status(500)
+        .json({ message: "Error fetching:", error: "Internal server error" });
+    } finally {
+      if (connection) connection.release();
+    }
+
+  }
+
+  public async getMetadataUI(req: Request, res: Response): Promise<void> {
+
+    const { tipomodulo } = req.params;
+    const { tipometada } = req.params;
+    const { contrato } = req.params;
+    let params;
+
+    console.log("tipomodulo: " + tipomodulo);
+    console.log("tipometada: " + tipometada);
+    console.log("contrato: " + contrato);
+
+
+    let connection;
+
+    try {
+
+      connection = await pool.getConnection();
+
+      if (contrato === 'NONE') { params = { }; } else  { params = { contrato }; }
+
+      const row = await executeSpJsonReturn(connection, getSpNameForMetada(tipomodulo as TipoModulo, tipometada as TipoMetada), params);
+
+      res.json(row);
+
+    } catch (error) {
+      console.error("Error:", error);
+      res
+        .status(500)
+        .json({ message: "Error fetching:", error: "Internal server error" });
+    } finally {
+      if (connection) connection.release();
     }
   }
 
@@ -587,7 +382,7 @@ class FilesController {
     try {
       connection = await pool.getConnection();
 
-      const row = await executeSpSelect(connection, getSpNameForMetada(tipomodulo as TipoModulo, TipoMetada.EXPORT), values);
+      const row = await executeSpSelect(connection, getSpNameForData(tipomodulo as TipoModulo, TipoData.EXPORT), values);
 
       const file = fs.openSync(`./uploads/${tipomodulo}_${id}.txt`, "w");
 
@@ -638,105 +433,17 @@ class FilesController {
     }
   }
 
-  public async getResponseTR(req, res) {
-    try {
-      console.log("enter response....");
-      const { id } = req.params;
-
-      // Fetch the infoScreen data
-      const infoScreen = await getPantallaTransferenciaInfoById(id);
-      if (!infoScreen || infoScreen.length === 0) {
-        return res.status(404).json({ error: "Info screen not found" });
-      }
-
-      // Fetch the dataScreen data
-      const dataScreen = await getPantallaTransferenciaDatoById(id);
-      if (!dataScreen || dataScreen.length === 0) {
-        return res.status(404).json({ error: "Data screen not found" });
-      }
-
-      // Send the response
-      //@ts-ignore
-      res.json({ head: infoScreen[0], data: dataScreen });
-    } catch (error) {
-      console.error("Error fetching response:", error);
-      res.status(500).json({
-        message: "Error fetching getResponseTR:",
-        error: "Internal server error",
-      });
-    }
-  }
-
-  public async getResponsePagos(req, res) {
-
-    const { id } = req.params;
-
-    const values = [id];
-
-    try {
-      const connection = await pool.getConnection();
-
-      const rows = await executeSpSelect(connection, "getPageById", values);
-
-      if (rows.length === 0) {
-        return res.status(404).json({ message: "No data found" });
-      }
-
-      const infoScreen = [];
-      const dataScreen = [];
-      
-      let totalImporte = 0;
-
-      rows.forEach((row: any) => {
-        if (infoScreen.length === 0) {
-          infoScreen.push({
-            headerId: row.headerId,
-            CUENTA_DEBITO: row.Cuenta_Debito,
-            CONCEPTO: row.Prestacion,
-            ROTULO: row.Rotulo,
-            FECHA: row.Fecha_Acreditacion,
-            CANTIDAD_TRANSFERENCIAS: 0,
-            TOTAL_IMPORTE: 0,
-          });
-        }
-
-        totalImporte += parseFloat(row.totalImporte);
-
-        dataScreen.push({
-          itemId: row.headerId,
-          CBU: row.CBU,
-          APELLIDO: row.Apellido_Nombre,
-          NOMBRE: row.Apellido_Nombre,
-          IMPORTE: row.totalImporte,
-        });
-      });
-
-      if (infoScreen.length > 0) {
-        infoScreen[0].CANTIDAD_TRANSFERENCIAS = dataScreen.length;
-        infoScreen[0].TOTAL_IMPORTE = totalImporte;
-      }
-
-      res.json({ head: infoScreen[0], data: dataScreen });
-    } catch (error) {
-      console.error("Error fetching response:", error);
-      res.status(500).json({
-        message: "Error fetching getResponsePagos:",
-        error: "Internal server error",
-      });
-    }
-  }
-
   public async getListForCombo(req, res): Promise<void> {
 
     let { tipomodulo } = req.params;
 
-    let values = [ tipomodulo ];
+    let values = [tipomodulo];
 
     let connection;
     try {
 
       connection = await pool.getConnection();
-    
+
       const result = await executeSpSelect(
         connection,
         "GET_LIST_FOR_COMBO",
@@ -1126,23 +833,102 @@ async function InsertTransInmediataDato(
 
 
 function getSpNameForMetada(tipoModulo: TipoModulo, tipometada: TipoMetada) {
+
   switch (true) {
+
     case tipoModulo === TipoModulo.PAGO && tipometada === TipoMetada.LIST:
-      return 'PAGO_METADATA_UI';
-    case tipoModulo === TipoModulo.CUENTA && tipometada === TipoMetada.LIST:
-      return 'CUENTA_METADATA_UI';
+      return 'PAGO_METADATA_UI_RESUMEN';
+
     case tipoModulo === TipoModulo.PAGO && tipometada === TipoMetada.IMPORT:
-      return 'PAGOS_IMPORT_METADATA_UI';
-    case tipoModulo === TipoModulo.CUENTA && tipometada === TipoMetada.IMPORT: 
-      return 'CUENTAS_IMPORT_METADATA_UI';
-    case tipoModulo === TipoModulo.PAGO && tipometada === TipoMetada.EXPORT:
-      return 'PAGO_OBTENER_ARCHIVO_BY_ID';
-    case tipoModulo === TipoModulo.CUENTA && tipometada === TipoMetada.EXPORT:
-      return 'CUENTA_OBTENER_ARCHIVO_BY_ID';
+      return 'PAGO_METADATA_UI_IMPORT';
+
+    case tipoModulo === TipoModulo.CUENTA && tipometada === TipoMetada.LIST:
+      return 'CUENTA_METADATA_UI_RESUMEN';
+
+    case tipoModulo === TipoModulo.CUENTA && tipometada === TipoMetada.IMPORT:
+      return 'CUENTA_METADATA_UI_IMPORT';
+
+    case tipoModulo === TipoModulo.NOMINA && tipometada === TipoMetada.LIST:
+      return 'NOMINA_METADATA_UI_IMPORT';
+
+    case tipoModulo === TipoModulo.NOMINA && tipometada === TipoMetada.IMPORT:
+      return 'NOMINA_METADATA_UI_IMPORT';
+
+    case tipoModulo === TipoModulo.NOMINA && tipometada === TipoMetada.FILL:
+      return 'NOMINA_METADATA_UI_FILL';
+
     default:
       return '';
   }
 }
+
+function getSpNameForData(tipoModulo: TipoModulo, tipoData: TipoData) {
+
+  switch (true) {
+
+    case tipoModulo === TipoModulo.PAGO && tipoData === TipoData.LIST:
+      return 'PAGO_OBTENER_RESUMEN_BY_ID';
+
+    case tipoModulo === TipoModulo.PAGO && tipoData === TipoData.EXPORT:
+      return 'PAGO_OBTENER_ARCHIVO_BY_ID';
+
+    case tipoModulo === TipoModulo.CUENTA && tipoData === TipoData.LIST:
+      return 'CUENTA_OBTENER_RESUMEN_BY_ID';
+
+    case tipoModulo === TipoModulo.CUENTA && tipoData === TipoData.EXPORT:
+      return 'CUENTA_OBTENER_ARCHIVO_BY_ID';
+
+    case tipoModulo === TipoModulo.NOMINA && tipoData === TipoData.LIST:
+      return 'NOMINA_OBTENER_RESUMEN_BY_ID';
+
+    case tipoModulo === TipoModulo.NOMINA && tipoData === TipoData.FILL:
+        return 'NOMINA_OBTENER_FILL_BY_ID';
+
+    default:
+      return '';
+  }
+}
+
+async function TempUploadProcess() {
+
+  const randomNumber = Math.floor(100000 + Math.random() * 900000);
+
+  var store = multer.diskStorage({
+    destination: function (req, file, cb) {
+      cb(null, "./uploads");
+    },
+    filename: function (req, file, cb) {
+
+      let tipoModulo = file.originalname.split("-")[0];
+
+      getFileType(tipoModulo as TipoModulo).then((fileType) => {
+        cb(null, tipoModulo + "-" + randomNumber + fileType);
+      });
+
+    },
+  });
+
+  var upload = multer({ storage: store }).single("file");
+  return upload;
+}
+
+async function getFileType(tipoModulo: TipoModulo) {
+
+  switch (tipoModulo) {
+    case TipoModulo.PAGO:
+      return ".xlsx";
+    case TipoModulo.CUENTA:
+      return ".xlsx";
+      case TipoModulo.NOMINA:
+        return ".txt";
+      case TipoModulo.TRANSFERENCIAS:
+         return ".txt";
+    default:
+      return ".xlsx";
+  }
+
+}
+
 
 async function LoopAndParseInfo(entity: transInmediataDato) {
   return [
@@ -1274,14 +1060,6 @@ function escribirArchivoTR(
   return true;
 }
 
-function readDile() {
-  //read a look.txt file
-  fs.readFile("./uploads/look.txt", "utf8", function (err, data) {
-    if (err) throw err;
-    console.log(data);
-  });
-}
-
 function parsearInfoArchivoTR(
   infoRowC: string,
   infoRowF: string
@@ -1407,24 +1185,22 @@ async function getPantallaTransferenciaInfoById(id: number) {
   }
 }
 
-async function TempUploadProcess(TipoModulo: TipoModulo) {
-
-  const randomNumber = Math.floor(100000 + Math.random() * 900000);
-
-  let fileName = "input" + "_" + TipoModulo + "_" + randomNumber +".xlsx";
-
-  var store = multer.diskStorage({
-    destination: function (req, file, cb) {
-      cb(null, "./uploads");
-    },
-    filename: function (req, file, cb) {
-      cb(null, fileName);
-    },
-  });
-
-  var upload = multer({ storage: store }).single("file");
-  return upload;
-}
-
 const fileController = new FilesController();
 export default fileController;
+
+
+export const mappings: Record<string, { startRow: number; fields: string[] }> = {
+  PAGO: {
+    startRow: 3,
+    fields: ['IDUSER', 'IDORG', 'IDCONT', 'CONCEPTO', 'FECHAPAGO']
+  },
+  CUENTA: {
+    startRow: 4,
+    fields: ['IDUSER', 'IDORG', 'IDCONT', 'ROTULO', 'ENTE']
+  },
+  NOMINA: {
+    startRow: 0,
+    fields: ['id_user', 'Organismo_id', 'Contrato_id']
+  }
+
+};
