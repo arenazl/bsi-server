@@ -18,7 +18,7 @@ class UsuarioController {
         
         const rows = await executeSpSelect(connection, 'sp_login_user', values); 
 
-        return res.json("lalalalala")
+        return res.json(rows[0])
     }  
 
 }
