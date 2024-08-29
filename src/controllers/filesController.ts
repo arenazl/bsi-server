@@ -7,7 +7,6 @@ import path from "path";
 import * as fs from "fs";
 import * as mysql from "mysql2/promise";
 import keys from "./../keys";
-
 import S3 from "aws-sdk/clients/s3";
 
 import { transInmediataInfo } from "./../models/model";
@@ -19,11 +18,88 @@ import legajoController from "./legajoController";
 import { TipoData, TipoMetada, TipoModulo } from "../enums/enums";import { get } from "http";
 
 class FilesController {
+  
+
+  public async getUsers(req: Request, res: Response): Promise<void> {
+    let connection;
+    try {
+      connection = await pool.getConnection();
+      const result = await executeSpSelect(connection, "GetAllUsers", []);
+      
+      res.json(result);
+     
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ message: "Error fetching users", error: "Internal server error" });
+    } finally {
+      if (connection) connection.release();
+    }
+  }
+
+  public async createUser(req: Request, res: Response): Promise<void> {
+
+    const userData = req.body;
+    
+    let connection;
+    try {
+      connection = await pool.getConnection();
+      const result = await executeJsonInsert(connection, "InsertUser", userData, ["ID", "ESTADO", "DESCRIPCION"]);
+      if (!result.ID) {
+        res.json({ error: result.Data });
+        return;
+      }
+      res.json({ ID: result.ID, ESTADO: result.ESTADO, DESCRIPCION: result.DESCRIPCION });
+    } catch (error) {
+      console.error("Error creating user:", error);
+      res.status(500).json({ message: "Error creating user", error: "Internal server error" });
+    } finally {
+      if (connection) connection.release();
+    }
+  }
+
+  public async updateUser(req: Request, res: Response): Promise<void> {
+    const userData = req.body;
+    let connection;
+    try {
+      connection = await pool.getConnection();
+      const result = await executeJsonInsert(connection, "UpdateUser", userData, ["ESTADO", "DESCRIPCION"]);
+      if (result.ESTADO === undefined) {
+        res.json({ error: result.Data });
+        return;
+      }
+      res.json({ ESTADO: result.ESTADO, DESCRIPCION: result.DESCRIPCION });
+    } catch (error) {
+      console.error("Error updating user:", error);
+      res.status(500).json({ message: "Error updating user", error: "Internal server error" });
+    } finally {
+      if (connection) connection.release();
+    }
+  }
+
+  public async deleteUser(req: Request, res: Response): Promise<void> {
+    const { id } = req.params;
+    let connection;
+    try {
+      connection = await pool.getConnection();
+      const result = await executeSpJsonReturn(connection, "DeleteUser", { id });
+      if (result.ESTADO === undefined) {
+        res.json({ error: result.Data });
+        return;
+      }
+      res.json({ ESTADO: result.ESTADO, DESCRIPCION: result.DESCRIPCION });
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      res.status(500).json({ message: "Error deleting user", error: "Internal server error" });
+    } finally {
+      if (connection) connection.release();
+    }
+  }
 
   public async uploadTR(req: Request, res: Response): Promise<void> {
     try {
 
       var upload = await TempUploadProcess();
+
 
       upload(req, res, async () => {
         let info = null;
@@ -121,15 +197,17 @@ class FilesController {
   public async postValidateInsert(req: Request, res: Response): Promise<void> {
 
     var upload = await TempUploadProcess();
-  
+
     upload(req, res, async () => {
       let connection;
       try {
+
         connection = await pool.getConnection();
   
         // Dividir el nombre del archivo en partes
         const dataFromUI = req.file?.originalname.split("-");
-  
+        console.log(req.file?.originalname.split("-"));
+
         // Asumimos que el primer campo determina el tipo de módulo
         const TIPO_MODULO = dataFromUI[0];
   
@@ -163,19 +241,32 @@ class FilesController {
 
 
           if (TIPO_MODULO === 'NOMINA') {
+
             // Leer el contenido del archivo TXT
 
-            fs.readFile(req.file.path, "utf8", function (err, data) {
+            fs.readFile(req.file.path, "utf8", async function (err, data) {
 
-              jsonResult.fileContent = data;
+
+              // Primero, debemos reemplazar las secuencias escapadas \\r\\n con \r\n
+
+              let jsonString = data.replace(/\\r/g, ' ').replace(/\\n/g, ' ').replace(/\\t/g, ' ');
+              jsonResult.fileContent = jsonString;;
+           
+              console.log(jsonResult);
 
               const spName = `${TIPO_MODULO}_VALIDAR_INSERTAR_ENTRADA`;
   
               // Parámetros de salida
               const outParamValues = ["ID", "ESTADO", "DESCRIPCION"];
-    
+
               // Ejecutar el stored procedure con el objeto JSON resultante
-              const result = executeJsonInsert(connection, spName, jsonResult, outParamValues);
+              const result = await executeJsonInsert(connection, spName, jsonResult, outParamValues);
+
+              if (!result.success) 
+                {
+                  res.json({ error: result.Data  });
+                  return;
+              }
     
               const ID = result["ID"];
               const ESTADO = result["ESTADO"];
@@ -185,7 +276,8 @@ class FilesController {
 
             });
 
-          } else {  
+          } else 
+          {  
 
             // Procesar el archivo Excel y agregar los items al jsonResult 
             const rows = await readXlsxFile(req.file.path);
@@ -212,6 +304,12 @@ class FilesController {
   
             // Ejecutar el stored procedure con el objeto JSON resultante
             const result = await executeJsonInsert(connection, spName, jsonResult, outParamValues);
+
+            if (!result.ID) 
+              {
+                res.json({ error: result.Data  });
+                return;
+            }
   
             const ID = result["ID"];
             const ESTADO = result["ESTADO"];
@@ -225,14 +323,14 @@ class FilesController {
 
       } catch (error) {
         console.error("Error durante la operación:", error);
-        res.status(500).json({ message: "Internal server error", error: error.message });
+        res.json({  message: "Internal server error", error: error.message  });
       } finally {
         if (connection) connection.release();
       }
     });
   }
   
-  public async getResumen(req: Request, res: Response): Promise<void> {
+  public async getResumen(req: Request, res: Response): Promise<any> {
 
     let { tipomodulo } = req.params;
     let { id } = req.params;
@@ -240,26 +338,35 @@ class FilesController {
     let connection;
 
     try {
+
       connection = await pool.getConnection();
 
       const params = { id };
 
       const row = await executeSpJsonReturn(connection, getSpNameForData(tipomodulo as TipoModulo, TipoData.LIST) , params);
 
-      res.json(row);
+      if (row.metadata_json == !undefined) 
+      {
+        res.json({ error: row.Data  });          
+      }
+      else
+      {
+        res.json({result: row[0].resultado_json});
+      }
 
     } catch (error) {
       console.error("Error:", error);
       res
         .status(500)
         .json({ message: "Error fetching:", error: "Internal server error" });
-    } finally {
+    } finally 
+    {
       if (connection) connection.release();
     }
 
   }
 
-  public async getFill(req: Request, res: Response): Promise<void> {
+  public async getFill(req: Request, res: Response): Promise<any> {
 
     let { tipomodulo } = req.params;
     let { id } = req.params;
@@ -273,7 +380,15 @@ class FilesController {
 
       const row = await executeSpJsonReturn(connection, getSpNameForData(tipomodulo as TipoModulo, TipoData.FILL) , params);
 
-      res.json(row);
+      if (row.metadata_json == !undefined) 
+        {
+          res.json({ error: row.Data  });
+          return;
+      }
+      else
+      {
+        res.json({result: row[0].resultado_json});
+      }
 
     } catch (error) {
       console.error("Error:", error);
@@ -308,7 +423,17 @@ class FilesController {
 
       const row = await executeSpJsonReturn(connection, getSpNameForMetada(tipomodulo as TipoModulo, tipometada as TipoMetada), params);
 
-      res.json(row);
+      if (row[0].metadata_json == undefined) 
+        {
+          res.json({ error: row.Data });
+          return;
+      }
+
+      console.log(['HOLAAAAAAAAAAAAAAAAAAAAAAA']);
+      console.log(row[0]);
+
+      res.json({data: row[0]});
+      return
 
     } catch (error) {
       console.error("Error:", error);
@@ -382,14 +507,15 @@ class FilesController {
     try {
       connection = await pool.getConnection();
 
-      const row = await executeSpSelect(connection, getSpNameForData(tipomodulo as TipoModulo, TipoData.EXPORT), values);
-
+      const row = await executeSpSelect(connection, getSpNameForData(tipomodulo as TipoModulo, TipoData.EXPORT), values)
+  
       const file = fs.openSync(`./uploads/${tipomodulo}_${id}.txt`, "w");
 
       console.log("row");
       console.log(row);
 
-      let line = row[0]["archivo_contenido"];
+      
+      let line = row[0][1];
 
       fs.writeSync(file, line + "\n");
 
@@ -661,35 +787,46 @@ function formatDateFromFile(fechaPagoRaw) {
   return `${year}-${month}-${day}`; // Formato YYYY-MM-DD
 }
 
+
 async function executeJsonInsert(
   connection: mysql.PoolConnection,
   spName: string,
   jsonData: object,
   outParams: string[]
-) {
+) : Promise<any> {
   try {
-    console.log("execute SJasonpInsert");
+    console.log("Executing Stored Procedure:", spName);
 
     const sql = `CALL ${spName}(?);`;
     const values = [JSON.stringify(jsonData)];
 
-
-    console.log("sql");
+    console.log("SQL Command:");
     console.log(sql);
-    console.log("values");
+    console.log("Input Values:");
     console.log(values);
 
     const [queryResult] = await connection.execute(sql, values);
+
+  if( queryResult[0][0].Result > 0) 
+    { 
+      return queryResult[0][0];
+    }  
 
     const outParamValues = extractOutParams(queryResult, outParams);
 
     return outParamValues;
   } catch (error: any) {
-    console.error(error);
+    console.error("Error executing stored procedure:", error.message || error);
+    return {
+      success: false,
+      message: error.message || "An error occurred during the execution of the stored procedure."
+    };
   } finally {
     if (connection) connection.release();
   }
 }
+
+
 
 async function executeSpSelect(
   connection: mysql.PoolConnection,
@@ -712,9 +849,10 @@ async function executeSpSelect(
     const [results]: any = await statement.execute(values);
 
     statement.close();
+
     await connection.unprepare(sql);
 
-    return results[0];
+    return results;
 
   } catch (error: any) {
     console.error(error);
@@ -749,18 +887,17 @@ async function executeSpJsonReturn(
 
     const [results]: any = await statement.execute(values);
 
-    statement.close();
-    await connection.unprepare(sql);
-
-    // Devolver el resultado como un JSON
+    if( results[0][0].Result > 0) 
+      { 
+        return results[0][0];
+      }  
+  
     return results[0];
 
   } catch (error: any) {
     console.error(error);
     throw error;
-  } finally {
-    if (connection) connection.release();
-  }
+  } 
 }
 
 async function executeJsonSelect(
@@ -780,7 +917,13 @@ async function executeJsonSelect(
     console.log(values);
 
     const statement = await connection.prepare(sql);
+
     const [results]: any = await statement.execute(values);
+
+    if( results[0][0].Result > 0) 
+      { 
+        return results[0][0];
+      }  
 
     console.log('results full');
     console.log(results);

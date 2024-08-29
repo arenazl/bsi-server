@@ -10,8 +10,8 @@ class UsuarioController {
 
         console.log(req.body);
 
-        let nombre = 'mv'; //req.body.nombre;S  
-        let pass = 'password123'; //req.body.password;
+        let nombre = req.body.nombre;
+        let pass = req.body.password;
 
         const values = [nombre, pass];
         const connection = await pool.getConnection();

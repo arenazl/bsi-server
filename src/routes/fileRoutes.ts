@@ -35,6 +35,10 @@ class FileRoutes {
         
         this.router.get('/LIST_FOR_COMBO/:tipomodulo', fileController.getListForCombo);
 
+        this.router.get('/getUsers', fileController.getUsers);
+        this.router.post('/createUser', fileController.createUser);
+        this.router.put('/updateUser', fileController.updateUser);
+        this.router.delete('/deleteUser/:id', fileController.deleteUser);
 
         //this.router.post('/file', gamesController.file);
         //this.router.post('/download', gamesController.download);

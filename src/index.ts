@@ -42,9 +42,22 @@ class Server {
         this.app.set('port', process.env.PORT || 3000);
         this.app.use(this.allowCrossDomain);
         this.app.use(morgan('dev'));
-        this.app.use(cors());
+
+        this.app.use(cors({
+            origin: 'http://localhost:4200',
+            methods: ['GET', 'POST', 'OPTIONS'],
+            allowedHeaders: ['Content-Type', 'Authorization']
+        }));
+
         this.app.use(express.json());
         this.app.use(express.urlencoded({ extended: false }));
+
+        this.app.options('*', (req, res) => {
+            res.header('Access-Control-Allow-Origin', '*');
+            res.header('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
+            res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+            res.sendStatus(200);
+        });
     }
 
     /**
@@ -64,6 +77,8 @@ class Server {
         } else {
             next();
         }
+
+    
     }
 
     /**
