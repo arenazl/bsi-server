@@ -21,8 +21,8 @@ class UsuarioController {
             let pass = req.body.password;
             const values = [nombre, pass];
             const connection = yield database_1.default.getConnection();
-            //const rows = await executeSpSelect(connection, 'sp_login_user', values); 
-            return res.json("lalalalala");
+            const rows = yield executeSpSelect(connection, 'sp_login_user', values);
+            return res.json(rows[0]);
         });
     }
 }

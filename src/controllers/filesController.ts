@@ -514,8 +514,7 @@ class FilesController {
       console.log("row");
       console.log(row);
 
-
-      let line = row[0][1];
+      let line = row[0][0].contenido;
 
       fs.writeSync(file, line + "\n");
 
