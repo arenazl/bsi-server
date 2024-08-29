@@ -6,7 +6,11 @@ import * as mysql from "mysql2/promise";
 
 class UsuarioController {
 
+
+
     public async login(req: Request, res: Response): Promise<any> {
+
+      try {
 
         console.log(req.body);
 
@@ -19,6 +23,11 @@ class UsuarioController {
         const rows = await executeSpSelect(connection, 'sp_login_user', values); 
 
         return res.json(rows[0])
+
+  } catch (error: any) {
+    
+      console.error(error);
+    }
     }  
 
 }
