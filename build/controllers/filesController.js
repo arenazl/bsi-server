@@ -54,7 +54,7 @@ class FilesController {
             try {
                 connection = yield database_1.default.getConnection();
                 const result = yield executeSpSelect(connection, "GetAllUsers", []);
-                res.json(result);
+                res.json(result[0]);
             }
             catch (error) {
                 console.error("Error fetching users:", error);

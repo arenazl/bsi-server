@@ -26,7 +26,7 @@ class FilesController {
       connection = await pool.getConnection();
       const result = await executeSpSelect(connection, "GetAllUsers", []);
       
-      res.json(result);
+      res.json(result[0]);
      
     } catch (error) {
       console.error("Error fetching users:", error);
@@ -514,7 +514,7 @@ class FilesController {
       console.log("row");
       console.log(row);
 
-      
+
       let line = row[0][1];
 
       fs.writeSync(file, line + "\n");

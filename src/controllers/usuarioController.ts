@@ -17,6 +17,7 @@ class UsuarioController {
         let nombre = req.body.nombre;
         let pass = req.body.password;
 
+        
         const values = [nombre, pass];
         const connection = await pool.getConnection();
         
