@@ -6,29 +6,19 @@ import * as mysql from "mysql2/promise";
 
 class UsuarioController {
 
-
-
     public async login(req: Request, res: Response): Promise<any> {
-
-      try {
 
         console.log(req.body);
 
         let nombre = req.body.nombre;
         let pass = req.body.password;
 
-        
         const values = [nombre, pass];
         const connection = await pool.getConnection();
         
         const rows = await executeSpSelect(connection, 'sp_login_user', values); 
 
         return res.json(rows[0])
-
-  } catch (error: any) {
-    
-      console.error(error);
-    }
     }  
 
 }

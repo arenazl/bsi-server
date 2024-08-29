@@ -16,18 +16,13 @@ const database_1 = __importDefault(require("../database"));
 class UsuarioController {
     login(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            try {
-                console.log(req.body);
-                let nombre = req.body.nombre;
-                let pass = req.body.password;
-                const values = [nombre, pass];
-                const connection = yield database_1.default.getConnection();
-                const rows = yield executeSpSelect(connection, 'sp_login_user', values);
-                return res.json(rows[0]);
-            }
-            catch (error) {
-                console.error(error);
-            }
+            console.log(req.body);
+            let nombre = req.body.nombre;
+            let pass = req.body.password;
+            const values = [nombre, pass];
+            const connection = yield database_1.default.getConnection();
+            const rows = yield executeSpSelect(connection, 'sp_login_user', values);
+            return res.json(rows[0]);
         });
     }
 }
