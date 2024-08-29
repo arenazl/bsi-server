@@ -22,7 +22,7 @@ class UsuarioController {
             const values = [nombre, pass];
             const connection = yield database_1.default.getConnection();
             const rows = yield executeSpSelect(connection, 'sp_login_user', values);
-            return res.json(rows[0]);
+            return res.json("lalalalala");
         });
     }
 }
