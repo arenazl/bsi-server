@@ -25,6 +25,10 @@ class FileRoutes {
         this.router.get('/GET_RESUMEN/:tipomodulo/:id', filesController_1.default.getResumen);
         this.router.get('/GET_FILL/:tipomodulo/:id', filesController_1.default.getFill);
         this.router.get('/LIST_FOR_COMBO/:tipomodulo', filesController_1.default.getListForCombo);
+        this.router.get('/getUsers', filesController_1.default.getUsers);
+        this.router.post('/createUser', filesController_1.default.createUser);
+        this.router.put('/updateUser', filesController_1.default.updateUser);
+        this.router.delete('/deleteUser/:id', filesController_1.default.deleteUser);
         //this.router.post('/file', gamesController.file);
         //this.router.post('/download', gamesController.download);
     }

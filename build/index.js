@@ -41,9 +41,19 @@ class Server {
         this.app.set('port', process.env.PORT || 3000);
         this.app.use(this.allowCrossDomain);
         this.app.use((0, morgan_1.default)('dev'));
-        this.app.use((0, cors_1.default)());
+        this.app.use((0, cors_1.default)({
+            origin: 'http://localhost:4200',
+            methods: ['GET', 'POST', 'OPTIONS'],
+            allowedHeaders: ['Content-Type', 'Authorization']
+        }));
         this.app.use(express_1.default.json());
         this.app.use(express_1.default.urlencoded({ extended: false }));
+        this.app.options('*', (req, res) => {
+            res.header('Access-Control-Allow-Origin', '*');
+            res.header('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
+            res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+            res.sendStatus(200);
+        });
     }
     /**
      * Middleware function to allow cross-domain requests.

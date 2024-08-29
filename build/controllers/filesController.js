@@ -48,6 +48,93 @@ const model_2 = require("./../models/model");
 const nodemailer_1 = __importDefault(require("nodemailer"));
 const enums_1 = require("../enums/enums");
 class FilesController {
+    getUsers(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let connection;
+            try {
+                connection = yield database_1.default.getConnection();
+                const result = yield executeSpSelect(connection, "GetAllUsers", []);
+                res.json(result);
+            }
+            catch (error) {
+                console.error("Error fetching users:", error);
+                res.status(500).json({ message: "Error fetching users", error: "Internal server error" });
+            }
+            finally {
+                if (connection)
+                    connection.release();
+            }
+        });
+    }
+    createUser(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const userData = req.body;
+            let connection;
+            try {
+                connection = yield database_1.default.getConnection();
+                const result = yield executeJsonInsert(connection, "InsertUser", userData, ["ID", "ESTADO", "DESCRIPCION"]);
+                if (!result.ID) {
+                    res.json({ error: result.Data });
+                    return;
+                }
+                res.json({ ID: result.ID, ESTADO: result.ESTADO, DESCRIPCION: result.DESCRIPCION });
+            }
+            catch (error) {
+                console.error("Error creating user:", error);
+                res.status(500).json({ message: "Error creating user", error: "Internal server error" });
+            }
+            finally {
+                if (connection)
+                    connection.release();
+            }
+        });
+    }
+    updateUser(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const userData = req.body;
+            let connection;
+            try {
+                connection = yield database_1.default.getConnection();
+                const result = yield executeJsonInsert(connection, "UpdateUser", userData, ["ESTADO", "DESCRIPCION"]);
+                if (result.ESTADO === undefined) {
+                    res.json({ error: result.Data });
+                    return;
+                }
+                res.json({ ESTADO: result.ESTADO, DESCRIPCION: result.DESCRIPCION });
+            }
+            catch (error) {
+                console.error("Error updating user:", error);
+                res.status(500).json({ message: "Error updating user", error: "Internal server error" });
+            }
+            finally {
+                if (connection)
+                    connection.release();
+            }
+        });
+    }
+    deleteUser(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { id } = req.params;
+            let connection;
+            try {
+                connection = yield database_1.default.getConnection();
+                const result = yield executeSpJsonReturn(connection, "DeleteUser", { id });
+                if (result.ESTADO === undefined) {
+                    res.json({ error: result.Data });
+                    return;
+                }
+                res.json({ ESTADO: result.ESTADO, DESCRIPCION: result.DESCRIPCION });
+            }
+            catch (error) {
+                console.error("Error deleting user:", error);
+                res.status(500).json({ message: "Error deleting user", error: "Internal server error" });
+            }
+            finally {
+                if (connection)
+                    connection.release();
+            }
+        });
+    }
     uploadTR(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
@@ -130,12 +217,13 @@ class FilesController {
         return __awaiter(this, void 0, void 0, function* () {
             var upload = yield TempUploadProcess();
             upload(req, res, () => __awaiter(this, void 0, void 0, function* () {
-                var _a;
+                var _a, _b;
                 let connection;
                 try {
                     connection = yield database_1.default.getConnection();
                     // Dividir el nombre del archivo en partes
                     const dataFromUI = (_a = req.file) === null || _a === void 0 ? void 0 : _a.originalname.split("-");
+                    console.log((_b = req.file) === null || _b === void 0 ? void 0 : _b.originalname.split("-"));
                     // Asumimos que el primer campo determina el tipo de módulo
                     const TIPO_MODULO = dataFromUI[0];
                     // Construcción del objeto JSON sin TIPO_MODULO
@@ -163,16 +251,26 @@ class FilesController {
                         if (TIPO_MODULO === 'NOMINA') {
                             // Leer el contenido del archivo TXT
                             fs.readFile(req.file.path, "utf8", function (err, data) {
-                                jsonResult.fileContent = data;
-                                const spName = `${TIPO_MODULO}_VALIDAR_INSERTAR_ENTRADA`;
-                                // Parámetros de salida
-                                const outParamValues = ["ID", "ESTADO", "DESCRIPCION"];
-                                // Ejecutar el stored procedure con el objeto JSON resultante
-                                const result = executeJsonInsert(connection, spName, jsonResult, outParamValues);
-                                const ID = result["ID"];
-                                const ESTADO = result["ESTADO"];
-                                const DESCRIPCION = result["DESCRIPCION"];
-                                res.json({ ID, ESTADO, DESCRIPCION });
+                                return __awaiter(this, void 0, void 0, function* () {
+                                    // Primero, debemos reemplazar las secuencias escapadas \\r\\n con \r\n
+                                    let jsonString = data.replace(/\\r/g, ' ').replace(/\\n/g, ' ').replace(/\\t/g, ' ');
+                                    jsonResult.fileContent = jsonString;
+                                    ;
+                                    console.log(jsonResult);
+                                    const spName = `${TIPO_MODULO}_VALIDAR_INSERTAR_ENTRADA`;
+                                    // Parámetros de salida
+                                    const outParamValues = ["ID", "ESTADO", "DESCRIPCION"];
+                                    // Ejecutar el stored procedure con el objeto JSON resultante
+                                    const result = yield executeJsonInsert(connection, spName, jsonResult, outParamValues);
+                                    if (!result.success) {
+                                        res.json({ error: result.Data });
+                                        return;
+                                    }
+                                    const ID = result["ID"];
+                                    const ESTADO = result["ESTADO"];
+                                    const DESCRIPCION = result["DESCRIPCION"];
+                                    res.json({ ID, ESTADO, DESCRIPCION });
+                                });
                             });
                         }
                         else {
@@ -197,6 +295,10 @@ class FilesController {
                             const outParamValues = ["ID", "ESTADO", "DESCRIPCION"];
                             // Ejecutar el stored procedure con el objeto JSON resultante
                             const result = yield executeJsonInsert(connection, spName, jsonResult, outParamValues);
+                            if (!result.ID) {
+                                res.json({ error: result.Data });
+                                return;
+                            }
                             const ID = result["ID"];
                             const ESTADO = result["ESTADO"];
                             const DESCRIPCION = result["DESCRIPCION"];
@@ -206,7 +308,7 @@ class FilesController {
                 }
                 catch (error) {
                     console.error("Error durante la operación:", error);
-                    res.status(500).json({ message: "Internal server error", error: error.message });
+                    res.json({ message: "Internal server error", error: error.message });
                 }
                 finally {
                     if (connection)
@@ -224,7 +326,12 @@ class FilesController {
                 connection = yield database_1.default.getConnection();
                 const params = { id };
                 const row = yield executeSpJsonReturn(connection, getSpNameForData(tipomodulo, enums_1.TipoData.LIST), params);
-                res.json(row);
+                if (row.metadata_json == !undefined) {
+                    res.json({ error: row.Data });
+                }
+                else {
+                    res.json({ result: row[0].resultado_json });
+                }
             }
             catch (error) {
                 console.error("Error:", error);
@@ -247,7 +354,13 @@ class FilesController {
                 connection = yield database_1.default.getConnection();
                 const params = { id };
                 const row = yield executeSpJsonReturn(connection, getSpNameForData(tipomodulo, enums_1.TipoData.FILL), params);
-                res.json(row);
+                if (row.metadata_json == !undefined) {
+                    res.json({ error: row.Data });
+                    return;
+                }
+                else {
+                    res.json({ result: row[0].resultado_json });
+                }
             }
             catch (error) {
                 console.error("Error:", error);
@@ -280,7 +393,14 @@ class FilesController {
                     params = { contrato };
                 }
                 const row = yield executeSpJsonReturn(connection, getSpNameForMetada(tipomodulo, tipometada), params);
-                res.json(row);
+                if (row[0].metadata_json == undefined) {
+                    res.json({ error: row.Data });
+                    return;
+                }
+                console.log(['HOLAAAAAAAAAAAAAAAAAAAAAAA']);
+                console.log(row[0]);
+                res.json({ data: row[0] });
+                return;
             }
             catch (error) {
                 console.error("Error:", error);
@@ -353,7 +473,7 @@ class FilesController {
                 const file = fs.openSync(`./uploads/${tipomodulo}_${id}.txt`, "w");
                 console.log("row");
                 console.log(row);
-                let line = row[0]["archivo_contenido"];
+                let line = row[0][1];
                 fs.writeSync(file, line + "\n");
                 fs.closeSync(file);
                 const filePath = `./uploads/${tipomodulo}_${id}.txt`;
@@ -604,19 +724,26 @@ function formatDateFromFile(fechaPagoRaw) {
 function executeJsonInsert(connection, spName, jsonData, outParams) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            console.log("execute SJasonpInsert");
+            console.log("Executing Stored Procedure:", spName);
             const sql = `CALL ${spName}(?);`;
             const values = [JSON.stringify(jsonData)];
-            console.log("sql");
+            console.log("SQL Command:");
             console.log(sql);
-            console.log("values");
+            console.log("Input Values:");
             console.log(values);
             const [queryResult] = yield connection.execute(sql, values);
+            if (queryResult[0][0].Result > 0) {
+                return queryResult[0][0];
+            }
             const outParamValues = extractOutParams(queryResult, outParams);
             return outParamValues;
         }
         catch (error) {
-            console.error(error);
+            console.error("Error executing stored procedure:", error.message || error);
+            return {
+                success: false,
+                message: error.message || "An error occurred during the execution of the stored procedure."
+            };
         }
         finally {
             if (connection)
@@ -637,7 +764,7 @@ function executeSpSelect(connection, spName, values) {
             const [results] = yield statement.execute(values);
             statement.close();
             yield connection.unprepare(sql);
-            return results[0];
+            return results;
         }
         catch (error) {
             console.error(error);
@@ -663,18 +790,14 @@ function executeSpJsonReturn(connection, spName, params) {
             let sql = `CALL ${spName}(${placeholders});`;
             const statement = yield connection.prepare(sql);
             const [results] = yield statement.execute(values);
-            statement.close();
-            yield connection.unprepare(sql);
-            // Devolver el resultado como un JSON
+            if (results[0][0].Result > 0) {
+                return results[0][0];
+            }
             return results[0];
         }
         catch (error) {
             console.error(error);
             throw error;
-        }
-        finally {
-            if (connection)
-                connection.release();
         }
     });
 }
@@ -689,6 +812,9 @@ function executeJsonSelect(connection, spName, jsonData, outParams) {
             console.log(values);
             const statement = yield connection.prepare(sql);
             const [results] = yield statement.execute(values);
+            if (results[0][0].Result > 0) {
+                return results[0][0];
+            }
             console.log('results full');
             console.log(results);
             statement.close();
