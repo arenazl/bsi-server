@@ -221,60 +221,53 @@ class FilesController {
                 let connection;
                 try {
                     connection = yield database_1.default.getConnection();
-                    // Dividir el nombre del archivo en partes
                     const dataFromUI = (_a = req.file) === null || _a === void 0 ? void 0 : _a.originalname.split("-");
                     console.log((_b = req.file) === null || _b === void 0 ? void 0 : _b.originalname.split("-"));
-                    // Asumimos que el primer campo determina el tipo de módulo
                     const TIPO_MODULO = dataFromUI[0];
-                    // Construcción del objeto JSON sin TIPO_MODULO
                     const jsonResult = {
-                        ITEMS: [], // Aquí se agregarán los registros del Excel más adelante
-                        fileContent: undefined
+                        ITEMS: [],
                     };
-                    // Obtener la configuración según el tipo de módulo
                     const config = exports.mappings[TIPO_MODULO];
                     if (config) {
-                        // Iterar sobre los campos y asignar los valores desde dataFromUI
                         config.fields.forEach((field, index) => {
-                            let value = dataFromUI[index + 1]; // Ajustamos el índice porque dataFromUI[0] es TIPO_MODULO
-                            // Realizar reemplazo específico si es necesario
+                            let value = dataFromUI[index + 1];
                             if (field === 'CONCEPTO') {
                                 value = value.replace(".", "-");
                             }
-                            // Si el campo es FECHAPAGO, formatear la fecha
                             if (field === 'FECHAPAGO') {
                                 value = formatDateFromFile(value);
                             }
-                            // Asignar el valor al campo correspondiente en el objeto JSON
                             jsonResult[field] = value;
                         });
                         if (TIPO_MODULO === 'NOMINA') {
-                            // Leer el contenido del archivo TXT
-                            fs.readFile(req.file.path, "utf8", function (err, data) {
-                                return __awaiter(this, void 0, void 0, function* () {
-                                    // Primero, debemos reemplazar las secuencias escapadas \\r\\n con \r\n
-                                    let jsonString = data.replace(/\\r/g, ' ').replace(/\\n/g, ' ').replace(/\\t/g, ' ');
-                                    jsonResult.fileContent = jsonString;
-                                    ;
-                                    console.log(jsonResult);
-                                    const spName = `${TIPO_MODULO}_VALIDAR_INSERTAR_ENTRADA`;
-                                    // Parámetros de salida
-                                    const outParamValues = ["ID", "ESTADO", "DESCRIPCION"];
-                                    // Ejecutar el stored procedure con el objeto JSON resultante
-                                    const result = yield executeJsonInsert(connection, spName, jsonResult, outParamValues);
-                                    if (!result.success) {
-                                        res.json({ error: result.Data });
-                                        return;
-                                    }
-                                    const ID = result["ID"];
-                                    const ESTADO = result["ESTADO"];
-                                    const DESCRIPCION = result["DESCRIPCION"];
-                                    res.json({ ID, ESTADO, DESCRIPCION });
+                            fs.readFile(req.file.path, "utf8", (err, data) => __awaiter(this, void 0, void 0, function* () {
+                                if (err) {
+                                    console.error("Error leyendo el archivo:", err);
+                                    res.json({ error: "Error leyendo el archivo de texto" });
+                                    return;
+                                }
+                                // Separar el contenido del archivo en líneas
+                                const lines = data.split(/\r?\n/);
+                                // Mapear las líneas a los campos correspondientes de NOMINA de forma dinámica
+                                jsonResult.ITEMS = lines.map(line => {
+                                    return line;
                                 });
-                            });
+                                // Llamada al stored procedure
+                                const spName = `${TIPO_MODULO}_VALIDAR_INSERTAR_ENTRADA_TEST`;
+                                const outParamValues = ["ID", "ESTADO", "DESCRIPCION"];
+                                const result = yield executeJsonInsert(connection, spName, jsonResult, outParamValues);
+                                if (!result.success) {
+                                    res.json({ error: result.Data });
+                                    return;
+                                }
+                                const ID = result["ID"];
+                                const ESTADO = result["ESTADO"];
+                                const DESCRIPCION = result["DESCRIPCION"];
+                                res.json({ ID, ESTADO, DESCRIPCION });
+                            }));
                         }
                         else {
-                            // Procesar el archivo Excel y agregar los items al jsonResult 
+                            // Procesar los módulos PAGO y CUENTA
                             const rows = yield (0, node_1.default)(req.file.path);
                             const dataFromRows = rows.slice(config.startRow);
                             for (let row of dataFromRows) {
@@ -291,9 +284,7 @@ class FilesController {
                                 }
                             }
                             const spName = `${TIPO_MODULO}_VALIDAR_INSERTAR_ENTRADA`;
-                            // Parámetros de salida
                             const outParamValues = ["ID", "ESTADO", "DESCRIPCION"];
-                            // Ejecutar el stored procedure con el objeto JSON resultante
                             const result = yield executeJsonInsert(connection, spName, jsonResult, outParamValues);
                             if (!result.ID) {
                                 res.json({ error: result.Data });
@@ -397,7 +388,6 @@ class FilesController {
                     res.json({ error: row.Data });
                     return;
                 }
-                console.log(['HOLAAAAAAAAAAAAAAAAAAAAAAA']);
                 console.log(row[0]);
                 res.json({ data: row[0] });
                 return;
@@ -727,10 +717,6 @@ function executeJsonInsert(connection, spName, jsonData, outParams) {
             console.log("Executing Stored Procedure:", spName);
             const sql = `CALL ${spName}(?);`;
             const values = [JSON.stringify(jsonData)];
-            console.log("SQL Command:");
-            console.log(sql);
-            console.log("Input Values:");
-            console.log(values);
             const [queryResult] = yield connection.execute(sql, values);
             if (queryResult[0][0].Result > 0) {
                 return queryResult[0][0];
@@ -750,6 +736,22 @@ function executeJsonInsert(connection, spName, jsonData, outParams) {
                 connection.release();
         }
     });
+}
+function cleanAndValidateJson(inputString) {
+    // Reemplazar comillas simples por comillas dobles para cumplir con el estándar JSON
+    let cleanedString = inputString.replace(/'/g, '"');
+    // Asegurar que las secuencias de escape estén correctamente escapadas
+    cleanedString = cleanedString.replace(/\\r/g, '\\\\r').replace(/\\n/g, '\\\\n');
+    try {
+        // Intentar convertir la cadena a un objeto JSON
+        const jsonObject = JSON.parse(cleanedString);
+        console.log("JSON válido:", jsonObject);
+        return jsonObject;
+    }
+    catch (error) {
+        console.error("JSON inválido:", error.message);
+        return null;
+    }
 }
 function executeSpSelect(connection, spName, values) {
     return __awaiter(this, void 0, void 0, function* () {

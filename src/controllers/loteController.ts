@@ -12,6 +12,7 @@ class LoteController {
         const id_barrio = req.body.id_barrio
         const estado = req.body.estado
 
+        
         console.log(id_barrio);
         console.log(estado);
     
