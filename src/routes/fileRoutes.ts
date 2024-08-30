@@ -22,7 +22,6 @@ class FileRoutes {
         this.router.get('/downloadtxtfile/:tipomodulo/:id', fileController.downloadOutputFile);
         this.router.post('/contratosbotones', fileController.getContratosBotones);
 
-     
         this.router.post('/ObtenerContratoById', fileController.getContratoById);
 
         this.router.get('/GET_METADATA_UI/:tipomodulo/:tipometada/:contrato', fileController.getMetadataUI);

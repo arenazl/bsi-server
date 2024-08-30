@@ -194,100 +194,92 @@ class FilesController {
     }
   }
 
+
+
   public async postValidateInsert(req: Request, res: Response): Promise<void> {
-
     var upload = await TempUploadProcess();
-
+  
     upload(req, res, async () => {
       let connection;
       try {
-
         connection = await pool.getConnection();
   
-        // Dividir el nombre del archivo en partes
         const dataFromUI = req.file?.originalname.split("-");
         console.log(req.file?.originalname.split("-"));
-
-        // Asumimos que el primer campo determina el tipo de módulo
+  
         const TIPO_MODULO = dataFromUI[0];
   
-        // Construcción del objeto JSON sin TIPO_MODULO
         const jsonResult: any = {
-          ITEMS: [],// Aquí se agregarán los registros del Excel más adelante
-          fileContent: undefined
+          ITEMS: [],
         };
-
-        // Obtener la configuración según el tipo de módulo
+  
         const config = mappings[TIPO_MODULO];
   
         if (config) {
-          // Iterar sobre los campos y asignar los valores desde dataFromUI
           config.fields.forEach((field, index) => {
-            let value = dataFromUI[index + 1]; // Ajustamos el índice porque dataFromUI[0] es TIPO_MODULO
+            let value = dataFromUI[index + 1];
   
-            // Realizar reemplazo específico si es necesario
             if (field === 'CONCEPTO') {
               value = value.replace(".", "-");
             }
   
-            // Si el campo es FECHAPAGO, formatear la fecha
             if (field === 'FECHAPAGO') {
               value = formatDateFromFile(value);
             }
   
-            // Asignar el valor al campo correspondiente en el objeto JSON
-            jsonResult[field] = value;     
+            jsonResult[field] = value;
           });
-
-
-          if (TIPO_MODULO === 'NOMINA') {
-
-            // Leer el contenido del archivo TXT
-
-            fs.readFile(req.file.path, "utf8", async function (err, data) {
-
-
-              // Primero, debemos reemplazar las secuencias escapadas \\r\\n con \r\n
-
-              let jsonString = data.replace(/\\r/g, ' ').replace(/\\n/g, ' ').replace(/\\t/g, ' ');
-              jsonResult.fileContent = jsonString;;
-           
-              console.log(jsonResult);
-
-              const spName = `${TIPO_MODULO}_VALIDAR_INSERTAR_ENTRADA`;
   
-              // Parámetros de salida
-              const outParamValues = ["ID", "ESTADO", "DESCRIPCION"];
+          if (TIPO_MODULO === 'NOMINA') 
+            {
 
-              // Ejecutar el stored procedure con el objeto JSON resultante
-              const result = await executeJsonInsert(connection, spName, jsonResult, outParamValues);
-
-              if (!result.success) 
-                {
-                  res.json({ error: result.Data  });
-                  return;
+            fs.readFile(req.file.path, "utf8", async (err, data) => {
+              if (err) {
+                console.error("Error leyendo el archivo:", err);
+                res.json({ error: "Error leyendo el archivo de texto" });
+                return;
               }
-    
+  
+              // Separar el contenido del archivo en líneas
+              const lines = data.split(/\r?\n/);
+  
+              // Mapear las líneas a los campos correspondientes de NOMINA de forma dinámica
+              jsonResult.ITEMS = lines.map(line => {
+                return line;
+              });
+
+              // Llamada al stored procedure
+
+              const spName = `${TIPO_MODULO}_VALIDAR_INSERTAR_ENTRADA_TEST`;
+
+              const outParamValues = ["ID", "ESTADO", "DESCRIPCION"];
+  
+              const result = await executeJsonInsert(connection, spName, jsonResult, outParamValues);
+  
+              if (!result.success) {
+                res.json({ error: result.Data });
+                return;
+              }
+
               const ID = result["ID"];
               const ESTADO = result["ESTADO"];
               const DESCRIPCION = result["DESCRIPCION"];
-      
-              res.json({ ID, ESTADO, DESCRIPCION });
 
+              res.json({ ID, ESTADO, DESCRIPCION });
             });
 
-          } else 
-          {  
-
-            // Procesar el archivo Excel y agregar los items al jsonResult 
+          } 
+          else 
+          {
+            // Procesar los módulos PAGO y CUENTA
             const rows = await readXlsxFile(req.file.path);
             const dataFromRows = rows.slice(config.startRow);
-    
+  
             for (let row of dataFromRows) {
               if ((TIPO_MODULO === 'PAGO' && !row[3]) || (TIPO_MODULO === 'CUENTA' && !row[4])) {
                 break;
               }
-    
+  
               if (TIPO_MODULO === 'PAGO') {
                 const [CBU, CUIL, NOMBRE, IMPORTE] = row.slice(3);
                 jsonResult.ITEMS.push({ CBU, CUIL, NOMBRE, IMPORTE });
@@ -296,40 +288,33 @@ class FilesController {
                 jsonResult.ITEMS.push({ CUIL, Tipo_Doc, Nro_Doc, Apellidos, Nombres, Fecha_Nacimiento, Sexo });
               }
             }
-
-            const spName = `${TIPO_MODULO}_VALIDAR_INSERTAR_ENTRADA`;
-
-            // Parámetros de salida
-            const outParamValues = ["ID", "ESTADO", "DESCRIPCION"];
   
-            // Ejecutar el stored procedure con el objeto JSON resultante
-            const result = await executeJsonInsert(connection, spName, jsonResult, outParamValues);
+            const spName = `${TIPO_MODULO}_VALIDAR_INSERTAR_ENTRADA`;
+            
+            const outParamValues = ["ID", "ESTADO", "DESCRIPCION"];
 
-            if (!result.ID) 
-              {
-                res.json({ error: result.Data  });
-                return;
+            const result = await executeJsonInsert(connection, spName, jsonResult, outParamValues);
+  
+            if (!result.ID) {
+              res.json({ error: result.Data });
+              return;
             }
   
             const ID = result["ID"];
             const ESTADO = result["ESTADO"];
             const DESCRIPCION = result["DESCRIPCION"];
-    
             res.json({ ID, ESTADO, DESCRIPCION });
-
-          }   
-
-      }
-
+          }
+        }
       } catch (error) {
         console.error("Error durante la operación:", error);
-        res.json({  message: "Internal server error", error: error.message  });
+        res.json({ message: "Internal server error", error: error.message });
       } finally {
         if (connection) connection.release();
       }
     });
   }
-  
+
   public async getResumen(req: Request, res: Response): Promise<any> {
 
     let { tipomodulo } = req.params;
@@ -429,7 +414,6 @@ class FilesController {
           return;
       }
 
-      console.log(['HOLAAAAAAAAAAAAAAAAAAAAAAA']);
       console.log(row[0]);
 
       res.json({data: row[0]});
@@ -797,16 +781,12 @@ async function executeJsonInsert(
     console.log("Executing Stored Procedure:", spName);
 
     const sql = `CALL ${spName}(?);`;
-    const values = [JSON.stringify(jsonData)];
 
-    console.log("SQL Command:");
-    console.log(sql);
-    console.log("Input Values:");
-    console.log(values);
+    const values = [JSON.stringify(jsonData)];
 
     const [queryResult] = await connection.execute(sql, values);
 
-  if( queryResult[0][0].Result > 0) 
+    if( queryResult[0][0].Result > 0) 
     { 
       return queryResult[0][0];
     }  
@@ -825,6 +805,26 @@ async function executeJsonInsert(
   }
 }
 
+
+
+function cleanAndValidateJson(inputString: string) {
+  // Reemplazar comillas simples por comillas dobles para cumplir con el estándar JSON
+  let cleanedString = inputString.replace(/'/g, '"');
+
+  // Asegurar que las secuencias de escape estén correctamente escapadas
+  cleanedString = cleanedString.replace(/\\r/g, '\\\\r').replace(/\\n/g, '\\\\n');
+
+  try {
+      // Intentar convertir la cadena a un objeto JSON
+      const jsonObject = JSON.parse(cleanedString);
+      console.log("JSON válido:", jsonObject);
+
+      return jsonObject;
+  } catch (error) {
+      console.error("JSON inválido:", error.message);
+      return null;
+  }
+}
 
 
 async function executeSpSelect(
@@ -1327,6 +1327,7 @@ async function getPantallaTransferenciaInfoById(id: number) {
   }
 }
 
+
 const fileController = new FilesController();
 export default fileController;
 
@@ -1346,3 +1347,5 @@ export const mappings: Record<string, { startRow: number; fields: string[] }> = 
   }
 
 };
+
+
