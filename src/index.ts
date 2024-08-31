@@ -5,6 +5,12 @@ import indexRoutes from './routes/indexRoutes';
 import legajoRoutes from './routes/legajoRoutes';
 import loteRoutes from './routes/loteRoutes';
 import fileRoutes from './routes/fileRoutes';
+import contractRoutes from './routes/contractRoutes';
+import uploadRoutes from './routes/uploadRoutes';
+import usuarioController from './controllers/usuarioController';
+import metadataRoutes from './routes/metadataRoutes';
+import validationRoutes from './routes/validationRoutes';
+import userRoutes from './routes/userRoutes';
 
 
 /**
@@ -88,7 +94,12 @@ class Server {
         this.app.use('/', indexRoutes);
         this.app.use('/api/legajo', legajoRoutes);
         this.app.use('/api/file', fileRoutes);
-        this.app.use('/api/lote', loteRoutes);
+        this.app.use('/api/contract', contractRoutes);
+        this.app.use('/api/upload', uploadRoutes);
+        this.app.use('/api/metadata', metadataRoutes);
+        this.app.use('/api/validation', validationRoutes);
+        this.app.use('/api/user', userRoutes);
+
 
         this.app.use(this.errorHandler);
     }

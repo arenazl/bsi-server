@@ -1,7 +1,7 @@
 import express, { Router } from 'express';
 import fileController from '../controllers/filesController';
 
-class FileRoutes {
+class ValidationRoutes {
 
     router: Router = Router();
 
@@ -10,9 +10,8 @@ class FileRoutes {
     }
 
     config() {
-        //this.router.get('/files', fileController.creatser);
-        //this.router.delete('/:id', fileController.delete);
+        this.router.post('/POST_VALIDATE_INSERT/', fileController.postValidateInsert);
     }
 }
 
-export default new FileRoutes().router;
+export default new ValidationRoutes().router;

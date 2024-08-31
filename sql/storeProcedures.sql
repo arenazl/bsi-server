@@ -1,4 +1,4 @@
-
+queryResult
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `InsertTransInmediataInfo`(
 	IN p_tipoDeRegistro INT,

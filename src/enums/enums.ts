@@ -29,7 +29,18 @@ export enum TipoData {
     LIST = 'LIST',
     FILL = 'FILL'
 }
-
-
-
-
+   
+export function getFileType(tipoModulo: TipoModulo) {
+    switch (tipoModulo) {
+        case TipoModulo.PAGO:
+            return ".xlsx";
+        case TipoModulo.CUENTA:
+            return ".xlsx";
+        case TipoModulo.NOMINA:
+            return ".txt";
+        case TipoModulo.TRANSFERENCIAS:
+            return ".txt";
+        default:
+            return ".xlsx";
+    }
+}
