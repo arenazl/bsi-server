@@ -9,15 +9,14 @@ class MetadataController {
     const { tipomodulo, tipometada, contrato } = req.params;
     let params;
 
-    try {
-      if (contrato === 'NONE') {
-        params = {};
-      } else {
+    //let outParams = ['1','2' ];
 
-        params = { contrato };
-      }
+    try 
+    {
+      if (contrato === 'NONE') {  params = {};
+      } else {  params = { contrato };  }
 
-      const row = await DatabaseHelper.executeSpJsonReturn(getSpNameForMetada(tipomodulo as TipoModulo, tipometada as TipoMetada),params);
+      const row = await DatabaseHelper.executeSpJsonReturn(getSpNameForMetada(tipomodulo as TipoModulo, tipometada as TipoMetada),params); 
 
       res.json([row]);
       return;

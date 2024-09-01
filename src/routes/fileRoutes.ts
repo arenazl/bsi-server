@@ -10,6 +10,7 @@ class FileRoutes {
     }
 
     config() {
+        
         //this.router.get('/files', fileController.creatser);
         //this.router.delete('/:id', fileController.delete);
     }

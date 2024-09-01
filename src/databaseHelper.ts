@@ -51,7 +51,8 @@ class DatabaseHelper {
 
   public async executeSpSelect(
     spName: string,
-    values: (string | number)[]
+    values: (string | number)[],
+    outParams: string[] | undefined| null = []
   ): Promise<any[]> {
     let connection: PoolConnection | undefined;
     try {
@@ -59,7 +60,9 @@ class DatabaseHelper {
       const placeholders = values.map(() => "?").join(",");
       const sql = `CALL ${spName}(${placeholders});`;
       const [results]: any = await connection.execute(sql, values);
-      return results;
+      if (outParams.length > 0) {
+        return results.map((result: any) => this.extractOutParams(result, outParams));}
+      else {return results }
     } catch (error: any) {
       console.error("Error executing stored procedure (Select):", error.message || error);
       throw error;
@@ -70,7 +73,8 @@ class DatabaseHelper {
 
   public async executeSpJsonReturn(
     spName: string,
-    params: Record<string, string | number> | (string | number)[]
+    params: Record<string, string | number> | (string | number)[],
+    outParams: string[] | undefined| null = []
   ): Promise<any> {
     let connection: PoolConnection | undefined;
     try {
@@ -79,7 +83,15 @@ class DatabaseHelper {
       const placeholders = values.map(() => "?").join(",");
       const sql = `CALL ${spName}(${placeholders});`;
       const [results]: any = await connection.execute(sql, values);
+
       return results[0];
+
+      /*
+      if (outParams != undefined) {
+        return results.map((result: any) => this.extractOutParams(result, outParams));}
+      else {return results; }
+      */
+
     } catch (error: any) {
       console.error("Error executing stored procedure (JSON Return):", error.message || error);
       throw error;
@@ -101,7 +113,8 @@ class DatabaseHelper {
       //const values2 = JSON.stringify(jsonData);  
       //let parse = JSON.parse(jsonResult);
       //let json = JSON.stringify(jsonData);
-      const [queryResult] = await connection.execute(sql, jsonData);
+      const values = [JSON.stringify(jsonData)];
+      const [queryResult] = await connection.execute(sql, values);
       return this.extractOutParams(queryResult, outParams);
     } catch (error: any) {
       console.error("Error executing JSON insert:", error.message || error);
@@ -172,10 +185,6 @@ class DatabaseHelper {
     return upload
 
   }
-
-
-
-   
 }
 
 export default DatabaseHelper.getInstance();
