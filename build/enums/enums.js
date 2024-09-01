@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TipoData = exports.TipoMetada = exports.TipoModulo = exports.TipoPantalla = void 0;
+exports.getFileType = exports.TipoData = exports.TipoMetada = exports.TipoModulo = exports.TipoPantalla = void 0;
 var TipoPantalla;
 (function (TipoPantalla) {
     TipoPantalla[TipoPantalla["PAGO_HABERES"] = 1] = "PAGO_HABERES";
@@ -30,3 +30,18 @@ var TipoData;
     TipoData["LIST"] = "LIST";
     TipoData["FILL"] = "FILL";
 })(TipoData || (exports.TipoData = TipoData = {}));
+function getFileType(tipoModulo) {
+    switch (tipoModulo) {
+        case TipoModulo.PAGO:
+            return ".xlsx";
+        case TipoModulo.CUENTA:
+            return ".xlsx";
+        case TipoModulo.NOMINA:
+            return ".txt";
+        case TipoModulo.TRANSFERENCIAS:
+            return ".txt";
+        default:
+            return ".xlsx";
+    }
+}
+exports.getFileType = getFileType;
