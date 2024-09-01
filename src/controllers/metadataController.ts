@@ -50,16 +50,14 @@ class MetadataController {
 
     try {
       const params = { id };
-      const row = await DatabaseHelper.executeSpJsonReturn(
+      const [row] = await DatabaseHelper.executeSpJsonReturn(
         getSpNameForData(tipomodulo as TipoModulo, TipoData.FILL),
         params
       );
 
-      if (row.metadata_json == undefined) {
-        res.json({ result: row[0].resultado_json });
-      } else {
-        res.json({ error: row.Data });
-      }
+        res.json([row]);
+        return
+      
     } catch (error) {
       console.error("Error:", error);
       res.status(500).json({ message: "Error fetching fill data:", error: "Internal server error" });
