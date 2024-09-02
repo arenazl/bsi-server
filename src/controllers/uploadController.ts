@@ -9,14 +9,7 @@ import * as fs from "fs";
 
 class UploadController {
 
-    public async postValidateInsert(req: Request, res: Response): Promise<void> {
-
-        //const data = req.body;
-        //console.log(data);
-        const result = await DatabaseHelper.TempUploadProcess()
-        res.json(result);
-    }
-
+ 
     private formatDateFromFile(fechaPagoRaw: string): string {
         let dateTime = new Date(fechaPagoRaw);
         return new Date(dateTime.getTime() + 5 * 60 * 60 * 1000).toISOString().slice(0, 19).replace('T', ' ');

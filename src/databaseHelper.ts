@@ -81,21 +81,33 @@ class DatabaseHelper {
 }
 
 
-  private extractOutParams(queryResult: any, outParams: string[]): any {
-    const output: Record<string, any> = {};
-    queryResult.forEach((resultSet: any) => {
-      if (Array.isArray(resultSet)) {
-        resultSet.forEach((row: any) => {
-          outParams.forEach((param) => {
-            if (row.hasOwnProperty(param)) {
-              output[param] = row[param];
-            }
-          });
-        });
-      }
-    });
-    return output;
+public async executeJsonInsert(
+  spName: string,
+  jsonData: object,
+  outParams: string[] | undefined | null = []
+): Promise<any> {
+  let connection: PoolConnection | undefined;
+  try {
+    connection = await this.getConnection();
+    const sql = `CALL ${spName}(?);`;
+
+    const values = [JSON.stringify(jsonData)];
+
+    const [queryResult] = await connection.execute(sql, values);
+
+    return [queryResult];
+
+  } catch (error: any) {
+    console.error("Error executing JSON insert:", error.message || error);
+    return {
+      success: false,
+      message: error.message || "An error occurred during the execution of the stored procedure.",
+    };
+  } finally {
+    if (connection) connection.release();
   }
+}
+
 
   public async executeSpJsonReturn(
     spName: string,
@@ -115,14 +127,7 @@ class DatabaseHelper {
 
       const [results]: any = await connection.execute(sql, values);
       
-      if (outParams != undefined) 
-      {
-        return results.map((result: any) => this.extractOutParams(result, outParams));
-      }
-      else 
-      {
-        return results; 
-      }
+      return results[0];
     
     } catch (error: any) {
       console.error("Error executing stored procedure (JSON Return):", error.message || error);
@@ -131,42 +136,6 @@ class DatabaseHelper {
       if (connection) connection.release();
     }
   }
-
-  public async executeJsonInsert(
-    spName: string,
-    jsonData: object,
-    outParams: string[] | undefined | null = []
-  ): Promise<any> {
-    let connection: PoolConnection | undefined;
-    try {
-      connection = await this.getConnection();
-      const sql = `CALL ${spName}(?);`;
- 
-      const values = JSON.stringify(jsonData);
-
-      const sanitizedInput = values.replace(/\\/g, '');
-
-      // Step 2: Parse the sanitized string into a JavaScript object
-      const parsedObject = JSON.parse(sanitizedInput);
-    
-      // Step 3: Convert the object back into a compact JSON string
-      const compactJSON = [JSON.stringify(parsedObject)];
-    
-      const [queryResult] = await connection.execute(sql, compactJSON);
-
-      return [queryResult];
-
-    } catch (error: any) {
-      console.error("Error executing JSON insert:", error.message || error);
-      return {
-        success: false,
-        message: error.message || "An error occurred during the execution of the stored procedure.",
-      };
-    } finally {
-      if (connection) connection.release();
-    }
-  }
-
 
   public formatDateFromFile(fechaPagoRaw) {
     // fechaPagoRaw tiene el formato YYYYMMDD
@@ -182,6 +151,22 @@ class DatabaseHelper {
       return ".xlsx";
     else if (tipoModulo == TipoModulo.NOMINA || tipoModulo == TipoModulo.TRANSFERENCIAS)
       return ".txt"; 
+  }
+
+  private extractOutParams(queryResult: any, outParams: string[]): any {
+    const output: Record<string, any> = {};
+    queryResult.forEach((resultSet: any) => {
+      if (Array.isArray(resultSet)) {
+        resultSet.forEach((row: any) => {
+          outParams.forEach((param) => {
+            if (row.hasOwnProperty(param)) {
+              output[param] = row[param];
+            }
+          });
+        });
+      }
+    });
+    return output;
   }
 
   private formatItems(data: any): string {
