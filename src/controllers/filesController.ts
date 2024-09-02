@@ -158,7 +158,7 @@ class FilesController
 
             jsonResult.ITEMS = data.split(/\r?\n/); 
 
-            const spName = `${TIPO_MODULO}_VALIDAR_INSERTAR_ENTRADA_TEST`;
+            const spName = `${TIPO_MODULO}_VALIDAR_INSERTAR_ENTRADA`;
 
             const result = await databaseHelper.executeJsonInsert( spName, jsonResult);
     

@@ -49,6 +49,7 @@ class DatabaseHelper {
     }
   }
 
+
   public async executeSpSelect(
   spName: string,
   values: (string | number)[],
@@ -78,6 +79,7 @@ class DatabaseHelper {
     if (connection) connection.release();
   }
 }
+
 
   private extractOutParams(queryResult: any, outParams: string[]): any {
     const output: Record<string, any> = {};
@@ -140,9 +142,17 @@ class DatabaseHelper {
       connection = await this.getConnection();
       const sql = `CALL ${spName}(?);`;
  
-      const values = [JSON.stringify(jsonData)];
+      const values = JSON.stringify(jsonData);
 
-      const [queryResult] = await connection.execute(sql, values);
+      const sanitizedInput = values.replace(/\\/g, '');
+
+      // Step 2: Parse the sanitized string into a JavaScript object
+      const parsedObject = JSON.parse(sanitizedInput);
+    
+      // Step 3: Convert the object back into a compact JSON string
+      const compactJSON = [JSON.stringify(parsedObject)];
+    
+      const [queryResult] = await connection.execute(sql, compactJSON);
 
       return [queryResult];
 
