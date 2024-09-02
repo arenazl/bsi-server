@@ -18,22 +18,27 @@ class MetadataController {
     getMetadataUI(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             const { tipomodulo, tipometada, contrato } = req.params;
-            let params;
-            //let outParams = ['1','2' ];
+            let params = [];
             try {
-                if (contrato === 'NONE') {
-                    params = {};
+                // Configuración de los parámetros en función de la entrada
+                if (contrato !== 'NONE') {
+                    params.push(Number(contrato));
                 }
-                else {
-                    params = { contrato };
-                }
-                const row = yield databaseHelper_1.default.executeSpJsonReturn(getSpNameForMetada(tipomodulo, tipometada), params);
-                res.json([row]);
-                return;
+                // Obtiene el nombre del stored procedure basado en los parámetros recibidos
+                const spName = getSpNameForMetada(tipomodulo, tipometada);
+                // Llama al stored procedure usando los parámetros configurados
+                const rows = yield databaseHelper_1.default.executeSpSelect(spName, params);
+                // Devuelve la primera fila obtenida del procedimiento almacenado
+                res.json(rows[0]);
             }
             catch (error) {
                 console.error("Error:", error);
-                res.status(500).json({ message: "Error fetching metadata:", error: "Internal server error" });
+                // Manejo de errores: devuelve una respuesta con estructura estándar
+                res.status(500).json({
+                    estado: 0,
+                    descripcion: "Error interno del servidor.",
+                    data: null
+                });
             }
         });
     }
@@ -41,10 +46,9 @@ class MetadataController {
         return __awaiter(this, void 0, void 0, function* () {
             const { tipomodulo, id } = req.params;
             try {
-                const params = { id };
-                const [row] = yield databaseHelper_1.default.executeSpJsonReturn(getSpNameForData(tipomodulo, enums_1.TipoData.LIST), params);
-                res.json([row]);
-                return;
+                const params = [id];
+                const rows = yield databaseHelper_1.default.executeSpSelect(getSpNameForData(tipomodulo, enums_1.TipoData.LIST), params);
+                res.json(rows[0]);
             }
             catch (error) {
                 console.error("Error:", error);
@@ -79,7 +83,7 @@ function getSpNameForMetada(tipoModulo, tipometada) {
         case tipoModulo === enums_1.TipoModulo.CUENTA && tipometada === enums_1.TipoMetada.IMPORT:
             return 'CUENTA_METADATA_UI_IMPORT';
         case tipoModulo === enums_1.TipoModulo.NOMINA && tipometada === enums_1.TipoMetada.LIST:
-            return 'NOMINA_METADATA_UI_IMPORT';
+            return 'NOMINA_METADATA_UI_RESUMEN';
         case tipoModulo === enums_1.TipoModulo.NOMINA && tipometada === enums_1.TipoMetada.IMPORT:
             return 'NOMINA_METADATA_UI_IMPORT';
         case tipoModulo === enums_1.TipoModulo.NOMINA && tipometada === enums_1.TipoMetada.FILL:

@@ -16,12 +16,24 @@ const databaseHelper_1 = __importDefault(require("../databaseHelper"));
 class UsuarioController {
     login(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log(req.body);
-            let nombre = req.body.nombre;
-            let pass = req.body.password;
+            const nombre = req.body.nombre;
+            const pass = req.body.password;
             const values = [nombre, pass];
-            const rows = yield databaseHelper_1.default.executeSpSelect('sp_login_user', values);
-            return res.json(rows[0][0]);
+            try {
+                // Llama al procedimiento almacenado usando el método executeSpSelect
+                const rows = yield databaseHelper_1.default.executeSpSelect('sp_login_user', values);
+                // Devuelve directamente el primer registro de los resultados, que contiene estado, descripcion y data
+                return res.json(rows[0]);
+            }
+            catch (error) {
+                console.error("Error en el login:", error.message || error);
+                // En caso de error, devuelve una estructura con los campos estándar
+                return res.status(500).json({
+                    estado: 0,
+                    descripcion: 'Error interno del servidor.',
+                    data: null,
+                });
+            }
         });
     }
 }
