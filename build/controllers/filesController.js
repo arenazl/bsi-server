@@ -186,6 +186,9 @@ class FilesController {
                                 return;
                             }
                             jsonResult.ITEMS = data.split(/\r?\n/);
+                            const spName = `${TIPO_MODULO}_VALIDAR_INSERTAR_ENTRADA`;
+                            const result = yield databaseHelper_2.default.executeJsonInsert(spName, jsonResult);
+                            res.json(result[0][0][0]);
                         }));
                     }
                     else {
@@ -205,23 +208,13 @@ class FilesController {
                             }
                         });
                         const spName = `${TIPO_MODULO}_VALIDAR_INSERTAR_ENTRADA`;
-                        const outParamValues = ["ID", "ESTADO", "DESCRIPCION"];
-                        const result = yield databaseHelper_2.default.executeJsonInsert(spName, jsonResult, outParamValues);
-                        if (!result.ID) {
-                            res.json({ error: result.Data });
-                            return;
-                        }
-                        const ID = result["ID"];
-                        const ESTADO = result["ESTADO"];
-                        const DESCRIPCION = result["DESCRIPCION"];
-                        res.json({ ID, ESTADO, DESCRIPCION });
+                        const result = yield databaseHelper_2.default.executeJsonInsert(spName, jsonResult);
+                        res.json(result[0][0][0]);
                     }
                 }
                 catch (error) {
                     console.error("Error durante la operación:", error);
                     res.json({ message: "Internal server error", error: error.message });
-                }
-                finally {
                 }
             }));
         });

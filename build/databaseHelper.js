@@ -66,70 +66,21 @@ class DatabaseHelper {
                 connection = yield this.getConnection();
                 const placeholders = values.map(() => "?").join(",");
                 const sql = `CALL ${spName}(${placeholders});`;
+                // Ejecuta el procedimiento almacenado y obtiene los resultados
                 const [results] = yield connection.execute(sql, values);
-                if (outParams.length > 0) {
-                    return results.map((result) => this.extractOutParams(result, outParams));
+                // Verifica que los resultados no estén vacíos y que tengan la estructura esperada
+                if (results && results.length > 0 && Array.isArray(results[0])) {
+                    // Retorna siempre el primer set de resultados
+                    return results[0];
                 }
                 else {
-                    return results;
+                    // Maneja casos donde no haya datos retornados correctamente
+                    throw new Error("El stored procedure no devolvió datos válidos.");
                 }
             }
             catch (error) {
                 console.error("Error executing stored procedure (Select):", error.message || error);
                 throw error;
-            }
-            finally {
-                if (connection)
-                    connection.release();
-            }
-        });
-    }
-    executeSpJsonReturn(spName_1, params_1) {
-        return __awaiter(this, arguments, void 0, function* (spName, params, outParams = []) {
-            let connection;
-            try {
-                connection = yield this.getConnection();
-                const values = Array.isArray(params) ? params : Object.values(params);
-                const placeholders = values.map(() => "?").join(",");
-                const sql = `CALL ${spName}(${placeholders});`;
-                const [results] = yield connection.execute(sql, values);
-                return results[0];
-                /*
-                if (outParams != undefined) {
-                  return results.map((result: any) => this.extractOutParams(result, outParams));}
-                else {return results; }
-                */
-            }
-            catch (error) {
-                console.error("Error executing stored procedure (JSON Return):", error.message || error);
-                throw error;
-            }
-            finally {
-                if (connection)
-                    connection.release();
-            }
-        });
-    }
-    executeJsonInsert(spName, jsonData, outParams) {
-        return __awaiter(this, void 0, void 0, function* () {
-            let connection;
-            try {
-                connection = yield this.getConnection();
-                const sql = `CALL ${spName}(?);`;
-                //const values = [this.formatItems(jsonData)];
-                //const values2 = JSON.stringify(jsonData);  
-                //let parse = JSON.parse(jsonResult);
-                //let json = JSON.stringify(jsonData);
-                const values = [JSON.stringify(jsonData)];
-                const [queryResult] = yield connection.execute(sql, values);
-                return this.extractOutParams(queryResult, outParams);
-            }
-            catch (error) {
-                console.error("Error executing JSON insert:", error.message || error);
-                return {
-                    success: false,
-                    message: error.message || "An error occurred during the execution of the stored procedure.",
-                };
             }
             finally {
                 if (connection)
@@ -151,6 +102,60 @@ class DatabaseHelper {
             }
         });
         return output;
+    }
+    executeSpJsonReturn(spName_1, params_1) {
+        return __awaiter(this, arguments, void 0, function* (spName, params, outParams = []) {
+            let connection;
+            try {
+                connection = yield this.getConnection();
+                const values = Array.isArray(params) ? params : Object.values(params);
+                const placeholders = values.map(() => "?").join(",");
+                const sql = `CALL ${spName}(${placeholders});`;
+                const [results] = yield connection.execute(sql, values);
+                if (outParams != undefined) {
+                    return results.map((result) => this.extractOutParams(result, outParams));
+                }
+                else {
+                    return results;
+                }
+            }
+            catch (error) {
+                console.error("Error executing stored procedure (JSON Return):", error.message || error);
+                throw error;
+            }
+            finally {
+                if (connection)
+                    connection.release();
+            }
+        });
+    }
+    executeJsonInsert(spName_1, jsonData_1) {
+        return __awaiter(this, arguments, void 0, function* (spName, jsonData, outParams = []) {
+            let connection;
+            try {
+                connection = yield this.getConnection();
+                const sql = `CALL ${spName}(?);`;
+                const values = JSON.stringify(jsonData);
+                const sanitizedInput = values.replace(/\\/g, '');
+                // Step 2: Parse the sanitized string into a JavaScript object
+                const parsedObject = JSON.parse(sanitizedInput);
+                // Step 3: Convert the object back into a compact JSON string
+                const compactJSON = [JSON.stringify(parsedObject)];
+                const [queryResult] = yield connection.execute(sql, compactJSON);
+                return [queryResult];
+            }
+            catch (error) {
+                console.error("Error executing JSON insert:", error.message || error);
+                return {
+                    success: false,
+                    message: error.message || "An error occurred during the execution of the stored procedure.",
+                };
+            }
+            finally {
+                if (connection)
+                    connection.release();
+            }
+        });
     }
     formatDateFromFile(fechaPagoRaw) {
         // fechaPagoRaw tiene el formato YYYYMMDD

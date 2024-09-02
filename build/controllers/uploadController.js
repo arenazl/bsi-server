@@ -66,7 +66,7 @@ class UploadController {
                 const file = fs.openSync(`./uploads/${tipomodulo}_${id}.txt`, "w");
                 console.log("row");
                 console.log(row);
-                let line = row[0][0].contenido;
+                let line = row[0].contenido;
                 fs.writeSync(file, line + "\n");
                 fs.closeSync(file);
                 const filePath = `./uploads/${tipomodulo}_${id}.txt`;
