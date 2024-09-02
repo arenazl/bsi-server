@@ -50,82 +50,34 @@ class DatabaseHelper {
   }
 
   public async executeSpSelect(
-    spName: string,
-    values: (string | number)[],
-    outParams: string[] | undefined| null = []
-  ): Promise<any[]> {
-    let connection: PoolConnection | undefined;
-    try {
-      connection = await this.getConnection();
-      const placeholders = values.map(() => "?").join(",");
-      const sql = `CALL ${spName}(${placeholders});`;
-      const [results]: any = await connection.execute(sql, values);
-      if (outParams.length > 0) {
-        return results.map((result: any) => this.extractOutParams(result, outParams));}
-      else {return results }
-    } catch (error: any) {
-      console.error("Error executing stored procedure (Select):", error.message || error);
-      throw error;
-    } finally {
-      if (connection) connection.release();
-    }
-  }
+  spName: string,
+  values: (string | number)[],
+  outParams: string[] | undefined | null = []
+): Promise<any> {
+  let connection: PoolConnection | undefined;
+  try {
+    connection = await this.getConnection();
+    const placeholders = values.map(() => "?").join(",");
+    const sql = `CALL ${spName}(${placeholders});`;
 
-  public async executeSpJsonReturn(
-    spName: string,
-    params: Record<string, string | number> | (string | number)[],
-    outParams: string[] | undefined| null = []
-  ): Promise<any> {
-    let connection: PoolConnection | undefined;
-    try {
-      connection = await this.getConnection();
-      const values = Array.isArray(params) ? params : Object.values(params);
-      const placeholders = values.map(() => "?").join(",");
-      const sql = `CALL ${spName}(${placeholders});`;
-      const [results]: any = await connection.execute(sql, values);
+    // Ejecuta el procedimiento almacenado y obtiene los resultados
+    const [results]: any = await connection.execute(sql, values);
 
+    // Verifica que los resultados no estén vacíos y que tengan la estructura esperada
+    if (results && results.length > 0 && Array.isArray(results[0])) {
+      // Retorna siempre el primer set de resultados
       return results[0];
-
-      /*
-      if (outParams != undefined) {
-        return results.map((result: any) => this.extractOutParams(result, outParams));}
-      else {return results; }
-      */
-
-    } catch (error: any) {
-      console.error("Error executing stored procedure (JSON Return):", error.message || error);
-      throw error;
-    } finally {
-      if (connection) connection.release();
+    } else {
+      // Maneja casos donde no haya datos retornados correctamente
+      throw new Error("El stored procedure no devolvió datos válidos.");
     }
+  } catch (error: any) {
+    console.error("Error executing stored procedure (Select):", error.message || error);
+    throw error;
+  } finally {
+    if (connection) connection.release();
   }
-
-  public async executeJsonInsert(
-    spName: string,
-    jsonData: object,
-    outParams: string[]
-  ): Promise<any> {
-    let connection: PoolConnection | undefined;
-    try {
-      connection = await this.getConnection();
-      const sql = `CALL ${spName}(?);`;
-      //const values = [this.formatItems(jsonData)];
-      //const values2 = JSON.stringify(jsonData);  
-      //let parse = JSON.parse(jsonResult);
-      //let json = JSON.stringify(jsonData);
-      const values = [JSON.stringify(jsonData)];
-      const [queryResult] = await connection.execute(sql, values);
-      return this.extractOutParams(queryResult, outParams);
-    } catch (error: any) {
-      console.error("Error executing JSON insert:", error.message || error);
-      return {
-        success: false,
-        message: error.message || "An error occurred during the execution of the stored procedure.",
-      };
-    } finally {
-      if (connection) connection.release();
-    }
-  }
+}
 
   private extractOutParams(queryResult: any, outParams: string[]): any {
     const output: Record<string, any> = {};
@@ -143,6 +95,69 @@ class DatabaseHelper {
     return output;
   }
 
+  public async executeSpJsonReturn(
+    spName: string,
+    params: Record<string, string | number> | (string | number)[],
+    outParams: string[] | undefined| null = []
+  ): Promise<any> {
+    let connection: PoolConnection | undefined;
+    try 
+    {
+      connection = await this.getConnection();
+
+      const values = Array.isArray(params) ? params : Object.values(params);
+
+      const placeholders = values.map(() => "?").join(",");
+
+      const sql = `CALL ${spName}(${placeholders});`;
+
+      const [results]: any = await connection.execute(sql, values);
+      
+      if (outParams != undefined) 
+      {
+        return results.map((result: any) => this.extractOutParams(result, outParams));
+      }
+      else 
+      {
+        return results; 
+      }
+    
+    } catch (error: any) {
+      console.error("Error executing stored procedure (JSON Return):", error.message || error);
+      throw error;
+    } finally {
+      if (connection) connection.release();
+    }
+  }
+
+  public async executeJsonInsert(
+    spName: string,
+    jsonData: object,
+    outParams: string[] | undefined | null = []
+  ): Promise<any> {
+    let connection: PoolConnection | undefined;
+    try {
+      connection = await this.getConnection();
+      const sql = `CALL ${spName}(?);`;
+ 
+      const values = [JSON.stringify(jsonData)];
+
+      const [queryResult] = await connection.execute(sql, values);
+
+      return [queryResult];
+
+    } catch (error: any) {
+      console.error("Error executing JSON insert:", error.message || error);
+      return {
+        success: false,
+        message: error.message || "An error occurred during the execution of the stored procedure.",
+      };
+    } finally {
+      if (connection) connection.release();
+    }
+  }
+
+
   public formatDateFromFile(fechaPagoRaw) {
     // fechaPagoRaw tiene el formato YYYYMMDD
     const year = fechaPagoRaw.substring(0, 4);
@@ -151,7 +166,6 @@ class DatabaseHelper {
     return `${year}-${month}-${day}`; // Formato YYYY-MM-DD
   }
   
-
   private getfileType(tipoModulo: TipoModulo) 
   {
     if (tipoModulo == TipoModulo.PAGO || tipoModulo == TipoModulo.CUENTA)

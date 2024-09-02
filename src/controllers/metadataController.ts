@@ -4,26 +4,36 @@ import { TipoModulo, TipoMetada, TipoData } from "../enums/enums";
 
 class MetadataController {
 
+
   public async getMetadataUI(req: Request, res: Response): Promise<any> {
 
     const { tipomodulo, tipometada, contrato } = req.params;
-    let params;
 
-    //let outParams = ['1','2' ];
-
-    try 
-    {
-      if (contrato === 'NONE') {  params = {};
-      } else {  params = { contrato };  }
-
-      const row = await DatabaseHelper.executeSpJsonReturn(getSpNameForMetada(tipomodulo as TipoModulo, tipometada as TipoMetada),params); 
-
-      res.json([row]);
-      return;
+    let params: (string | number)[] = [];
+  
+    try {
+      // Configuración de los parámetros en función de la entrada
+      if (contrato !== 'NONE') {
+        params.push(Number(contrato)); // Asegura que contrato sea tratado como un número
+      }
+  
+      // Obtiene el nombre del stored procedure basado en los parámetros recibidos
+      const spName = getSpNameForMetada(tipomodulo as TipoModulo, tipometada as TipoMetada);
+  
+      // Llama al stored procedure usando los parámetros configurados
+      const rows = await DatabaseHelper.executeSpSelect(spName, params);
+  
+      // Devuelve la primera fila obtenida del procedimiento almacenado
+      res.json(rows[0]);
 
     } catch (error) {
       console.error("Error:", error);
-      res.status(500).json({ message: "Error fetching metadata:", error: "Internal server error" });
+      // Manejo de errores: devuelve una respuesta con estructura estándar
+      res.status(500).json({ 
+        estado: 0, 
+        descripcion: "Error interno del servidor.", 
+        data: null 
+      });
     }
   }
 
@@ -31,13 +41,12 @@ class MetadataController {
     const { tipomodulo, id } = req.params;
 
     try {
-      const params = { id };
 
-      const [row] = await DatabaseHelper.executeSpJsonReturn(getSpNameForData(tipomodulo as TipoModulo, TipoData.LIST), params
-      );
+      const params = [id];
 
-        res.json([row]);
-        return
+      const rows = await DatabaseHelper.executeSpSelect(getSpNameForData(tipomodulo as TipoModulo, TipoData.LIST), params);
+
+       res.json(rows[0]);
       
     } catch (error) {
       console.error("Error:", error);

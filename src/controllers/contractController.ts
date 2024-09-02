@@ -14,6 +14,7 @@ class ContractController {
       const row = await databaseHelper.executeSpSelect("ObtenerContratos", values);
 
       res.json(row);
+
     } catch (error) {
       console.error("Error:", error);
       res
@@ -24,28 +25,37 @@ class ContractController {
   }
 
   public async getContratoById(req: Request, res: Response): Promise<void> {
-
     const id_user = req.body.id_user;
     const id_organismo = req.body.id_organismo;
     const id_contrato = req.body.id_contrato;
-
+  
     const values = [id_user, id_organismo, id_contrato];
     try {
-
-      const [row] = await databaseHelper.executeSpSelect("ObtenerContratoById", values);
-
-      res.json([row]);
-      return;
-
+      // Llama al stored procedure con los valores proporcionados
+      const rows = await databaseHelper.executeSpSelect("ObtenerContratoById", values);
+  
+      // Verifica si rows tiene datos y devuelve la primera fila, que contiene estado, descripcion y data
+      if (rows && rows.length > 0) {
+        res.json(rows[0]); // Devuelve la respuesta tal como la recibe del SP
+      } else {
+        // Maneja el caso donde no se obtienen resultados del SP
+        res.status(404).json({
+          estado: 0,
+          descripcion: 'No se encontraron resultados.',
+          data: null,
+        });
+      }
     } catch (error) {
       console.error("Error:", error);
-      res
-        .status(500)
-        .json({ message: "Error fetching:", error: "Internal server error" });
-    } finally {
+      // Manejo del error en caso de falla del SP
+      res.status(500).json({
+        estado: 0,
+        descripcion: 'Error interno del servidor.',
+        data: null,
+      });
     }
   }
-
+  
   public async getListForCombo(req, res): Promise<void> {
 
     let { tipomodulo } = req.params;

@@ -55,11 +55,13 @@ class FilesController
   public async deleteUser(req: Request, res: Response): Promise<void> {
     try {
       const result = await DatabaseHelper.executeSpJsonReturn("DeleteUser", { id: req.params.id });
+
       if (result.ESTADO === undefined) {
         res.json({ error: result.Data });
         return;
       }
       res.json({ ESTADO: result.ESTADO, DESCRIPCION: result.DESCRIPCION });
+
     } catch (error) {
       console.error("Error deleting user:", error);
       res.status(500).json({ message: "Error deleting user", error: "Internal server error" });
@@ -145,7 +147,7 @@ class FilesController
 
         } 
         if (TIPO_MODULO === "NOMINA") 
-          {
+        {
 
           fs.readFile(req.file!.path, "utf8", async (err, data) => {
             if (err) {
@@ -155,54 +157,51 @@ class FilesController
             }
 
             jsonResult.ITEMS = data.split(/\r?\n/); 
+
+            const spName = `${TIPO_MODULO}_VALIDAR_INSERTAR_ENTRADA_TEST`;
+
+            const result = await databaseHelper.executeJsonInsert( spName, jsonResult);
+    
+            res.json(result[0][0][0]); 
  
           });
-        } else {
+        } else 
+        {
           // Procesamiento de archivo Excel para PAGO y CUENTA
           const rows = await readXlsxFile(req.file!.path);
           const dataFromRows = rows.slice(config.startRow);
 
 
-        dataFromRows.forEach((row) => {
+          dataFromRows.forEach((row) => {
 
-        if ((TIPO_MODULO === "PAGO" && !row[3]) || (TIPO_MODULO === "CUENTA" && !row[4])) return;
+          if ((TIPO_MODULO === "PAGO" && !row[3]) || (TIPO_MODULO === "CUENTA" && !row[4])) return;
 
-        if (TIPO_MODULO === "PAGO") 
-          {
-          const [CBU, CUIL, NOMBRE, IMPORTE] = row.slice(3);
-          jsonResult.ITEMS.push({ CBU, CUIL, NOMBRE, IMPORTE });
-        } 
-        else if (TIPO_MODULO === "CUENTA") 
-          {
-          const [CUIL, Tipo_Doc, Nro_Doc, Apellidos, Nombres, Fecha_Nacimiento, Sexo] = row;
-          jsonResult.ITEMS.push({ CUIL, Tipo_Doc, Nro_Doc, Apellidos, Nombres, Fecha_Nacimiento, Sexo });
-        }
+          if (TIPO_MODULO === "PAGO") 
+            {
+            const [CBU, CUIL, NOMBRE, IMPORTE] = row.slice(3);
+            jsonResult.ITEMS.push({ CBU, CUIL, NOMBRE, IMPORTE });
+          } 
+          else if (TIPO_MODULO === "CUENTA") 
+            {
+            const [CUIL, Tipo_Doc, Nro_Doc, Apellidos, Nombres, Fecha_Nacimiento, Sexo] = row;
+            jsonResult.ITEMS.push({ CUIL, Tipo_Doc, Nro_Doc, Apellidos, Nombres, Fecha_Nacimiento, Sexo });
+          }
 
-      });
+        });
 
-      const spName = `${TIPO_MODULO}_VALIDAR_INSERTAR_ENTRADA`;
-      const outParamValues = ["ID", "ESTADO", "DESCRIPCION"];
+        const spName = `${TIPO_MODULO}_VALIDAR_INSERTAR_ENTRADA`;
 
-      const result = await databaseHelper.executeJsonInsert( spName, jsonResult, outParamValues);
+        const result = await databaseHelper.executeJsonInsert( spName, jsonResult);
 
-      if (!result.ID) {
-        res.json({ error: result.Data });
-        return;
+        res.json(result[0][0][0]); 
+
       }
-
-      const ID = result["ID"];
-      const ESTADO = result["ESTADO"];
-      const DESCRIPCION = result["DESCRIPCION"];
-      res.json({ ID, ESTADO, DESCRIPCION });
-
-
-        }
+      
       } catch (error) {
         console.error("Error durante la operación:", error);
         res.json({ message: "Internal server error", error: error.message });
-      } finally {
+      } 
 
-      }
     });
   }
 

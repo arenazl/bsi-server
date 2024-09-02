@@ -39,7 +39,7 @@ class UploadController {
         console.log("row");
         console.log(row);
   
-        let line = row[0][0].contenido;
+        let line = row[0].contenido;
   
         fs.writeSync(file, line + "\n");
   
