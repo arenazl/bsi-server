@@ -13,6 +13,7 @@ class OpenAIRoutes {
         this.router.post('/message', openaiController.sendMessage);
     }
 
+    
 }
 
 const openaiRoutes = new OpenAIRoutes();

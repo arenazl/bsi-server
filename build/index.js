@@ -25,6 +25,7 @@ class Server {
         this.routes();
     }
     /**
+     *
      * Error handling middleware function.
      *
      * @param err - The error object.

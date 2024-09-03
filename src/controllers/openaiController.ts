@@ -18,6 +18,7 @@ export class OpenAIController {
   private async initialize() {
 
     
+
     try {
       // Inicializar OpenAI con la clave de API
       this.openai = new OpenAI({

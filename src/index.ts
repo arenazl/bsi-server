@@ -26,6 +26,7 @@ class Server {
     }
 
     /**
+     * 
      * Error handling middleware function.
      *
      * @param err - The error object.
