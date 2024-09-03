@@ -5,6 +5,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
+const dotenv_1 = __importDefault(require("dotenv"));
+dotenv_1.default.config();
 const sslCert = fs_1.default.readFileSync(path_1.default.join(__dirname, 'crt/ca.pem'));
 const config = {
     database: {
@@ -18,7 +20,7 @@ const config = {
         },
     },
     OpenAi: {
-        key: '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'
+        key: process.env.OPENAI_API_KEY
     },
     AWS: {
         bucketName: 'sisbarrios',
@@ -37,9 +39,3 @@ const config = {
     }
 };
 exports.default = config;
-/*
-b2b686e8c89af3
-b7745d1b
-us-cdbr-east-05.cleardb.net
-heroku_55504b2b2691e53
-*/
