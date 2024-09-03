@@ -88,20 +88,28 @@ class DatabaseHelper {
             }
         });
     }
-    extractOutParams(queryResult, outParams) {
-        const output = {};
-        queryResult.forEach((resultSet) => {
-            if (Array.isArray(resultSet)) {
-                resultSet.forEach((row) => {
-                    outParams.forEach((param) => {
-                        if (row.hasOwnProperty(param)) {
-                            output[param] = row[param];
-                        }
-                    });
-                });
+    executeJsonInsert(spName_1, jsonData_1) {
+        return __awaiter(this, arguments, void 0, function* (spName, jsonData, outParams = []) {
+            let connection;
+            try {
+                connection = yield this.getConnection();
+                const sql = `CALL ${spName}(?);`;
+                const values = [JSON.stringify(jsonData)];
+                const [queryResult] = yield connection.execute(sql, values);
+                return [queryResult];
+            }
+            catch (error) {
+                console.error("Error executing JSON insert:", error.message || error);
+                return {
+                    success: false,
+                    message: error.message || "An error occurred during the execution of the stored procedure.",
+                };
+            }
+            finally {
+                if (connection)
+                    connection.release();
             }
         });
-        return output;
     }
     executeSpJsonReturn(spName_1, params_1) {
         return __awaiter(this, arguments, void 0, function* (spName, params, outParams = []) {
@@ -112,44 +120,11 @@ class DatabaseHelper {
                 const placeholders = values.map(() => "?").join(",");
                 const sql = `CALL ${spName}(${placeholders});`;
                 const [results] = yield connection.execute(sql, values);
-                if (outParams != undefined) {
-                    return results.map((result) => this.extractOutParams(result, outParams));
-                }
-                else {
-                    return results;
-                }
+                return results[0];
             }
             catch (error) {
                 console.error("Error executing stored procedure (JSON Return):", error.message || error);
                 throw error;
-            }
-            finally {
-                if (connection)
-                    connection.release();
-            }
-        });
-    }
-    executeJsonInsert(spName_1, jsonData_1) {
-        return __awaiter(this, arguments, void 0, function* (spName, jsonData, outParams = []) {
-            let connection;
-            try {
-                connection = yield this.getConnection();
-                const sql = `CALL ${spName}(?);`;
-                const values = JSON.stringify(jsonData);
-                const sanitizedInput = values.replace(/\\/g, '');
-                // Step 2: Parse the sanitized string into a JavaScript object
-                const parsedObject = JSON.parse(sanitizedInput);
-                // Step 3: Convert the object back into a compact JSON string
-                const compactJSON = [JSON.stringify(parsedObject)];
-                const [queryResult] = yield connection.execute(sql, compactJSON);
-                return [queryResult];
-            }
-            catch (error) {
-                console.error("Error executing JSON insert:", error.message || error);
-                return {
-                    success: false,
-                    message: error.message || "An error occurred during the execution of the stored procedure.",
-                };
             }
             finally {
                 if (connection)
@@ -169,6 +144,21 @@ class DatabaseHelper {
             return ".xlsx";
         else if (tipoModulo == enums_1.TipoModulo.NOMINA || tipoModulo == enums_1.TipoModulo.TRANSFERENCIAS)
             return ".txt";
+    }
+    extractOutParams(queryResult, outParams) {
+        const output = {};
+        queryResult.forEach((resultSet) => {
+            if (Array.isArray(resultSet)) {
+                resultSet.forEach((row) => {
+                    outParams.forEach((param) => {
+                        if (row.hasOwnProperty(param)) {
+                            output[param] = row[param];
+                        }
+                    });
+                });
+            }
+        });
+        return output;
     }
     formatItems(data) {
         if (data.ITEMS && Array.isArray(data.ITEMS)) {

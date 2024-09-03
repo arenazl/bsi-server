@@ -14,7 +14,7 @@ class MetadataController {
     try {
       // Configuración de los parámetros en función de la entrada
       if (contrato !== 'NONE') {
-        params.push(Number(contrato)); // Asegura que contrato sea tratado como un número
+        params.push(Number(contrato));
       }
   
       // Obtiene el nombre del stored procedure basado en los parámetros recibidos
@@ -55,14 +55,12 @@ class MetadataController {
   }
 
   public async getFill(req: Request, res: Response): Promise<void> {
+
     const { tipomodulo, id } = req.params;
 
     try {
       const params = { id };
-      const [row] = await DatabaseHelper.executeSpJsonReturn(
-        getSpNameForData(tipomodulo as TipoModulo, TipoData.FILL),
-        params
-      );
+      const [row] = await DatabaseHelper.executeSpJsonReturn(getSpNameForData(tipomodulo as TipoModulo, TipoData.FILL),params);
 
         res.json([row]);
         return
@@ -71,9 +69,7 @@ class MetadataController {
       console.error("Error:", error);
       res.status(500).json({ message: "Error fetching fill data:", error: "Internal server error" });
     }
-    
-}
-
+  }
 }
 
 function  getSpNameForMetada(tipoModulo: TipoModulo, tipometada: TipoMetada): string {
@@ -87,7 +83,7 @@ function  getSpNameForMetada(tipoModulo: TipoModulo, tipometada: TipoMetada): st
     case tipoModulo === TipoModulo.CUENTA && tipometada === TipoMetada.IMPORT:
       return 'CUENTA_METADATA_UI_IMPORT';
     case tipoModulo === TipoModulo.NOMINA && tipometada === TipoMetada.LIST:
-      return 'NOMINA_METADATA_UI_IMPORT';
+      return 'NOMINA_METADATA_UI_RESUMEN';
     case tipoModulo === TipoModulo.NOMINA && tipometada === TipoMetada.IMPORT:
       return 'NOMINA_METADATA_UI_IMPORT';
     case tipoModulo === TipoModulo.NOMINA && tipometada === TipoMetada.FILL:

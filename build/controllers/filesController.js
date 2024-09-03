@@ -185,7 +185,10 @@ class FilesController {
                                 res.json({ error: "Error leyendo el archivo de texto" });
                                 return;
                             }
-                            jsonResult.ITEMS = data.split(/\r?\n/);
+                            // Dividir el contenido por líneas, eliminando posibles líneas vacías y espacios extra
+                            const items = data.split("\n").map(line => line.trim()).filter(line => line.length > 0);
+                            // Asignar los ítems a la colección
+                            jsonResult.ITEMS = items;
                             const spName = `${TIPO_MODULO}_VALIDAR_INSERTAR_ENTRADA`;
                             const result = yield databaseHelper_2.default.executeJsonInsert(spName, jsonResult);
                             res.json(result[0][0][0]);

@@ -22,7 +22,7 @@ class MetadataController {
             try {
                 // Configuración de los parámetros en función de la entrada
                 if (contrato !== 'NONE') {
-                    params.push(Number(contrato)); // Asegura que contrato sea tratado como un número
+                    params.push(Number(contrato));
                 }
                 // Obtiene el nombre del stored procedure basado en los parámetros recibidos
                 const spName = getSpNameForMetada(tipomodulo, tipometada);
@@ -83,7 +83,7 @@ function getSpNameForMetada(tipoModulo, tipometada) {
         case tipoModulo === enums_1.TipoModulo.CUENTA && tipometada === enums_1.TipoMetada.IMPORT:
             return 'CUENTA_METADATA_UI_IMPORT';
         case tipoModulo === enums_1.TipoModulo.NOMINA && tipometada === enums_1.TipoMetada.LIST:
-            return 'NOMINA_METADATA_UI_IMPORT';
+            return 'NOMINA_METADATA_UI_RESUMEN';
         case tipoModulo === enums_1.TipoModulo.NOMINA && tipometada === enums_1.TipoMetada.IMPORT:
             return 'NOMINA_METADATA_UI_IMPORT';
         case tipoModulo === enums_1.TipoModulo.NOMINA && tipometada === enums_1.TipoMetada.FILL:

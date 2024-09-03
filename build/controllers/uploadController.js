@@ -37,21 +37,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.uploadController = void 0;
 const enums_1 = require("../enums/enums");
-const databaseHelper_1 = __importDefault(require("../databaseHelper"));
 const multer_1 = __importDefault(require("multer"));
 const keys_1 = __importDefault(require("../keys"));
 const aws_sdk_1 = require("aws-sdk");
-const databaseHelper_2 = __importDefault(require("../databaseHelper"));
+const databaseHelper_1 = __importDefault(require("../databaseHelper"));
 const fs = __importStar(require("fs"));
 class UploadController {
-    postValidateInsert(req, res) {
-        return __awaiter(this, void 0, void 0, function* () {
-            //const data = req.body;
-            //console.log(data);
-            const result = yield databaseHelper_1.default.TempUploadProcess();
-            res.json(result);
-        });
-    }
     formatDateFromFile(fechaPagoRaw) {
         let dateTime = new Date(fechaPagoRaw);
         return new Date(dateTime.getTime() + 5 * 60 * 60 * 1000).toISOString().slice(0, 19).replace('T', ' ');
@@ -62,7 +53,7 @@ class UploadController {
             const { id } = req.params;
             const values = [id];
             try {
-                const row = yield databaseHelper_2.default.executeSpSelect(getSpNameForData(tipomodulo, enums_1.TipoData.EXPORT), values);
+                const row = yield databaseHelper_1.default.executeSpSelect(getSpNameForData(tipomodulo, enums_1.TipoData.EXPORT), values);
                 const file = fs.openSync(`./uploads/${tipomodulo}_${id}.txt`, "w");
                 console.log("row");
                 console.log(row);
