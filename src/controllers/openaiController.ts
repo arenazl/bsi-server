@@ -1,4 +1,5 @@
 
+import { env } from 'process';
 import keys from './../keys'
 import OpenAI from 'openai'
 
@@ -17,11 +18,12 @@ export class OpenAIController {
 
   private async initialize() {
 
+    console.log(env.OPENAI_API_KEY);
 
     try {
       // Inicializar OpenAI con la clave de API
       this.openai = new OpenAI({
-        apiKey: keys.OpenAi.key,
+        apiKey: env.OPENAI_API_KEY.toString(),
       });
 
       // Crear el asistente solo una vez al inicializar el controlador

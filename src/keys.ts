@@ -1,5 +1,8 @@
 import fs from 'fs';
 import path from 'path';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const sslCert = fs.readFileSync(path.join(__dirname, 'crt/ca.pem'));
 
@@ -16,7 +19,7 @@ const config = {
   },
 
   OpenAi: {
-    key: 'sk-mdkapXZsE94Xjr4nSrW4Ri_GCRhpWJEbhJtK_Q_PEIT3BlbkFJYf81hV7rTn5jY0Yu_Bgt-cj2_8b6vkI9KRkTdRDfsA'
+    key: process.env.OPENAI_API_KEY
   },
   
   AWS: {
@@ -38,10 +41,3 @@ const config = {
 };
 
 export default config;
-
-/*
-b2b686e8c89af3
-b7745d1b
-us-cdbr-east-05.cleardb.net
-heroku_55504b2b2691e53
-*/
