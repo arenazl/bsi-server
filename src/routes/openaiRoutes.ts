@@ -9,8 +9,7 @@ class OpenAIRoutes {
         this.config();
     }
 
-    config(): void {
-
+    config(): void { 
         this.router.post('/message', openaiController.sendMessage);
     }
 
