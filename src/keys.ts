@@ -15,6 +15,10 @@ const config = {
     },
   },
 
+  OpenAi: {
+    key: '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'
+  },
+  
   AWS: {
     bucketName: 'sisbarrios',
     bucketRegion: 'sa-east-1',

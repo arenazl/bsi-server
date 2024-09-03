@@ -7,10 +7,10 @@ import loteRoutes from './routes/loteRoutes';
 import fileRoutes from './routes/fileRoutes';
 import contractRoutes from './routes/contractRoutes';
 import uploadRoutes from './routes/uploadRoutes';
-import usuarioController from './controllers/usuarioController';
 import metadataRoutes from './routes/metadataRoutes';
 import validationRoutes from './routes/validationRoutes';
 import userRoutes from './routes/userRoutes';
+import openaiRoutes from './routes/openaiRoutes';
 
 
 /**
@@ -99,7 +99,7 @@ class Server {
         this.app.use('/api/metadata', metadataRoutes);
         this.app.use('/api/validation', validationRoutes);
         this.app.use('/api/user', userRoutes);
-
+        this.app.use('/api/openai', openaiRoutes);
 
         this.app.use(this.errorHandler);
     }

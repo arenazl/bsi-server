@@ -13,12 +13,56 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const databaseHelper_1 = __importDefault(require("../databaseHelper"));
+const databaseHelper_2 = __importDefault(require("../databaseHelper"));
 class UserController {
+    login(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const nombre = req.body.nombre;
+            const pass = req.body.password;
+            const values = [nombre, pass];
+            try {
+                // Llama al procedimiento almacenado usando el método executeSpSelect
+                const rows = yield databaseHelper_2.default.executeSpSelect('sp_login_user', values);
+                // Devuelve directamente el primer registro de los resultados, que contiene estado, descripcion y data
+                return res.json(rows[0]);
+            }
+            catch (error) {
+                console.error("Error en el login:", error.message || error);
+                // En caso de error, devuelve una estructura con los campos estándar
+                return res.status(500).json({
+                    estado: 0,
+                    descripcion: 'Error interno del servidor.',
+                    data: null,
+                });
+            }
+        });
+    }
+    postGenericSP(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { sp_name, body } = req.body;
+                const values = {};
+                Object.keys(body).forEach(key => {
+                    values[key] = body[key];
+                });
+                const rows = yield databaseHelper_2.default.executeSpJsonReturn(sp_name, values);
+                return res.json(rows[0]);
+            }
+            catch (error) {
+                console.error("Error en el procedimiento:", error.message || error);
+                return res.status(500).json({
+                    estado: 0,
+                    descripcion: 'Error interno del servidor.',
+                    data: null,
+                });
+            }
+        });
+    }
     getUsers(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const result = yield databaseHelper_1.default.executeSpSelect("GetAllUsers", []);
-                res.json(result[0]);
+                res.json(result);
             }
             catch (error) {
                 console.error("Error fetching users:", error);

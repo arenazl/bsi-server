@@ -5,7 +5,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const legajoController_1 = __importDefault(require("../controllers/legajoController"));
-const usuarioController_1 = __importDefault(require("../controllers/usuarioController"));
 class LegajoRoutes {
     constructor() {
         this.router = (0, express_1.Router)();
@@ -22,7 +21,6 @@ class LegajoRoutes {
         this.router.post('/fincuota', legajoController_1.default.finCuota);
         this.router.put('/:id', legajoController_1.default.update);
         this.router.delete('/:id', legajoController_1.default.delete);
-        this.router.post('/login', usuarioController_1.default.login);
     }
 }
 exports.default = new LegajoRoutes().router;

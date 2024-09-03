@@ -14,6 +14,7 @@ const uploadRoutes_1 = __importDefault(require("./routes/uploadRoutes"));
 const metadataRoutes_1 = __importDefault(require("./routes/metadataRoutes"));
 const validationRoutes_1 = __importDefault(require("./routes/validationRoutes"));
 const userRoutes_1 = __importDefault(require("./routes/userRoutes"));
+const openaiRoutes_1 = __importDefault(require("./routes/openaiRoutes"));
 /**
  * Represents the server class responsible for setting up and starting the Express application.
  */
@@ -89,6 +90,7 @@ class Server {
         this.app.use('/api/metadata', metadataRoutes_1.default);
         this.app.use('/api/validation', validationRoutes_1.default);
         this.app.use('/api/user', userRoutes_1.default);
+        this.app.use('/api/openai', openaiRoutes_1.default);
         this.app.use(this.errorHandler);
     }
     /**

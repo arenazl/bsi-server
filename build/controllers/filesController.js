@@ -42,66 +42,6 @@ const databaseHelper_1 = __importDefault(require("../databaseHelper"));
 const model_1 = require("./../models/model");
 const databaseHelper_2 = __importDefault(require("../databaseHelper"));
 class FilesController {
-    getUsers(req, res) {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                const result = yield databaseHelper_1.default.executeSpSelect("GetAllUsers", []);
-                res.json(result[0]);
-            }
-            catch (error) {
-                console.error("Error fetching users:", error);
-                res.status(500).json({ message: "Error fetching users", error: "Internal server error" });
-            }
-        });
-    }
-    createUser(req, res) {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                const result = yield databaseHelper_1.default.executeJsonInsert("InsertUser", req.body, ["ID", "ESTADO", "DESCRIPCION"]);
-                if (!result.ID) {
-                    res.json({ error: result.Data });
-                    return;
-                }
-                res.json({ ID: result.ID, ESTADO: result.ESTADO, DESCRIPCION: result.DESCRIPCION });
-            }
-            catch (error) {
-                console.error("Error creating user:", error);
-                res.status(500).json({ message: "Error creating user", error: "Internal server error" });
-            }
-        });
-    }
-    updateUser(req, res) {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                const result = yield databaseHelper_1.default.executeJsonInsert("UpdateUser", req.body, ["ESTADO", "DESCRIPCION"]);
-                if (result.ESTADO === undefined) {
-                    res.json({ error: result.Data });
-                    return;
-                }
-                res.json({ ESTADO: result.ESTADO, DESCRIPCION: result.DESCRIPCION });
-            }
-            catch (error) {
-                console.error("Error updating user:", error);
-                res.status(500).json({ message: "Error updating user", error: "Internal server error" });
-            }
-        });
-    }
-    deleteUser(req, res) {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                const result = yield databaseHelper_1.default.executeSpJsonReturn("DeleteUser", { id: req.params.id });
-                if (result.ESTADO === undefined) {
-                    res.json({ error: result.Data });
-                    return;
-                }
-                res.json({ ESTADO: result.ESTADO, DESCRIPCION: result.DESCRIPCION });
-            }
-            catch (error) {
-                console.error("Error deleting user:", error);
-                res.status(500).json({ message: "Error deleting user", error: "Internal server error" });
-            }
-        });
-    }
     /*
     public async uploadTR(req: Request, res: Response): Promise<void> {
       try {
@@ -150,6 +90,7 @@ class FilesController {
                 if (!dataScreen || dataScreen.length === 0) {
                     return res.status(404).json({ error: "Data screen not found" });
                 }
+                65555555555555;
                 res.json({ head: infoScreen[0], data: dataScreen });
             }
             catch (error) {

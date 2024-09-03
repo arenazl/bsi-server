@@ -1,7 +1,6 @@
 import express, { Router } from 'express';
 
 import legajoController from '../controllers/legajoController';
-import usuarioController from '../controllers/usuarioController';
 
 class LegajoRoutes {
 
@@ -21,8 +20,7 @@ class LegajoRoutes {
         this.router.post('/cuota', legajoController.cuota);
         this.router.post('/fincuota', legajoController.finCuota);
         this.router.put('/:id', legajoController.update);
-        this.router.delete('/:id', legajoController.delete);
-        this.router.post('/login', usuarioController.login);
+        this.router.delete('/:id', legajoController.delete); 
     }
 
 }

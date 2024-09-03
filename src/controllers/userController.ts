@@ -1,11 +1,67 @@
 import { Request, Response } from "express";
 import DatabaseHelper from "../databaseHelper";
+import databaseHelper from "../databaseHelper";
 
 class UserController {
+
+
+  public async login(req: Request, res: Response): Promise<any> {
+
+    const nombre = req.body.nombre;
+    const pass = req.body.password;
+  
+    const values = [nombre, pass];
+    
+    try {
+      // Llama al procedimiento almacenado usando el método executeSpSelect
+      const rows = await databaseHelper.executeSpSelect('sp_login_user', values);
+  
+      // Devuelve directamente el primer registro de los resultados, que contiene estado, descripcion y data
+      return res.json(rows[0]);
+
+    } catch (error: any) {
+      console.error("Error en el login:", error.message || error);
+      // En caso de error, devuelve una estructura con los campos estándar
+      return res.status(500).json({
+        estado: 0,
+        descripcion: 'Error interno del servidor.',
+        data: null,
+      });
+    }
+  }
+
+
+public async postGenericSP(req: Request, res: Response): Promise<any> {
+  try {
+    
+      const { sp_name, body } = req.body;
+
+      const values: Record<string, string | number> = {};
+      Object.keys(body).forEach(key => {
+          values[key] = body[key]; 
+      });
+
+      const rows = await databaseHelper.executeSpJsonReturn(sp_name, values);
+
+      return res.json(rows[0]);
+
+  } catch (error: any) {
+      console.error("Error en el procedimiento:", error.message || error);
+      return res.status(500).json({
+          estado: 0,
+          descripcion: 'Error interno del servidor.',
+          data: null,
+      });
+  }
+}
+
+
   public async getUsers(req: Request, res: Response): Promise<void> {
     try {
       const result = await DatabaseHelper.executeSpSelect("GetAllUsers", []);
-      res.json(result[0]);
+
+      res.json(result);
+
     } catch (error) {
       console.error("Error fetching users:", error);
       res.status(500).json({ message: "Error fetching users", error: "Internal server error" });

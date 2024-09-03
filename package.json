@@ -11,13 +11,14 @@
     "dev": "ts-node ./src/index.ts",
     "start": "node ./build/index.js"
   },
-  
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "aws-sdk": "^2.1185.0",
+    "axios": "^1.7.7",
     "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
     "emailjs": "^3.0.0",
     "express": "^4.19.2",
     "express-fileupload": "^1.4.0",
@@ -28,6 +29,7 @@
     "mysql2": "^3.9.7",
     "nodemailer": "^6.7.7",
     "nodemon": "^2.0.16",
+    "openai": "^4.57.0",
     "path": "^0.12.7",
     "promise-mysql": "^3.3.1",
     "read-excel-file": "^5.8.0",
