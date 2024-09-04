@@ -123,6 +123,42 @@ export class OpenAIController {
     }
   }
 
+  // Método para detectar palabras clave en la consulta
+private detectKeywords(message: string): string[] {
+  const keywords = ['acordes', 'melodía', 'estructura', 'progresión de acordes', 'teoría musical']; // Añadir más según sea necesario
+  return keywords.filter(keyword => message.includes(keyword));
+}
+
+// Método para obtener datos externos basados en palabras clave
+private async fetchExternalData(keywords: string[]): Promise<string> {
+  let externalData = '';
+
+  // Ejemplo de llamada a una API externa
+  for (const keyword of keywords) {
+    if (keyword === 'acordes') {
+      // Llamada a una API de teoría musical (ejemplo ficticio)
+      externalData += await this.fetchChordInformation();
+    } else if (keyword === 'melodía') {
+      // Llamada a otra API relacionada con melodías
+      externalData += await this.fetchMelodyTips();
+    }
+    // Agregar más condiciones según las APIs disponibles
+  }
+
+  return externalData;
+}
+
+// Métodos ficticios para obtener datos de APIs externas
+private async fetchChordInformation(): Promise<string> {
+  // Aquí harías la llamada a la API externa y procesarías los datos
+  return ' Información sobre acordes obtenida de la API externa.';
+}
+
+private async fetchMelodyTips(): Promise<string> {
+  // Aquí harías la llamada a la API externa y procesarías los datos
+  return ' Consejos sobre melodías obtenidos de la API externa.';
+}
+
 }
 
 export const openaiController = new OpenAIController();

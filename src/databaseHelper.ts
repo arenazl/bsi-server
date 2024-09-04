@@ -80,7 +80,6 @@ class DatabaseHelper {
   }
 }
 
-
 public async executeJsonInsert(
   spName: string,
   jsonData: object,
@@ -92,6 +91,8 @@ public async executeJsonInsert(
     const sql = `CALL ${spName}(?);`;
 
     const values = [JSON.stringify(jsonData)];
+
+    console.log(values);
 
     const [queryResult] = await connection.execute(sql, values);
 
