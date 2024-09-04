@@ -95,6 +95,7 @@ class DatabaseHelper {
                 connection = yield this.getConnection();
                 const sql = `CALL ${spName}(?);`;
                 const values = [JSON.stringify(jsonData)];
+                console.log(values);
                 const [queryResult] = yield connection.execute(sql, values);
                 return [queryResult];
             }

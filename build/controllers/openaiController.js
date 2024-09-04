@@ -111,6 +111,43 @@ class OpenAIController {
             }
         });
     }
+    // Método para detectar palabras clave en la consulta
+    detectKeywords(message) {
+        const keywords = ['acordes', 'melodía', 'estructura', 'progresión de acordes', 'teoría musical']; // Añadir más según sea necesario
+        return keywords.filter(keyword => message.includes(keyword));
+    }
+    // Método para obtener datos externos basados en palabras clave
+    fetchExternalData(keywords) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let externalData = '';
+            // Ejemplo de llamada a una API externa
+            for (const keyword of keywords) {
+                if (keyword === 'acordes') {
+                    // Llamada a una API de teoría musical (ejemplo ficticio)
+                    externalData += yield this.fetchChordInformation();
+                }
+                else if (keyword === 'melodía') {
+                    // Llamada a otra API relacionada con melodías
+                    externalData += yield this.fetchMelodyTips();
+                }
+                // Agregar más condiciones según las APIs disponibles
+            }
+            return externalData;
+        });
+    }
+    // Métodos ficticios para obtener datos de APIs externas
+    fetchChordInformation() {
+        return __awaiter(this, void 0, void 0, function* () {
+            // Aquí harías la llamada a la API externa y procesarías los datos
+            return ' Información sobre acordes obtenida de la API externa.';
+        });
+    }
+    fetchMelodyTips() {
+        return __awaiter(this, void 0, void 0, function* () {
+            // Aquí harías la llamada a la API externa y procesarías los datos
+            return ' Consejos sobre melodías obtenidos de la API externa.';
+        });
+    }
 }
 exports.OpenAIController = OpenAIController;
 exports.openaiController = new OpenAIController();
