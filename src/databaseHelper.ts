@@ -1,9 +1,10 @@
 import { createPool, Pool, PoolConnection } from 'mysql2/promise';
 import keys from './keys';
-import { TipoModulo } from './enums/enums';
+import { TipoData, TipoMetada, TipoModulo } from './enums/enums';
 import multer from 'multer';
 
 class DatabaseHelper {
+  
   private static instance: DatabaseHelper;
   private pool: Pool;
 
@@ -109,7 +110,6 @@ public async executeJsonInsert(
   }
 }
 
-
   public async executeSpJsonReturn(
     spName: string,
     params: Record<string, string | number> | (string | number)[],
@@ -195,6 +195,47 @@ public async executeJsonInsert(
     return upload
 
   }
+
+  public getSpNameForData(tipoModulo: TipoModulo, tipoData: TipoData) {
+    switch (true) {
+      case tipoModulo === TipoModulo.PAGO && tipoData === TipoData.LIST:
+        return 'PAGO_OBTENER_RESUMEN_BY_ID';
+      case tipoModulo === TipoModulo.PAGO && tipoData === TipoData.EXPORT:
+        return 'PAGO_OBTENER_ARCHIVO_BY_ID';
+      case tipoModulo === TipoModulo.CUENTA && tipoData === TipoData.LIST:
+        return 'CUENTA_OBTENER_RESUMEN_BY_ID';
+      case tipoModulo === TipoModulo.CUENTA && tipoData === TipoData.EXPORT:
+        return 'CUENTA_OBTENER_ARCHIVO_BY_ID';
+      case tipoModulo === TipoModulo.NOMINA && tipoData === TipoData.LIST:
+        return 'NOMINA_OBTENER_RESUMEN_BY_ID';
+      case tipoModulo === TipoModulo.NOMINA && tipoData === TipoData.FILL:
+        return 'NOMINA_OBTENER_FILL_BY_ID';
+      default:
+        return '';
+    }
+  }
+  
+    public  getSpNameForMetada(tipoModulo: TipoModulo, tipometada: TipoMetada)  {
+      switch (true) {
+        case tipoModulo === TipoModulo.PAGO && tipometada === TipoMetada.LIST:
+          return 'PAGO_METADATA_UI_RESUMEN';
+        case tipoModulo === TipoModulo.PAGO && tipometada === TipoMetada.IMPORT:
+          return 'PAGO_METADATA_UI_IMPORT';
+        case tipoModulo === TipoModulo.CUENTA && tipometada === TipoMetada.LIST:
+          return 'CUENTA_METADATA_UI_RESUMEN';
+        case tipoModulo === TipoModulo.CUENTA && tipometada === TipoMetada.IMPORT:
+          return 'CUENTA_METADATA_UI_IMPORT';
+        case tipoModulo === TipoModulo.NOMINA && tipometada === TipoMetada.LIST:
+          return 'NOMINA_METADATA_UI_RESUMEN';
+        case tipoModulo === TipoModulo.NOMINA && tipometada === TipoMetada.IMPORT:
+          return 'NOMINA_METADATA_UI_IMPORT';
+        case tipoModulo === TipoModulo.NOMINA && tipometada === TipoMetada.FILL:
+          return 'NOMINA_METADATA_UI_FILL';
+        default:
+          return '';
+      }
+    }
 }
+
 
 export default DatabaseHelper.getInstance();

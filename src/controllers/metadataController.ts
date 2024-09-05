@@ -1,9 +1,35 @@
 import { Request, Response } from "express";
 import DatabaseHelper from "../databaseHelper";
 import { TipoModulo, TipoMetada, TipoData } from "../enums/enums";
+import databaseHelper from "../databaseHelper";
+import readXlsxFile from "read-excel-file/node";
+import * as fs from "fs";
 
 class MetadataController {
 
+  public async postGenericSP(req: Request, res: Response): Promise<any> {
+    try {
+
+        const { sp_name, body } = req.body;
+
+        const values: Record<string, string | number> = {};
+        Object.keys(body).forEach(key => {
+            values[key] = body[key];
+        });
+
+        const rows = await DatabaseHelper.executeSpJsonReturn(sp_name, values);
+
+        return res.json(rows[0]);
+
+    } catch (error: any) {
+        console.error("Error en el procedimiento:", error.message || error);
+        return res.status(500).json({
+            estado: 0,
+            descripcion: 'Error interno del servidor.',
+            data: null,
+        });
+    }
+}
 
   public async getMetadataUI(req: Request, res: Response): Promise<any> {
 
@@ -18,7 +44,7 @@ class MetadataController {
       }
   
       // Obtiene el nombre del stored procedure basado en los parámetros recibidos
-      const spName = getSpNameForMetada(tipomodulo as TipoModulo, tipometada as TipoMetada);
+      const spName = databaseHelper.getSpNameForMetada(tipomodulo as TipoModulo, tipometada as TipoMetada);
   
       // Llama al stored procedure usando los parámetros configurados
       const rows = await DatabaseHelper.executeSpSelect(spName, params);
@@ -37,14 +63,98 @@ class MetadataController {
     }
   }
 
-  public async getResumen(req: Request, res: Response): Promise<any> {
+  public async postValidarInsertar(req: Request, res: Response): Promise<void> {
+    
+    var upload = await DatabaseHelper.TempUploadProcess()
+  
+    upload(req, res, async () => {
+  
+      try {
+        
+        const dataFromUI = req.file?.originalname.split("-");
+        const TIPO_MODULO = dataFromUI[0];
+        const config = mappings[TIPO_MODULO];
+        const jsonResult: any = { ITEMS: [] };
+  
+        if (config) {
+
+          config.fields.forEach((field, index) => {
+            let value = dataFromUI[index + 1];
+            if (field === "CONCEPTO") value = value.replace(".", "-");
+            if (field === "FECHAPAGO") value = DatabaseHelper.formatDateFromFile(value);
+            jsonResult[field] = value;
+          });
+
+        } 
+        if (TIPO_MODULO === "NOMINA") 
+        {
+
+          fs.readFile(req.file!.path, "utf8", async (err, data) => {
+
+            if (err) {
+              console.error("Error leyendo el archivo de texto:", err);
+              res.json({ error: "Error leyendo el archivo de texto" });
+              return;
+            }
+
+            const items = data.split("\n").map(line => line.trim()).filter(line => line.length > 0);
+
+            jsonResult.ITEMS = items;
+
+            const spName = `${TIPO_MODULO}_VALIDAR_INSERTAR_ENTRADA`;
+
+            const result = await DatabaseHelper.executeJsonInsert( spName, jsonResult);
+      
+            res.json(result[0][0][0]);       
+  
+          });
+        } else 
+        {
+          const rows = await readXlsxFile(req.file!.path);
+          const dataFromRows = rows.slice(config.startRow);
+
+
+          dataFromRows.forEach((row) => {
+
+          if ((TIPO_MODULO === "PAGO" && !row[3]) || (TIPO_MODULO === "CUENTA" && !row[4])) return;
+
+          if (TIPO_MODULO === "PAGO") 
+            {
+            const [CBU, CUIL, NOMBRE, IMPORTE] = row.slice(3);
+            jsonResult.ITEMS.push({ CBU, CUIL, NOMBRE, IMPORTE });
+          } 
+          else if (TIPO_MODULO === "CUENTA") 
+            {
+            const [CUIL, Tipo_Doc, Nro_Doc, Apellidos, Nombres, Fecha_Nacimiento, Sexo] = row;
+            jsonResult.ITEMS.push({ CUIL, Tipo_Doc, Nro_Doc, Apellidos, Nombres, Fecha_Nacimiento, Sexo });
+          }
+
+        });
+
+        const spName = `${TIPO_MODULO}_VALIDAR_INSERTAR_ENTRADA`;
+
+        const result = await DatabaseHelper.executeJsonInsert( spName, jsonResult);
+  
+        res.json(result[0][0][0]); 
+
+      }
+    
+      } catch (error) {
+        console.error("Error durante la operación:", error);
+        res.json({ message: "Internal server error", error: error.message });
+      } 
+
+    });
+  }
+
+  public async getUIResumen(req: Request, res: Response): Promise<any> {
     const { tipomodulo, id } = req.params;
 
     try {
 
       const params = [id];
 
-      const rows = await DatabaseHelper.executeSpSelect(getSpNameForData(tipomodulo as TipoModulo, TipoData.LIST), params);
+      const rows = await DatabaseHelper.executeSpSelect(databaseHelper.getSpNameForData(tipomodulo as TipoModulo, TipoData.LIST), params);
 
        res.json(rows[0]);
       
@@ -54,13 +164,13 @@ class MetadataController {
     }
   }
 
-  public async getFill(req: Request, res: Response): Promise<void> {
+  public async getUIFill(req: Request, res: Response): Promise<void> {
 
     const { tipomodulo, id } = req.params;
 
     try {
       const params = { id };
-      const [row] = await DatabaseHelper.executeSpJsonReturn(getSpNameForData(tipomodulo as TipoModulo, TipoData.FILL),params);
+      const [row] = await DatabaseHelper.executeSpJsonReturn(databaseHelper.getSpNameForData(tipomodulo as TipoModulo, TipoData.FILL),params);
 
         res.json([row]);
         return
@@ -72,45 +182,22 @@ class MetadataController {
   }
 }
 
-function  getSpNameForMetada(tipoModulo: TipoModulo, tipometada: TipoMetada): string {
-  switch (true) {
-    case tipoModulo === TipoModulo.PAGO && tipometada === TipoMetada.LIST:
-      return 'PAGO_METADATA_UI_RESUMEN';
-    case tipoModulo === TipoModulo.PAGO && tipometada === TipoMetada.IMPORT:
-      return 'PAGO_METADATA_UI_IMPORT';
-    case tipoModulo === TipoModulo.CUENTA && tipometada === TipoMetada.LIST:
-      return 'CUENTA_METADATA_UI_RESUMEN';
-    case tipoModulo === TipoModulo.CUENTA && tipometada === TipoMetada.IMPORT:
-      return 'CUENTA_METADATA_UI_IMPORT';
-    case tipoModulo === TipoModulo.NOMINA && tipometada === TipoMetada.LIST:
-      return 'NOMINA_METADATA_UI_RESUMEN';
-    case tipoModulo === TipoModulo.NOMINA && tipometada === TipoMetada.IMPORT:
-      return 'NOMINA_METADATA_UI_IMPORT';
-    case tipoModulo === TipoModulo.NOMINA && tipometada === TipoMetada.FILL:
-      return 'NOMINA_METADATA_UI_FILL';
-    default:
-      return '';
+export const mappings: Record<string, { startRow: number; fields: string[] }> = {
+  PAGO: {
+    startRow: 3,
+    fields: ['IDUSER', 'IDORG', 'IDCONT', 'CONCEPTO', 'FECHAPAGO']
+  },
+  CUENTA: {
+    startRow: 4,
+    fields: ['IDUSER', 'IDORG', 'IDCONT', 'ROTULO', 'ENTE']
+  },
+  NOMINA: {
+    startRow: 0,
+    fields: ['id_user', 'Organismo_id', 'Contrato_id']
   }
-}
 
-function  getSpNameForData(tipoModulo: TipoModulo, tipoData: TipoData): string {
-  switch (true) {
-    case tipoModulo === TipoModulo.PAGO && tipoData === TipoData.LIST:
-      return 'PAGO_OBTENER_RESUMEN_BY_ID';
-    case tipoModulo === TipoModulo.PAGO && tipoData === TipoData.EXPORT:
-      return 'PAGO_OBTENER_ARCHIVO_BY_ID';
-    case tipoModulo === TipoModulo.CUENTA && tipoData === TipoData.LIST:
-      return 'CUENTA_OBTENER_RESUMEN_BY_ID';
-    case tipoModulo === TipoModulo.CUENTA && tipoData === TipoData.EXPORT:
-      return 'CUENTA_OBTENER_ARCHIVO_BY_ID';
-    case tipoModulo === TipoModulo.NOMINA && tipoData === TipoData.LIST:
-      return 'NOMINA_OBTENER_RESUMEN_BY_ID';
-    case tipoModulo === TipoModulo.NOMINA && tipoData === TipoData.FILL:
-      return 'NOMINA_OBTENER_FILL_BY_ID';
-    default:
-      return '';
-  }
-}
+};
+
   
 const metadataController = new MetadataController();
 export default metadataController;

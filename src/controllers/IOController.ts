@@ -1,13 +1,12 @@
 import { Request, Response } from 'express';
 import { TipoData, TipoMetada, TipoModulo } from '../enums/enums';
-import DatabaseHelper from "../databaseHelper";
 import multer from 'multer';
 import keys from '../keys';
-import { S3 } from 'aws-sdk';
-import databaseHelper from '../databaseHelper';
+//import { S3 } from 'aws-sdk';
+import DatabaseHelper from '../databaseHelper';
 import * as fs from "fs";
 
-class UploadController {
+class IOController {
 
  
     private formatDateFromFile(fechaPagoRaw: string): string {
@@ -24,8 +23,7 @@ class UploadController {
   
       try {
      
-  
-        const row = await databaseHelper.executeSpSelect(getSpNameForData(tipomodulo as TipoModulo, TipoData.EXPORT), values)
+        const row = await DatabaseHelper.executeSpSelect(DatabaseHelper.getSpNameForData(tipomodulo as TipoModulo, TipoData.EXPORT), values)
     
         const file = fs.openSync(`./uploads/${tipomodulo}_${id}.txt`, "w");
   
@@ -51,31 +49,9 @@ class UploadController {
       } finally {
       }
     }
-  
-    public async downloadFile(req: Request, res: Response): Promise<void> {
-      try {
-        const { id } = req.params; // Assuming the file is identified by an 'id'
-  
-        const filePath = "./uploads/output_" + id + ".txt";
-  
-        res.download(filePath, function (err) {
-          if (err) {
-            console.error(err);
-            if (res.headersSent) {
-            } else {
-              //res.status(err)
-            }
-          } else {
-            // The file was sent successfully
-          }
-        });
-      } catch (error) {
-        console.error("An error occurred:", error);
-        res.status(500).send("Internal Server Error");
-      }
-    }
 
     public async uploadS3(file: any) {
+      /*
       let bucketName = keys.AWS.bucketName;
       let region = keys.AWS.bucketRegion;
       let accessKeyId = keys.AWS.accesKey;
@@ -96,6 +72,7 @@ class UploadController {
       };
   
       return s3.upload(uploadParams).promise();
+      */
     }
   
     public async dropbox(req: Request, res: Response, next: any): Promise<void> {
@@ -117,33 +94,6 @@ class UploadController {
   
 }
 
-function getSpNameForData(tipoModulo: TipoModulo, tipoData: TipoData) {
-
-  switch (true) {
-
-    case tipoModulo === TipoModulo.PAGO && tipoData === TipoData.LIST:
-      return 'PAGO_OBTENER_RESUMEN_BY_ID';
-
-    case tipoModulo === TipoModulo.PAGO && tipoData === TipoData.EXPORT:
-      return 'PAGO_OBTENER_ARCHIVO_BY_ID';
-
-    case tipoModulo === TipoModulo.CUENTA && tipoData === TipoData.LIST:
-      return 'CUENTA_OBTENER_RESUMEN_BY_ID';
-
-    case tipoModulo === TipoModulo.CUENTA && tipoData === TipoData.EXPORT:
-      return 'CUENTA_OBTENER_ARCHIVO_BY_ID';
-
-    case tipoModulo === TipoModulo.NOMINA && tipoData === TipoData.LIST:
-      return 'NOMINA_OBTENER_RESUMEN_BY_ID';
-
-    case tipoModulo === TipoModulo.NOMINA && tipoData === TipoData.FILL:
-        return 'NOMINA_OBTENER_FILL_BY_ID';
-
-    default:
-      return '';
-  }
-}
-
-export const uploadController = new UploadController();
+export const uploadController = new IOController();
 export default uploadController;
 

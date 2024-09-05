@@ -1,28 +1,7 @@
 import { Request, Response } from 'express';
 import databaseHelper from '../databaseHelper';
 
-class ContractController {
-
-  public async getContratosBotones(req: Request, res: Response): Promise<void> {
-
-    const id_user = req.body.user;
-    const id_organismo = req.body.contrato;
-    const values = [id_user, id_organismo];
-
-    try {
-
-      const row = await databaseHelper.executeSpSelect("ObtenerContratos", values);
-
-      res.json(row);
-
-    } catch (error) {
-      console.error("Error:", error);
-      res
-        .status(500)
-        .json({ message: "Error fetching:", error: "Internal server error" });
-    } finally {
-    }
-  }
+class HelperController {
 
   public async getContratoById(req: Request, res: Response): Promise<void> {
     const id_user = req.body.id_user;
@@ -55,7 +34,7 @@ class ContractController {
       });
     }
   }
-  
+
   public async getListForCombo(req, res): Promise<void> {
 
     let { tipomodulo } = req.params;
@@ -81,5 +60,5 @@ class ContractController {
 
 }
 
-export const contractController = new ContractController();
+export const contractController = new HelperController();
 export default contractController

@@ -16,7 +16,6 @@ class UserRoutes {
         this.router.put('/updateUser', userController_1.default.updateUser);
         this.router.delete('/deleteUser/:id', userController_1.default.deleteUser);
         this.router.post('/login', userController_1.default.login);
-        this.router.post('/GET_GENERIC_SP', userController_1.default.postGenericSP);
     }
 }
 exports.default = new UserRoutes().router;

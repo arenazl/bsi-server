@@ -23,7 +23,7 @@ class OpenAIController {
     }
     initialize() {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log(process_1.env.OPENAI_API_KEY);
+            //console.log(env.OPENAI_API_KEY);
             try {
                 // Inicializar OpenAI con la clave de API
                 this.openai = new openai_1.default({

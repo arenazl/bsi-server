@@ -18,7 +18,7 @@ export class OpenAIController {
 
   private async initialize() {
 
-    console.log(env.OPENAI_API_KEY);
+    //console.log(env.OPENAI_API_KEY);
 
     try {
       // Inicializar OpenAI con la clave de API

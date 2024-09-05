@@ -37,27 +37,6 @@ class UserController {
             }
         });
     }
-    postGenericSP(req, res) {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                const { sp_name, body } = req.body;
-                const values = {};
-                Object.keys(body).forEach(key => {
-                    values[key] = body[key];
-                });
-                const rows = yield databaseHelper_2.default.executeSpJsonReturn(sp_name, values);
-                return res.json(rows[0]);
-            }
-            catch (error) {
-                console.error("Error en el procedimiento:", error.message || error);
-                return res.status(500).json({
-                    estado: 0,
-                    descripcion: 'Error interno del servidor.',
-                    data: null,
-                });
-            }
-        });
-    }
     getUsers(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {

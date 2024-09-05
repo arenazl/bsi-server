@@ -3,161 +3,14 @@ import multer from "multer";
 import readXlsxFile from "read-excel-file/node";
 import path from "path";
 import * as fs from "fs";
-import S3 from "aws-sdk/clients/s3";
+//import S3 from "aws-sdk/clients/s3";
 import keys from "./../keys";
 import nodemailer from "nodemailer";
-import { getFileType, TipoData, TipoMetada, TipoModulo } from "../enums/enums";
-import DatabaseHelper from "../databaseHelper";
 import { transInmediataInfo, transInmediataDato } from "./../models/model";
-import databaseHelper from "../databaseHelper";
+import DatabaseHelper from "../databaseHelper";
 
 class FilesController 
 {
-  
-  /*
-  public async uploadTR(req: Request, res: Response): Promise<void> {
-    try {
-      const upload = this.TempUploadProcess(); 
-      upload(req, res, async () => {
-        try {
-          
-          const content: string = fs.readFileSync(req.file.path, "utf-8");
-          const rows = content.split("\n");
-          const info = this.parsearInfoArchivoTR(rows[0], rows[rows.length - 2]);
-          const dataFromUI = req.file?.originalname.split("-");
-          const [user, motivo, concepto] = dataFromUI;
-
-          const { values, outParams } = await this.ParseHeader(info, concepto);
-          const id = await DatabaseHelper.executeSpInsert("InsertTransInmediataInfo", values, outParams);
-
-          const transInmediataDatos = this.parsearDatosArchivoTR(rows, id);
-
-          for (const entity of transInmediataDatos) {
-            const values = await this.LoopAndParseInfo(entity);
-            await DatabaseHelper.executeSpInsert("InsertTransInmediataDato", values, ["lastId"]);
-          }
-
-          this.escribirArchivoTR(transInmediataDatos, info, concepto, motivo, id);
-
-          res.json({ id: id });
-        } catch (error) {
-          console.error("Error processing file:", error);
-          res.status(500).json({ message: "Error processing file", error: "Internal server error" });
-        }
-      });
-    } catch (error) {
-      console.error("Error in upload:", error);
-      res.status(500).json({ message: "Error in upload", error: "Internal server error" });
-    }
-  }*/
-
-  public async getResponseTR(req: Request, res: Response): Promise<any> {
-    try {
-      const { id } = req.params;
-      const infoScreen = await this.getPantallaTransferenciaInfoById(parseInt(id));
-      if (!infoScreen || infoScreen.length === 0) {
-        return res.status(404).json({ error: "Info screen not found" });
-      }
-      const dataScreen = await this.getPantallaTransferenciaDatoById(parseInt(id));
-      if (!dataScreen || dataScreen.length === 0) {
-        return res.status(404).json({ error: "Data screen not found" });
-      }65555555555555
-      res.json({ head: infoScreen[0], data: dataScreen });
-    } catch (error) {
-      console.error("Error fetching response:", error);
-      res.status(500).json({ message: "Error fetching getResponseTR:", error: "Internal server error" });
-    }
-  }
-
-  public async postValidateInsert(req: Request, res: Response): Promise<void> {
-    
-    var upload = await databaseHelper.TempUploadProcess()
-  
-    upload(req, res, async () => {
-  
-      try {
-        
-        const dataFromUI = req.file?.originalname.split("-");
-        const TIPO_MODULO = dataFromUI[0];
-        const config = mappings[TIPO_MODULO];
-        const jsonResult: any = { ITEMS: [] };
-  
-        if (config) {
-
-          config.fields.forEach((field, index) => {
-            let value = dataFromUI[index + 1];
-            if (field === "CONCEPTO") value = value.replace(".", "-");
-            if (field === "FECHAPAGO") value = DatabaseHelper.formatDateFromFile(value);
-            jsonResult[field] = value;
-          });
-
-        } 
-        if (TIPO_MODULO === "NOMINA") 
-        {
-
-          fs.readFile(req.file!.path, "utf8", async (err, data) => {
-
-            if (err) {
-              console.error("Error leyendo el archivo de texto:", err);
-              res.json({ error: "Error leyendo el archivo de texto" });
-              return;
-            }
-
-             // Dividir el contenido por líneas, eliminando posibles líneas vacías y espacios extra
-            const items = data.split("\n").map(line => line.trim()).filter(line => line.length > 0);
-
-          // Asignar los ítems a la colección
-            jsonResult.ITEMS = items;
-
-            const spName = `${TIPO_MODULO}_VALIDAR_INSERTAR_ENTRADA`;
-
-            const result = await databaseHelper.executeJsonInsert( spName, jsonResult);
-      
-            res.json(result[0][0][0]);       
-  
-          });
-        } else 
-        {
-          // Procesamiento de archivo Excel para PAGO y CUENTA
-          const rows = await readXlsxFile(req.file!.path);
-          const dataFromRows = rows.slice(config.startRow);
-
-
-          dataFromRows.forEach((row) => {
-
-          if ((TIPO_MODULO === "PAGO" && !row[3]) || (TIPO_MODULO === "CUENTA" && !row[4])) return;
-
-          if (TIPO_MODULO === "PAGO") 
-            {
-            const [CBU, CUIL, NOMBRE, IMPORTE] = row.slice(3);
-            jsonResult.ITEMS.push({ CBU, CUIL, NOMBRE, IMPORTE });
-          } 
-          else if (TIPO_MODULO === "CUENTA") 
-            {
-            const [CUIL, Tipo_Doc, Nro_Doc, Apellidos, Nombres, Fecha_Nacimiento, Sexo] = row;
-            jsonResult.ITEMS.push({ CUIL, Tipo_Doc, Nro_Doc, Apellidos, Nombres, Fecha_Nacimiento, Sexo });
-          }
-
-        });
-
-        const spName = `${TIPO_MODULO}_VALIDAR_INSERTAR_ENTRADA`;
-
-        const result = await databaseHelper.executeJsonInsert( spName, jsonResult);
-  
-        res.json(result[0][0][0]); 
-
-      }
-
-    
-      } catch (error) {
-        console.error("Error durante la operación:", error);
-        res.json({ message: "Internal server error", error: error.message });
-      } 
-
-    });
-  }
-
-
   private async getPantallaTransferenciaDatoById(transferenciaInfoId: number): Promise<any> {
     return await DatabaseHelper.executeSpSelect("GetTransInmediataDatoById", [transferenciaInfoId]);
   }
@@ -293,27 +146,69 @@ class FilesController
   private padStringFromRight(str: string, length: number, padChar = " "): string {
     return str + padChar.repeat(length);
   }
+  
+  /*
+  public async uploadTR(req: Request, res: Response): Promise<void> {
+    try {
+    
+      const upload = databaseHelper.TempUploadProcess(); 
+
+      upload(req, res, async () => {
+        try {
+          
+          const content: string = fs.readFileSync(req.file.path, "utf-8");
+          const rows = content.split("\n");
+          const info = this.parsearInfoArchivoTR(rows[0], rows[rows.length - 2]);
+          const dataFromUI = req.file?.originalname.split("-");
+          const [user, motivo, concepto] = dataFromUI;
+
+          const { values, outParams } = await this.ParseHeader(info, concepto);
+          const id = await DatabaseHelper.executeSpInsert("InsertTransInmediataInfo", values, outParams);
+
+          const transInmediataDatos = this.parsearDatosArchivoTR(rows, id);
+
+          for (const entity of transInmediataDatos) {
+            const values = await this.LoopAndParseInfo(entity);
+            await DatabaseHelper.executeSpInsert("InsertTransInmediataDato", values, ["lastId"]);
+          }
+
+          this.escribirArchivoTR(transInmediataDatos, info, concepto, motivo, id);
+
+          res.json({ id: id });
+        } catch (error) {
+          console.error("Error processing file:", error);
+          res.status(500).json({ message: "Error processing file", error: "Internal server error" });
+        }
+      });
+    } catch (error) {
+      console.error("Error in upload:", error);
+      res.status(500).json({ message: "Error in upload", error: "Internal server error" });
+    }
+  }*/
+
+  /*
+  public async getResponseTR(req: Request, res: Response): Promise<any> {
+    try {
+      const { id } = req.params;
+      const infoScreen = await this.getPantallaTransferenciaInfoById(parseInt(id));
+      if (!infoScreen || infoScreen.length === 0) {
+        return res.status(404).json({ error: "Info screen not found" });
+      }
+      const dataScreen = await this.getPantallaTransferenciaDatoById(parseInt(id));
+      if (!dataScreen || dataScreen.length === 0) {
+        return res.status(404).json({ error: "Data screen not found" });
+      }65555555555555
+      res.json({ head: infoScreen[0], data: dataScreen });
+    } catch (error) {
+      console.error("Error fetching response:", error);
+      res.status(500).json({ message: "Error fetching getResponseTR:", error: "Internal server error" });
+    }
+  }*/
 
 }
  const fileController = new FilesController();
   export default fileController;
 
-
-  export const mappings: Record<string, { startRow: number; fields: string[] }> = {
-    PAGO: {
-      startRow: 3,
-      fields: ['IDUSER', 'IDORG', 'IDCONT', 'CONCEPTO', 'FECHAPAGO']
-    },
-    CUENTA: {
-      startRow: 4,
-      fields: ['IDUSER', 'IDORG', 'IDCONT', 'ROTULO', 'ENTE']
-    },
-    NOMINA: {
-      startRow: 0,
-      fields: ['id_user', 'Organismo_id', 'Contrato_id']
-    }
-  
-  };
 
   
 

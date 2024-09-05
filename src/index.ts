@@ -2,13 +2,10 @@ import express, { Application, Request, Response, NextFunction } from 'express';
 import morgan from 'morgan';
 import cors from 'cors';
 import indexRoutes from './routes/indexRoutes';
-import legajoRoutes from './routes/legajoRoutes';
-import loteRoutes from './routes/loteRoutes';
 import fileRoutes from './routes/fileRoutes';
-import contractRoutes from './routes/contractRoutes';
-import uploadRoutes from './routes/uploadRoutes';
+import HelperRoutes from './routes/helperRoutes';
+import IORoutes from './routes/IORoutes';
 import metadataRoutes from './routes/metadataRoutes';
-import validationRoutes from './routes/validationRoutes';
 import userRoutes from './routes/userRoutes';
 import openaiRoutes from './routes/openaiRoutes';
 
@@ -92,13 +89,12 @@ class Server {
      * Sets up the routes for the Express application.
      */
     routes(): void {
+
         this.app.use('/', indexRoutes);
-        this.app.use('/api/legajo', legajoRoutes);
         this.app.use('/api/file', fileRoutes);
-        this.app.use('/api/contract', contractRoutes);
-        this.app.use('/api/upload', uploadRoutes);
+        this.app.use('/api/helper', HelperRoutes);
+        this.app.use('/api/IO', IORoutes);
         this.app.use('/api/metadata', metadataRoutes);
-        this.app.use('/api/validation', validationRoutes);
         this.app.use('/api/user', userRoutes);
         this.app.use('/api/openai', openaiRoutes);
 

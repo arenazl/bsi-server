@@ -7,12 +7,10 @@ const express_1 = __importDefault(require("express"));
 const morgan_1 = __importDefault(require("morgan"));
 const cors_1 = __importDefault(require("cors"));
 const indexRoutes_1 = __importDefault(require("./routes/indexRoutes"));
-const legajoRoutes_1 = __importDefault(require("./routes/legajoRoutes"));
 const fileRoutes_1 = __importDefault(require("./routes/fileRoutes"));
-const contractRoutes_1 = __importDefault(require("./routes/contractRoutes"));
-const uploadRoutes_1 = __importDefault(require("./routes/uploadRoutes"));
+const helperRoutes_1 = __importDefault(require("./routes/helperRoutes"));
+const IORoutes_1 = __importDefault(require("./routes/IORoutes"));
 const metadataRoutes_1 = __importDefault(require("./routes/metadataRoutes"));
-const validationRoutes_1 = __importDefault(require("./routes/validationRoutes"));
 const userRoutes_1 = __importDefault(require("./routes/userRoutes"));
 const openaiRoutes_1 = __importDefault(require("./routes/openaiRoutes"));
 /**
@@ -84,12 +82,10 @@ class Server {
      */
     routes() {
         this.app.use('/', indexRoutes_1.default);
-        this.app.use('/api/legajo', legajoRoutes_1.default);
         this.app.use('/api/file', fileRoutes_1.default);
-        this.app.use('/api/contract', contractRoutes_1.default);
-        this.app.use('/api/upload', uploadRoutes_1.default);
+        this.app.use('/api/helper', helperRoutes_1.default);
+        this.app.use('/api/IO', IORoutes_1.default);
         this.app.use('/api/metadata', metadataRoutes_1.default);
-        this.app.use('/api/validation', validationRoutes_1.default);
         this.app.use('/api/user', userRoutes_1.default);
         this.app.use('/api/openai', openaiRoutes_1.default);
         this.app.use(this.errorHandler);

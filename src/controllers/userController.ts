@@ -9,13 +9,13 @@ class UserController {
 
     const nombre = req.body.nombre;
     const pass = req.body.password;
-  
+
     const values = [nombre, pass];
-    
+
     try {
       // Llama al procedimiento almacenado usando el método executeSpSelect
       const rows = await databaseHelper.executeSpSelect('sp_login_user', values);
-  
+
       // Devuelve directamente el primer registro de los resultados, que contiene estado, descripcion y data
       return res.json(rows[0]);
 
@@ -29,32 +29,6 @@ class UserController {
       });
     }
   }
-
-
-public async postGenericSP(req: Request, res: Response): Promise<any> {
-  try {
-    
-      const { sp_name, body } = req.body;
-
-      const values: Record<string, string | number> = {};
-      Object.keys(body).forEach(key => {
-          values[key] = body[key]; 
-      });
-
-      const rows = await databaseHelper.executeSpJsonReturn(sp_name, values);
-
-      return res.json(rows[0]);
-
-  } catch (error: any) {
-      console.error("Error en el procedimiento:", error.message || error);
-      return res.status(500).json({
-          estado: 0,
-          descripcion: 'Error interno del servidor.',
-          data: null,
-      });
-  }
-}
-
 
   public async getUsers(req: Request, res: Response): Promise<void> {
     try {

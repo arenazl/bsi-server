@@ -15,10 +15,7 @@ class UserRoutes {
         this.router.post('/createUser', userController.createUser);
         this.router.put('/updateUser', userController.updateUser);
         this.router.delete('/deleteUser/:id', userController.deleteUser);
-        this.router.post('/login', userController.login);   
-        this.router.post('/GET_GENERIC_SP', userController.postGenericSP);   
-        
-        
+        this.router.post('/login', userController.login);         
     }
 }
 

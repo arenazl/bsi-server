@@ -183,5 +183,43 @@ class DatabaseHelper {
             return upload;
         });
     }
+    getSpNameForData(tipoModulo, tipoData) {
+        switch (true) {
+            case tipoModulo === enums_1.TipoModulo.PAGO && tipoData === enums_1.TipoData.LIST:
+                return 'PAGO_OBTENER_RESUMEN_BY_ID';
+            case tipoModulo === enums_1.TipoModulo.PAGO && tipoData === enums_1.TipoData.EXPORT:
+                return 'PAGO_OBTENER_ARCHIVO_BY_ID';
+            case tipoModulo === enums_1.TipoModulo.CUENTA && tipoData === enums_1.TipoData.LIST:
+                return 'CUENTA_OBTENER_RESUMEN_BY_ID';
+            case tipoModulo === enums_1.TipoModulo.CUENTA && tipoData === enums_1.TipoData.EXPORT:
+                return 'CUENTA_OBTENER_ARCHIVO_BY_ID';
+            case tipoModulo === enums_1.TipoModulo.NOMINA && tipoData === enums_1.TipoData.LIST:
+                return 'NOMINA_OBTENER_RESUMEN_BY_ID';
+            case tipoModulo === enums_1.TipoModulo.NOMINA && tipoData === enums_1.TipoData.FILL:
+                return 'NOMINA_OBTENER_FILL_BY_ID';
+            default:
+                return '';
+        }
+    }
+    getSpNameForMetada(tipoModulo, tipometada) {
+        switch (true) {
+            case tipoModulo === enums_1.TipoModulo.PAGO && tipometada === enums_1.TipoMetada.LIST:
+                return 'PAGO_METADATA_UI_RESUMEN';
+            case tipoModulo === enums_1.TipoModulo.PAGO && tipometada === enums_1.TipoMetada.IMPORT:
+                return 'PAGO_METADATA_UI_IMPORT';
+            case tipoModulo === enums_1.TipoModulo.CUENTA && tipometada === enums_1.TipoMetada.LIST:
+                return 'CUENTA_METADATA_UI_RESUMEN';
+            case tipoModulo === enums_1.TipoModulo.CUENTA && tipometada === enums_1.TipoMetada.IMPORT:
+                return 'CUENTA_METADATA_UI_IMPORT';
+            case tipoModulo === enums_1.TipoModulo.NOMINA && tipometada === enums_1.TipoMetada.LIST:
+                return 'NOMINA_METADATA_UI_RESUMEN';
+            case tipoModulo === enums_1.TipoModulo.NOMINA && tipometada === enums_1.TipoMetada.IMPORT:
+                return 'NOMINA_METADATA_UI_IMPORT';
+            case tipoModulo === enums_1.TipoModulo.NOMINA && tipometada === enums_1.TipoMetada.FILL:
+                return 'NOMINA_METADATA_UI_FILL';
+            default:
+                return '';
+        }
+    }
 }
 exports.default = DatabaseHelper.getInstance();
