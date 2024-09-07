@@ -95,6 +95,7 @@ Luego de 2 o 3 preguntas, enviar esto: Si necesitas más información, te trasla
           this.thread.id,
           run.id
         );
+        
       }
   
       // Obtener los mensajes del hilo
