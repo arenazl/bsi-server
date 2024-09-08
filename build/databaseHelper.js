@@ -183,6 +183,7 @@ class DatabaseHelper {
             return upload;
         });
     }
+    
     getSpNameForData(tipoModulo, tipoData) {
         switch (true) {
             case tipoModulo === enums_1.TipoModulo.PAGO && tipoData === enums_1.TipoData.LIST:
