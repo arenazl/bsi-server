@@ -101,7 +101,7 @@ class MetadataController {
 
             jsonResult.ITEMS = items;
 
-            const spName = `${TIPO_MODULO}_VALIDAR_INSERTAR_ENTRADA`;
+            const spName = `${TIPO_MODULO}_VALIDAR_INSERTAR_ENTRADA_2`;
 
             const result = await DatabaseHelper.executeJsonInsert( spName, jsonResult);
       
@@ -145,6 +145,16 @@ class MetadataController {
       } 
 
     });
+  }
+
+  public async postValidarInsertarPagos(req: Request, res: Response): Promise<void> {
+    
+        const spName = `PAGO_VALIDAR_INSERTAR_ENTRADA`;
+
+        const result = await DatabaseHelper.executeJsonInsert( spName, req.body);
+  
+        res.json(result[0][0][0]); 
+
   }
 
   public async getUIResumen(req: Request, res: Response): Promise<any> {

@@ -119,7 +119,7 @@ class MetadataController {
                             }
                             const items = data.split("\n").map(line => line.trim()).filter(line => line.length > 0);
                             jsonResult.ITEMS = items;
-                            const spName = `${TIPO_MODULO}_VALIDAR_INSERTAR_ENTRADA`;
+                            const spName = `${TIPO_MODULO}_VALIDAR_INSERTAR_ENTRADA_2`;
                             const result = yield databaseHelper_1.default.executeJsonInsert(spName, jsonResult);
                             res.json(result[0][0][0]);
                         }));
@@ -149,6 +149,13 @@ class MetadataController {
                     res.json({ message: "Internal server error", error: error.message });
                 }
             }));
+        });
+    }
+    postValidarInsertarPagos(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const spName = `PAGO_VALIDAR_INSERTAR_ENTRADA`;
+            const result = yield databaseHelper_1.default.executeJsonInsert(spName, req.body);
+            res.json(result[0][0][0]);
         });
     }
     getUIResumen(req, res) {

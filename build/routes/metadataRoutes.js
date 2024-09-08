@@ -13,6 +13,7 @@ class MetadataRoutes {
     config() {
         this.router.get('/GET_METADATA_UI/:tipomodulo/:tipometada/:contrato', metadataController_1.default.getMetadataUI);
         this.router.post('/POST_VALIDATE_INSERT/', metadataController_1.default.postValidarInsertar);
+        this.router.post('/POST_INSERT_PAGOS_MANUAL', metadataController_1.default.postValidarInsertarPagos);
         this.router.get('/GET_RESUMEN_VALIDACION/:tipomodulo/:id', metadataController_1.default.getUIResumen);
         this.router.get('/GET_FILL_IMPORTES/:tipomodulo/:id', metadataController_1.default.getUIFill);
         this.router.post('/GET_GENERIC_SP', metadataController_1.default.postGenericSP);
