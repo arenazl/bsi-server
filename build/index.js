@@ -46,7 +46,7 @@ class Server {
         this.app.use(this.allowCrossDomain);
         this.app.use((0, morgan_1.default)('dev'));
         this.app.use((0, cors_1.default)({
-            origin: ['https://bsi-app.com.ar', 'http://localhost:4200'],
+            origin: ['https://bsi-app.com.ar', 'https://bsi-front-dev-d9e25e719b54.herokuapp.com', 'http://localhost:4200'],
             methods: ['GET', 'POST', 'OPTIONS'],
             allowedHeaders: ['Content-Type', 'Authorization']
         }));

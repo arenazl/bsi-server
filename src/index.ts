@@ -48,7 +48,7 @@ class Server {
         this.app.use(morgan('dev'));
 
         this.app.use(cors({
-            origin: ['https://bsi-app.com.ar', 'http://localhost:4200'],
+            origin: ['https://bsi-app.com.ar', 'https://bsi-front-dev-d9e25e719b54.herokuapp.com', 'http://localhost:4200'],
             methods: ['GET', 'POST', 'OPTIONS'],
             allowedHeaders: ['Content-Type', 'Authorization']
         }));
