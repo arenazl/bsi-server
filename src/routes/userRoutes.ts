@@ -19,4 +19,4 @@ class UserRoutes {
     }
 }
 
-export default new UserRoutes().router;
+export default new UserRoutes().router; 

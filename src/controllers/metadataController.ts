@@ -147,15 +147,19 @@ class MetadataController {
     });
   }
 
-  public async postValidarInsertarPagos(req: Request, res: Response): Promise<void> {
-    
+  public async postValidarInsertarPagos(req: Request, res: Response): Promise<void> {  
         const spName = `PAGO_VALIDAR_INSERTAR_ENTRADA`;
-
         const result = await DatabaseHelper.executeJsonInsert( spName, req.body);
-  
         res.json(result[0][0][0]); 
-
   }
+
+  public async postValidarInsertarNomina(req: Request, res: Response): Promise<void> {  
+    const spName = `NOMINA_VALIDAR_INSERTAR_ENTRADA_JSON`;
+
+    const result = await DatabaseHelper.executeJsonInsert( spName, req.body);
+    res.json(result[0][0][0]); 
+}
+
 
   public async getUIResumen(req: Request, res: Response): Promise<any> {
     const { tipomodulo, id } = req.params;
@@ -203,7 +207,7 @@ export const mappings: Record<string, { startRow: number; fields: string[] }> = 
   },
   NOMINA: {
     startRow: 0,
-    fields: ['id_user', 'Organismo_id', 'Contrato_id']
+    fields: ['IDUSER', 'IDORG', 'IDCONT']
   }
 
 };

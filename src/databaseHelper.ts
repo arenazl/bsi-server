@@ -93,7 +93,7 @@ public async executeJsonInsert(
 
     const values = [JSON.stringify(jsonData)];
 
-    console.log(values);
+    //console.log(values);
 
     const [queryResult] = await connection.execute(sql, values);
 

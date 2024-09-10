@@ -61,7 +61,7 @@ Luego de 2 o 3 preguntas, enviar esto: Si necesitas más información, te trasla
       if (this.thread == null || this.thread == undefined) {
         this.thread = await this.openai.beta.threads.create();
       }
-  
+
       /*
       // Detectar palabras clave relacionadas con recetas de cocina en el mensaje del usuario
       const keywords = this.detectKeywords(message);
@@ -95,7 +95,6 @@ Luego de 2 o 3 preguntas, enviar esto: Si necesitas más información, te trasla
           this.thread.id,
           run.id
         );
-        
       }
   
       // Obtener los mensajes del hilo

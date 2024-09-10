@@ -4,6 +4,7 @@ import databaseHelper from '../databaseHelper';
 class HelperController {
 
   public async getContratoById(req: Request, res: Response): Promise<void> {
+    
     const id_user = req.body.id_user;
     const id_organismo = req.body.id_organismo;
     const id_contrato = req.body.id_contrato;
