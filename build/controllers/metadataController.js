@@ -158,6 +158,13 @@ class MetadataController {
             res.json(result[0][0][0]);
         });
     }
+    postValidarInsertarNomina(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const spName = `NOMINA_VALIDAR_INSERTAR_ENTRADA_JSON`;
+            const result = yield databaseHelper_1.default.executeJsonInsert(spName, req.body);
+            res.json(result[0][0][0]);
+        });
+    }
     getUIResumen(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             const { tipomodulo, id } = req.params;
@@ -199,7 +206,7 @@ exports.mappings = {
     },
     NOMINA: {
         startRow: 0,
-        fields: ['id_user', 'Organismo_id', 'Contrato_id']
+        fields: ['IDUSER', 'IDORG', 'IDCONT']
     }
 };
 const metadataController = new MetadataController();
