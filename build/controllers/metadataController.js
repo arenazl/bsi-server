@@ -42,16 +42,59 @@ const databaseHelper_2 = __importDefault(require("../databaseHelper"));
 const node_1 = __importDefault(require("read-excel-file/node"));
 const fs = __importStar(require("fs"));
 class MetadataController {
-    postGenericSP(req, res) {
+    postSelectGenericSP(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { sp_name, body, jsonUnify = false, } = req.body;
+                // Verificar si los parámetros requeridos están presentes
+                if (!sp_name || !body) {
+                    return res.status(400).json({
+                        estado: 0,
+                        descripcion: 'Faltan parámetros requeridos.',
+                        data: null,
+                    });
+                }
+                // Preparar los valores para enviar al SP
+                let values = {};
+                // Si jsonUnify es true, mandar el body completo como un JSON único
+                if (jsonUnify) {
+                    values = { p_json: JSON.stringify(body) }; // Envía todo el body como JSON único
+                }
+                else {
+                    // Mandar los parámetros de manera tradicional, cada clave-valor por separado
+                    Object.entries(body).forEach(([key, value]) => {
+                        if (typeof value === 'string' || typeof value === 'number') {
+                            values[key] = value;
+                        }
+                        else {
+                            values[key] = JSON.stringify(value); // Convertir objetos y arrays a JSON
+                        }
+                    });
+                }
+                // Ejecutar el stored procedure con los valores
+                const rows = yield databaseHelper_1.default.executeSpJsonReturn(sp_name, values);
+                const result = rows[0];
+                return res.json(result);
+            }
+            catch (error) {
+                console.error("Error en el procedimiento:", error.message || error);
+                return res.status(500).json({
+                    estado: 0,
+                    descripcion: 'Error interno del servidor.',
+                    data: null,
+                });
+            }
+        });
+    }
+    postInsertGenericSP(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { sp_name, body } = req.body;
-                const values = {};
-                Object.keys(body).forEach(key => {
-                    values[key] = body[key];
-                });
-                const rows = yield databaseHelper_1.default.executeSpJsonReturn(sp_name, values);
-                return res.json(rows[0]);
+                // Ejecutar el stored procedure con los valores
+                const rows = yield databaseHelper_1.default.executeJsonInsert(sp_name, body);
+                const result = rows[0][0][0];
+                // Retornar la respuesta si el estado es 1
+                return res.json(result);
             }
             catch (error) {
                 console.error("Error en el procedimiento:", error.message || error);
@@ -119,7 +162,7 @@ class MetadataController {
                             }
                             const items = data.split("\n").map(line => line.trim()).filter(line => line.length > 0);
                             jsonResult.ITEMS = items;
-                            const spName = `${TIPO_MODULO}_VALIDAR_INSERTAR_ENTRADA_2`;
+                            const spName = `${TIPO_MODULO}_VALIDAD_INSERTAR_FULL_VALIDATION`;
                             const result = yield databaseHelper_1.default.executeJsonInsert(spName, jsonResult);
                             res.json(result[0][0][0]);
                         }));
@@ -176,21 +219,6 @@ class MetadataController {
             catch (error) {
                 console.error("Error:", error);
                 res.status(500).json({ message: "Error fetching resumen:", error: "Internal server error" });
-            }
-        });
-    }
-    getUIFill(req, res) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const { tipomodulo, id } = req.params;
-            try {
-                const params = { id };
-                const [row] = yield databaseHelper_1.default.executeSpJsonReturn(databaseHelper_2.default.getSpNameForData(tipomodulo, enums_1.TipoData.FILL), params);
-                res.json([row]);
-                return;
-            }
-            catch (error) {
-                console.error("Error:", error);
-                res.status(500).json({ message: "Error fetching fill data:", error: "Internal server error" });
             }
         });
     }

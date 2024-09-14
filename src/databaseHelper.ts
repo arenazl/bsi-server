@@ -92,9 +92,6 @@ public async executeJsonInsert(
     const sql = `CALL ${spName}(?);`;
 
     const values = [JSON.stringify(jsonData)];
-
-    //console.log(values);
-
     const [queryResult] = await connection.execute(sql, values);
 
     return [queryResult];
@@ -110,33 +107,32 @@ public async executeJsonInsert(
   }
 }
 
-  public async executeSpJsonReturn(
-    spName: string,
-    params: Record<string, string | number> | (string | number)[],
-    outParams: string[] | undefined| null = []
-  ): Promise<any> {
-    let connection: PoolConnection | undefined;
-    try 
-    {
-      connection = await this.getConnection();
+public async executeSpJsonReturn(
 
-      const values = Array.isArray(params) ? params : Object.values(params);
+  spName: string,
+  params: Record<string, string | number> | (string | number)[],
+  outParams: string[] | undefined | null = []
+): Promise<any> {
+  let connection: PoolConnection | undefined;
+  try {
+    connection = await this.getConnection();
 
-      const placeholders = values.map(() => "?").join(",");
+    const values = Array.isArray(params) ? params : Object.values(params);
 
-      const sql = `CALL ${spName}(${placeholders});`;
+    const placeholders = values.map(() => "?").join(",");
 
-      const [results]: any = await connection.execute(sql, values);
-      
-      return results[0];
-    
-    } catch (error: any) {
-      console.error("Error executing stored procedure (JSON Return):", error.message || error);
-      throw error;
-    } finally {
-      if (connection) connection.release();
-    }
+    const sql = `CALL ${spName}(${placeholders});`;
+
+    const [results]: any = await connection.execute(sql, values);
+
+    return results[0];
+  } catch (error: any) {
+    console.error("Error executing stored procedure (JSON Return):", error.message || error);
+    throw error;
+  } finally {
+    if (connection) connection.release();
   }
+}
 
   public formatDateFromFile(fechaPagoRaw) {
     // fechaPagoRaw tiene el formato YYYYMMDD
@@ -208,8 +204,6 @@ public async executeJsonInsert(
         return 'CUENTA_OBTENER_ARCHIVO_BY_ID';
       case tipoModulo === TipoModulo.NOMINA && tipoData === TipoData.LIST:
         return 'NOMINA_OBTENER_RESUMEN_BY_ID';
-      case tipoModulo === TipoModulo.NOMINA && tipoData === TipoData.FILL:
-        return 'NOMINA_OBTENER_FILL_BY_ID';
       default:
         return '';
     }

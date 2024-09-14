@@ -17,9 +17,11 @@ const process_1 = require("process");
 const openai_1 = __importDefault(require("openai"));
 class OpenAIController {
     constructor() {
+        /*
         this.initialize = this.initialize.bind(this);
         this.sendMessage = this.sendMessage.bind(this);
         this.initialize();
+        */
     }
     initialize() {
         return __awaiter(this, void 0, void 0, function* () {

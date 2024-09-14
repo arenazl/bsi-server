@@ -7,30 +7,77 @@ import * as fs from "fs";
 
 class MetadataController {
 
-  public async postGenericSP(req: Request, res: Response): Promise<any> {
+
+  public async postSelectGenericSP(req: Request, res: Response): Promise<any> {
     try {
-
-        const { sp_name, body } = req.body;
-
-        const values: Record<string, string | number> = {};
-        Object.keys(body).forEach(key => {
-            values[key] = body[key];
+      const { sp_name, body, jsonUnify = false, } = req.body;
+  
+      // Verificar si los parámetros requeridos están presentes
+      if (!sp_name || !body) {
+        return res.status(400).json({
+          estado: 0,
+          descripcion: 'Faltan parámetros requeridos.',
+          data: null,
         });
+      }
+  
+      // Preparar los valores para enviar al SP
+      let values: Record<string, string | number> = {};
+  
+      // Si jsonUnify es true, mandar el body completo como un JSON único
+      if (jsonUnify) {
+        values = { p_json: JSON.stringify(body) }; // Envía todo el body como JSON único
+      } else {
+        // Mandar los parámetros de manera tradicional, cada clave-valor por separado
+        Object.entries(body).forEach(([key, value]) => {
+          if (typeof value === 'string' || typeof value === 'number') {
+            values[key] = value;
+          } else {
+            values[key] = JSON.stringify(value); // Convertir objetos y arrays a JSON
+          }
+        });
+      }
 
-        const rows = await DatabaseHelper.executeSpJsonReturn(sp_name, values);
 
-        return res.json(rows[0]);
+      // Ejecutar el stored procedure con los valores
+      const rows = await DatabaseHelper.executeSpJsonReturn(sp_name, values);
 
+      const result = rows[0];
+  
+      return res.json(result);
+  
     } catch (error: any) {
-        console.error("Error en el procedimiento:", error.message || error);
-        return res.status(500).json({
-            estado: 0,
-            descripcion: 'Error interno del servidor.',
-            data: null,
-        });
+      console.error("Error en el procedimiento:", error.message || error);
+      return res.status(500).json({
+        estado: 0,
+        descripcion: 'Error interno del servidor.',
+        data: null,
+      });
     }
-}
+  }
 
+  public async postInsertGenericSP(req: Request, res: Response): Promise<any> {
+    try {
+      const { sp_name, body } = req.body;
+
+      // Ejecutar el stored procedure con los valores
+      const rows = await DatabaseHelper.executeJsonInsert(sp_name, body);
+      
+      const result = rows[0][0][0];
+
+      // Retornar la respuesta si el estado es 1
+      return res.json(result);
+  
+    } catch (error: any) {
+      console.error("Error en el procedimiento:", error.message || error);
+      return res.status(500).json({
+        estado: 0,
+        descripcion: 'Error interno del servidor.',
+        data: null,
+      });
+    }
+  }
+  
   public async getMetadataUI(req: Request, res: Response): Promise<any> {
 
     const { tipomodulo, tipometada, contrato } = req.params;
@@ -101,7 +148,7 @@ class MetadataController {
 
             jsonResult.ITEMS = items;
 
-            const spName = `${TIPO_MODULO}_VALIDAR_INSERTAR_ENTRADA_2`;
+            const spName = `${TIPO_MODULO}_VALIDAD_INSERTAR_FULL_VALIDATION`;
 
             const result = await DatabaseHelper.executeJsonInsert( spName, jsonResult);
       
@@ -132,11 +179,8 @@ class MetadataController {
         });
 
         const spName = `${TIPO_MODULO}_VALIDAR_INSERTAR_ENTRADA`;
-
         const result = await DatabaseHelper.executeJsonInsert( spName, jsonResult);
-  
         res.json(result[0][0][0]); 
-
       }
     
       } catch (error) {
@@ -160,7 +204,6 @@ class MetadataController {
     res.json(result[0][0][0]); 
 }
 
-
   public async getUIResumen(req: Request, res: Response): Promise<any> {
     const { tipomodulo, id } = req.params;
 
@@ -178,22 +221,6 @@ class MetadataController {
     }
   }
 
-  public async getUIFill(req: Request, res: Response): Promise<void> {
-
-    const { tipomodulo, id } = req.params;
-
-    try {
-      const params = { id };
-      const [row] = await DatabaseHelper.executeSpJsonReturn(databaseHelper.getSpNameForData(tipomodulo as TipoModulo, TipoData.FILL),params);
-
-        res.json([row]);
-        return
-      
-    } catch (error) {
-      console.error("Error:", error);
-      res.status(500).json({ message: "Error fetching fill data:", error: "Internal server error" });
-    }
-  }
 }
 
 export const mappings: Record<string, { startRow: number; fields: string[] }> = {

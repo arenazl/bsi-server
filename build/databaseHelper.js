@@ -95,7 +95,6 @@ class DatabaseHelper {
                 connection = yield this.getConnection();
                 const sql = `CALL ${spName}(?);`;
                 const values = [JSON.stringify(jsonData)];
-                //console.log(values);
                 const [queryResult] = yield connection.execute(sql, values);
                 return [queryResult];
             }
@@ -195,8 +194,6 @@ class DatabaseHelper {
                 return 'CUENTA_OBTENER_ARCHIVO_BY_ID';
             case tipoModulo === enums_1.TipoModulo.NOMINA && tipoData === enums_1.TipoData.LIST:
                 return 'NOMINA_OBTENER_RESUMEN_BY_ID';
-            case tipoModulo === enums_1.TipoModulo.NOMINA && tipoData === enums_1.TipoData.FILL:
-                return 'NOMINA_OBTENER_FILL_BY_ID';
             default:
                 return '';
         }
