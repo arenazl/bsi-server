@@ -15,7 +15,8 @@ export enum TipoModulo {
     TRANSFERENCIAS = 'TRANSFERENCIA',
     PAGO = 'PAGO',
     CUENTA = 'CUENTA',
-    NOMINA = 'NOMINA'
+    NOMINA = 'NOMINA',
+    NOMINA_XSL = 'NOMINA_XSL'
 }
 
 export enum TipoMetada {

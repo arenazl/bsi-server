@@ -157,9 +157,9 @@ class MetadataController {
           });
         } else 
         {
+
           const rows = await readXlsxFile(req.file!.path);
           const dataFromRows = rows.slice(config.startRow);
-
 
           dataFromRows.forEach((row) => {
 
@@ -182,6 +182,53 @@ class MetadataController {
         const result = await DatabaseHelper.executeJsonInsert( spName, jsonResult);
         res.json(result[0][0][0]); 
       }
+    
+      } catch (error) {
+        console.error("Error durante la operación:", error);
+        res.json({ message: "Internal server error", error: error.message });
+      } 
+
+    });
+  }
+
+  public async postNominaDesdeImport(req: Request, res: Response): Promise<void> {
+    
+    var upload = await DatabaseHelper.TempUploadProcess()
+  
+    upload(req, res, async () => {
+  
+      try {
+        
+        const dataFromUI = req.file?.originalname.split("-");
+        
+        const TIPO_MODULO = TipoModulo.NOMINA_XSL;
+        const config = mappings[TIPO_MODULO];
+
+        const jsonResult: any = { ITEMS: [] };
+
+          config.fields.forEach((field, index) => {
+            let value = dataFromUI[index + 1];
+            jsonResult[field] = value;
+          });
+
+          const rows = await readXlsxFile(req.file!.path);
+          const dataFromRows = rows.slice(config.startRow);
+
+          dataFromRows.forEach((row) => {
+
+            if (!row[3]) return;
+
+            const [CBU, CUIL, NOMBRE] = row.slice(3);
+            jsonResult.ITEMS.push({ CBU, CUIL, NOMBRE });
+
+          });
+
+          const spName = `NOMINA_VALIDAD_INSERTAR_FULL_VALIDATION`;
+
+          const result = await DatabaseHelper.executeJsonInsert( spName, jsonResult);
+    
+          res.json(result[0][0][0]);       
+
     
       } catch (error) {
         console.error("Error durante la operación:", error);
@@ -235,11 +282,13 @@ export const mappings: Record<string, { startRow: number; fields: string[] }> = 
   NOMINA: {
     startRow: 0,
     fields: ['IDUSER', 'IDORG', 'IDCONT']
+  },
+  NOMINA_XSL: {
+    startRow: 3,
+    fields: ['IDUSER', 'IDORG', 'IDCONT', 'CONCEPTO', 'FECHAPAGO']
   }
-
 };
 
-  
 const metadataController = new MetadataController();
 export default metadataController;
 

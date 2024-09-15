@@ -144,6 +144,8 @@ class DatabaseHelper {
             return ".xlsx";
         else if (tipoModulo == enums_1.TipoModulo.NOMINA || tipoModulo == enums_1.TipoModulo.TRANSFERENCIAS)
             return ".txt";
+        else if (tipoModulo == enums_1.TipoModulo.NOMINA_XSL)
+            return ".xlsx";
     }
     extractOutParams(queryResult, outParams) {
         const output = {};

@@ -148,6 +148,8 @@ public async executeSpJsonReturn(
       return ".xlsx";
     else if (tipoModulo == TipoModulo.NOMINA || tipoModulo == TipoModulo.TRANSFERENCIAS)
       return ".txt"; 
+    else if (tipoModulo == TipoModulo.NOMINA_XSL)
+      return ".xlsx"; 
   }
 
   private extractOutParams(queryResult: any, outParams: string[]): any {
