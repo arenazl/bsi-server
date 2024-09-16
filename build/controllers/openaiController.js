@@ -62,15 +62,13 @@ Luego de 2 o 3 preguntas, enviar esto: Si necesitas más información, te trasla
                 if (this.thread == null || this.thread == undefined) {
                     this.thread = yield this.openai.beta.threads.create();
                 }
-                /*
                 // Detectar palabras clave relacionadas con recetas de cocina en el mensaje del usuario
                 const keywords = this.detectKeywords(message);
                 let externalData = '';
-            
                 // Si se detectan palabras clave, obtener datos externos de la API de recetas
                 if (keywords.length > 0) {
-                  externalData = await this.fetchExternalData(keywords);
-                }*/
+                    externalData = yield this.fetchExternalData(keywords);
+                }
                 // Agregar el mensaje del usuario al hilo
                 yield this.openai.beta.threads.messages.create(this.thread.id, {
                     role: 'user',
