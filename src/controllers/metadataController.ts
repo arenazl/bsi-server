@@ -151,6 +151,14 @@ class MetadataController {
             const spName = `${TIPO_MODULO}_VALIDAD_INSERTAR_FULL_VALIDATION`;
 
             const result = await DatabaseHelper.executeJsonInsert( spName, jsonResult);
+
+            fs.unlink(req.file.path, (err) => {
+              if (err) {
+                console.error("Error al eliminar el archivo:", err);
+              } else {
+                console.log("Archivo eliminado correctamente.");
+              }
+            });
       
             res.json(result[0][0][0]);       
   
@@ -180,6 +188,15 @@ class MetadataController {
 
         const spName = `${TIPO_MODULO}_VALIDAR_INSERTAR_ENTRADA`;
         const result = await DatabaseHelper.executeJsonInsert( spName, jsonResult);
+
+        fs.unlink(req.file.path, (err) => {
+          if (err) {
+            console.error("Error al eliminar el archivo:", err);
+          } else {
+            console.log("Archivo eliminado correctamente.");
+          }
+        });
+        
         res.json(result[0][0][0]); 
       }
     
@@ -226,7 +243,15 @@ class MetadataController {
           const spName = `NOMINA_VALIDAD_INSERTAR_FULL_VALIDATION`;
 
           const result = await DatabaseHelper.executeJsonInsert( spName, jsonResult);
-    
+
+          fs.unlink(req.file.path, (err) => {
+            if (err) {
+              console.error("Error al eliminar el archivo:", err);
+            } else {
+              console.log("Archivo eliminado correctamente.");
+            }
+          });
+
           res.json(result[0][0][0]);       
 
     
