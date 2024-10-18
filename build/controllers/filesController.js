@@ -168,6 +168,40 @@ class FilesController {
     padStringFromRight(str, length, padChar = " ") {
         return str + padChar.repeat(length);
     }
+    uploadTR(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                var upload = yield databaseHelper_1.default.TempUploadProcess();
+                upload(req, res, () => __awaiter(this, void 0, void 0, function* () {
+                    var _a;
+                    try {
+                        const content = fs.readFileSync(req.file.path, "utf-8");
+                        const rows = content.split("\n");
+                        const info = this.parsearInfoArchivoTR(rows[0], rows[rows.length - 2]);
+                        const dataFromUI = (_a = req.file) === null || _a === void 0 ? void 0 : _a.originalname.split("-");
+                        const [user, motivo, concepto] = dataFromUI;
+                        const { values, outParams } = yield this.ParseHeader(info, concepto);
+                        const id = yield databaseHelper_1.default.executeSpInsert("InsertTransInmediataInfo", values, outParams);
+                        const transInmediataDatos = this.parsearDatosArchivoTR(rows, id);
+                        for (const entity of transInmediataDatos) {
+                            const values = yield this.LoopAndParseInfo(entity);
+                            yield databaseHelper_1.default.executeSpInsert("InsertTransInmediataDato", values, ["lastId"]);
+                        }
+                        this.escribirArchivoTR(transInmediataDatos, info, concepto, motivo, id);
+                        res.json({ id: id });
+                    }
+                    catch (error) {
+                        console.error("Error processing file:", error);
+                        res.status(500).json({ message: "Error processing file", error: "Internal server error" });
+                    }
+                }));
+            }
+            catch (error) {
+                console.error("Error in upload:", error);
+                res.status(500).json({ message: "Error in upload", error: "Internal server error" });
+            }
+        });
+    }
 }
 const fileController = new FilesController();
 exports.default = fileController;
