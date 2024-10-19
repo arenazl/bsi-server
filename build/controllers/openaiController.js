@@ -17,9 +17,45 @@ const process_1 = require("process");
 const openai_1 = __importDefault(require("openai"));
 class OpenAIController {
     constructor() {
+        /*
         this.initialize = this.initialize.bind(this);
         this.sendMessage = this.sendMessage.bind(this);
-        this.initialize();
+        this.initialize();*/
+        this.numeroDestino = '5491160223474'; // Número en formato internacional  
+        this.mensaje = 'hola';
+        /*
+        const client = new Client({
+          puppeteer: {
+              headless: true,
+          },
+      });
+    
+        client.on('qr', qr => {
+          qrcode.generate(qr, {small: true});
+      });
+    
+      client.on('ready', () => {
+    
+          console.log('Client is ready!');
+          
+          // Enviar mensaje cuando el cliente esté listo
+          const chatId = `${this.numeroDestino}@c.us`; // Formato correcto para WhatsApp Web
+          client.sendMessage(chatId, this.mensaje).then(response => {
+              console.log('Mensaje enviado:', response);
+          }).catch(err => {
+              console.error('Error al enviar mensaje:', err);
+          });
+      });
+    
+      client.on('message_create', message => {
+          console.log(message.body);
+    
+          if (message.body === '!ping') {
+              message.reply('pong');
+          }
+      });
+      client.initialize();
+      */
     }
     initialize() {
         return __awaiter(this, void 0, void 0, function* () {
