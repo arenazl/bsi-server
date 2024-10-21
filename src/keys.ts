@@ -14,6 +14,7 @@ const config = {
     port: 23108,
     password: 'AVNS_Fqe0qsChCHnqSnVsvoi',
     database: 'defaultdev',
+    
     ssl: {
       ca: sslCert,
     },
