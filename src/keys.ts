@@ -9,6 +9,7 @@ const sslCert = fs.readFileSync(path.join(__dirname, 'crt/ca.pem'));
 
 
 const config = {
+
   database: {
     host: 'mysql-aiven-arenazl.e.aivencloud.com',
     user: 'avnadmin',
@@ -17,9 +18,18 @@ const config = {
     database: 'defaultdb',
     
     ssl: {
-      ca: sslCert,
+      ca: sslCert,  
     },
   },
+
+  databaseNucleo: {
+    host: 'localhost',
+    user: 'root',
+    port: 3306,
+    password: 'qqqaaa',
+    database: 'ng',
+  },
+
 
   OpenAi: {
     key: process.env.OPENAI_API_KEY

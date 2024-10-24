@@ -13,11 +13,18 @@ const IORoutes_1 = __importDefault(require("./routes/IORoutes"));
 const metadataRoutes_1 = __importDefault(require("./routes/metadataRoutes"));
 const userRoutes_1 = __importDefault(require("./routes/userRoutes"));
 const openaiRoutes_1 = __importDefault(require("./routes/openaiRoutes"));
+const https_1 = __importDefault(require("https"));
+const fs_1 = __importDefault(require("fs"));
 /**
  * Represents the server class responsible for setting up and starting the Express application.
  */
 class Server {
     constructor() {
+        // Opciones HTTPS
+        this.httpsOptions = {
+            key: fs_1.default.readFileSync('src/crt/key.pem'), // Asegúrate de reemplazar con la ruta real
+            cert: fs_1.default.readFileSync('src/crt/cert.pem') // Asegúrate de reemplazar con la ruta real
+        };
         this.app = (0, express_1.default)();
         this.config();
         this.routes();
@@ -94,8 +101,13 @@ class Server {
      * Starts the Express server.
      */
     start() {
+        /*
         this.app.listen(this.app.get('port'), () => {
             console.log('Server on port', this.app.get('port'));
+        });*/
+        // Iniciar el servidor HTTPS
+        https_1.default.createServer(this.httpsOptions, this.app).listen(3000, () => {
+            console.log('HTTPS Server running on port 3000');
         });
     }
 }

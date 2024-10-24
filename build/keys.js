@@ -19,6 +19,13 @@ const config = {
             ca: sslCert,
         },
     },
+    databaseNucleo: {
+        host: 'localhost',
+        user: 'root',
+        port: 3306,
+        password: 'qqqaaa',
+        database: 'ng',
+    },
     OpenAi: {
         key: process.env.OPENAI_API_KEY
     },

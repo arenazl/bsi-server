@@ -3,7 +3,7 @@ import DatabaseHelper from "../databaseHelper";
 import { TipoModulo, TipoMetada, TipoData } from "../enums/enums";
 import databaseHelper from "../databaseHelper";
 import readXlsxFile from "read-excel-file/node";
-import * as fs from "fs";
+import * as fs from "fs"
 
 class MetadataController {
 

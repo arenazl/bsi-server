@@ -8,12 +8,16 @@ import IORoutes from './routes/IORoutes';
 import metadataRoutes from './routes/metadataRoutes';
 import userRoutes from './routes/userRoutes';
 import openaiRoutes from './routes/openaiRoutes';
+import https from 'https';
+import fs from 'fs';
+import path from 'path';
 
 
 /**
  * Represents the server class responsible for setting up and starting the Express application.
  */
 class Server {
+       
     public app: Application;
 
     constructor() {
@@ -47,12 +51,6 @@ class Server {
         this.app.use(this.allowCrossDomain);
         this.app.use(morgan('dev'));
 
-        this.app.use(cors({
-            origin: ['https://bsi-app.com.ar', 'https://bsi-front-dev-d9e25e719b54.herokuapp.com', 'http://localhost:4200'],
-            methods: ['GET', 'POST', 'OPTIONS'],
-            allowedHeaders: ['Content-Type', 'Authorization']
-        }));
-
         this.app.use(express.json());
         this.app.use(express.urlencoded({ extended: false }));
 
@@ -81,8 +79,6 @@ class Server {
         } else {
             next();
         }
-
-    
     }
 
     /**
@@ -105,9 +101,24 @@ class Server {
      * Starts the Express server.
      */
     start(): void {
+
+            // Opciones HTTPS
+                const httpsOptions = {
+                    key: fs.readFileSync(path.join(__dirname, 'crt/key.pem')),
+                    cert: fs.readFileSync(path.join(__dirname, 'crt/cert.pem'))
+            };
+    
+
+        /*
         this.app.listen(this.app.get('port'), () => {
             console.log('Server on port', this.app.get('port'));
-        });
+        });*/
+
+        // Iniciar el servidor HTTPS
+        https.createServer(httpsOptions, this.app).listen(3000, () => {
+        console.log('HTTPS Server running on port 3000');
+    });
+
     }
 }
 
