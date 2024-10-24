@@ -44,17 +44,15 @@ export class OpenAIController {
             res.sendStatus(403);
         }
   }
-
   }
-
   
   public async sendWhatsApp(req: any, res: any) {
     try {
 
-      const token = 'EAAH3vCxdMZBoBO8c9mZB12Xg3ZBHldsRlrZBqSK2pBUPQbqzhbUrZA2OJsmwuLOcKwZCGVd4ijTR45Wom6wuI56YM53RqiLz4TbUqkf2ecglNrPhbU384pnIEKqio8J5sVZCIN8JIIfZA5jsdYHT5hBHvLK2P5ucOVjreorAZC8yXFIJ1epIK2tAoVdDq6FUdtncFTha9rRXYrAkT4eArqa1nTuY4Y6yAwyTbQwOZCBrTtUAZDZD'; 
+      const token = 'EAAXOmruNQ1kBOzMkjSPZA0ZBnPZBxR1fi84hrzXCraZCZCNFZBcVoD8dcLuUYM2o2iIJJn6b5FT3WjAH6TLzxx6MMb0KQkQqqxvuCqb6YPO1mSY71oihg8yyNwZBEA8g23giOtqOXpH4qb59gCeMVoS6s1N5r5dVkerksMOfkWOAaMmSC8JvZCxYUGkNBGCZB0UbMTZCozK4CJ7AjbMnZBhSyt9jtUWZCsTnoQnGrsIFVDdH'; 
 
       const response = await axios.post(
-        `https://graph.facebook.com/v20.0/124321500653142/messages`,
+        `https://graph.facebook.com/v21.0/124321500653142/messages`,
         {
           messaging_product: 'whatsapp',
           to: this.numeroDestino,
@@ -73,6 +71,43 @@ export class OpenAIController {
 
     }
 
+  }
+
+  public async receiveWhatsApp(req: any, res: any): Promise<void> {
+
+    try {
+
+        const body = req.body
+
+        // Verifica que el mensaje venga de WhatsApp
+        //@ts-ignore
+        if (body.object === 'whatsapp_business_account') {
+           //@ts-ignore
+            body.entry.forEach(entry => {
+                const changes = entry.changes;
+                changes.forEach(change => {
+                    const messageData = change.value.messages;
+                    if (messageData) {
+                        messageData.forEach((message) => {
+                            // Aquí procesas el mensaje entrante
+                            const from = message.from; // El número de teléfono que envía el mensaje
+                            const messageText = message.text.body; // El contenido del mensaje
+
+                            console.log(`Nuevo mensaje de: ${from}, Mensaje: ${messageText}`);
+
+                            // Aquí podrías llamar a tu método para responder
+                            this.sendWhatsApp(from, `Gracias por tu mensaje: ${messageText}`);
+                        });
+                    }
+                });
+            });
+        }     
+        res.status(200).send('EVENT_RECEIVED');
+    } catch (error) {
+        console.error('Error al recibir mensaje de WhatsApp:', error);
+        res.sendStatus(500);
+    }
+  
   }
 
   private async initialize() {
