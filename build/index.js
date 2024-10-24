@@ -5,7 +5,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const morgan_1 = __importDefault(require("morgan"));
-const cors_1 = __importDefault(require("cors"));
 const indexRoutes_1 = __importDefault(require("./routes/indexRoutes"));
 const fileRoutes_1 = __importDefault(require("./routes/fileRoutes"));
 const helperRoutes_1 = __importDefault(require("./routes/helperRoutes"));
@@ -13,18 +12,11 @@ const IORoutes_1 = __importDefault(require("./routes/IORoutes"));
 const metadataRoutes_1 = __importDefault(require("./routes/metadataRoutes"));
 const userRoutes_1 = __importDefault(require("./routes/userRoutes"));
 const openaiRoutes_1 = __importDefault(require("./routes/openaiRoutes"));
-const https_1 = __importDefault(require("https"));
-const fs_1 = __importDefault(require("fs"));
 /**
  * Represents the server class responsible for setting up and starting the Express application.
  */
 class Server {
     constructor() {
-        // Opciones HTTPS
-        this.httpsOptions = {
-            key: fs_1.default.readFileSync('src/crt/key.pem'), // Asegúrate de reemplazar con la ruta real
-            cert: fs_1.default.readFileSync('src/crt/cert.pem') // Asegúrate de reemplazar con la ruta real
-        };
         this.app = (0, express_1.default)();
         this.config();
         this.routes();
@@ -52,11 +44,6 @@ class Server {
         this.app.set('port', process.env.PORT || 3000);
         this.app.use(this.allowCrossDomain);
         this.app.use((0, morgan_1.default)('dev'));
-        this.app.use((0, cors_1.default)({
-            origin: ['https://bsi-app.com.ar', 'https://bsi-front-dev-d9e25e719b54.herokuapp.com', 'http://localhost:4200'],
-            methods: ['GET', 'POST', 'OPTIONS'],
-            allowedHeaders: ['Content-Type', 'Authorization']
-        }));
         this.app.use(express_1.default.json());
         this.app.use(express_1.default.urlencoded({ extended: false }));
         this.app.options('*', (req, res) => {
@@ -101,14 +88,21 @@ class Server {
      * Starts the Express server.
      */
     start() {
+        // Opciones HTTPS
         /*
+            const httpsOptions = {
+                key: fs.readFileSync(path.join(__dirname, 'crt/key.pem')),
+                cert: fs.readFileSync(path.join(__dirname, 'crt/cert.pem'))
+        };*/
         this.app.listen(this.app.get('port'), () => {
             console.log('Server on port', this.app.get('port'));
-        });*/
-        // Iniciar el servidor HTTPS
-        https_1.default.createServer(this.httpsOptions, this.app).listen(3000, () => {
-            console.log('HTTPS Server running on port 3000');
         });
+        // Iniciar el servidor HTTPS
+        /*
+        https.createServer(httpsOptions, this.app).listen(3000, () => {
+        console.log('HTTPS Server running on port 3000');
+        X
+    });*/
     }
 }
 const server = new Server();

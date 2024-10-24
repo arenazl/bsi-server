@@ -103,21 +103,24 @@ class Server {
     start(): void {
 
             // Opciones HTTPS
+            /*
                 const httpsOptions = {
                     key: fs.readFileSync(path.join(__dirname, 'crt/key.pem')),
                     cert: fs.readFileSync(path.join(__dirname, 'crt/cert.pem'))
-            };
+            };*/
     
 
-        /*
+        
         this.app.listen(this.app.get('port'), () => {
             console.log('Server on port', this.app.get('port'));
-        });*/
+        });
 
         // Iniciar el servidor HTTPS
+        /*
         https.createServer(httpsOptions, this.app).listen(3000, () => {
         console.log('HTTPS Server running on port 3000');
-    });
+        X
+    });*/
 
     }
 }
