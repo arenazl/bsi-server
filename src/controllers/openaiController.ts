@@ -16,7 +16,7 @@ export class OpenAIController {
   private whatsappClient: Client;
 
   private numeroDestino = '5491160223474'; // Número en formato internacional  
-  private mensaje = 'hola';
+  private mensaje = 'hola como andas?';
 
   constructor() {
 
@@ -49,10 +49,10 @@ export class OpenAIController {
   public async sendWhatsApp(req: any, res: any) {
     try {
 
-      const token = 'EAAXOmruNQ1kBOzMkjSPZA0ZBnPZBxR1fi84hrzXCraZCZCNFZBcVoD8dcLuUYM2o2iIJJn6b5FT3WjAH6TLzxx6MMb0KQkQqqxvuCqb6YPO1mSY71oihg8yyNwZBEA8g23giOtqOXpH4qb59gCeMVoS6s1N5r5dVkerksMOfkWOAaMmSC8JvZCxYUGkNBGCZB0UbMTZCozK4CJ7AjbMnZBhSyt9jtUWZCsTnoQnGrsIFVDdH'; 
+      const token = 'EAAXOmruNQ1kBO0eudA8U6vSGWDsnAmzg3qZAHp68ZCJzAyfZADJ2tbfIy4Avf53tdmQNPQoR0gMKOloHBJUb0IJ6wimDG4XGfQ08bPZBglSY9DCBJvl9i1kfbThwCeQM4hTQ6ZB9RQAkGfasJjpMA5QS1ToAil1k5mdDuRoIlIZAmKKBhYeugnYc38f2AGPV55RtD8bbbqoqI9E411cj3uMA3ZCyQFW2mWyva5hZAaI8'; 
 
       const response = await axios.post(
-        `https://graph.facebook.com/v21.0/124321500653142/messages`,
+        `https://graph.facebook.com/v20.0/124321500653142/messages`,
         {
           messaging_product: 'whatsapp',
           to: this.numeroDestino,
@@ -80,9 +80,7 @@ export class OpenAIController {
         const body = req.body
 
         // Verifica que el mensaje venga de WhatsApp
-        //@ts-ignore
         if (body.object === 'whatsapp_business_account') {
-           //@ts-ignore
             body.entry.forEach(entry => {
                 const changes = entry.changes;
                 changes.forEach(change => {
