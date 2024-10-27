@@ -7,8 +7,6 @@ dotenv.config();
 
 const sslCert = fs.readFileSync(path.join(__dirname, 'crt/ca.pem'));
 
-
-
 const config = {
 
   database: {
@@ -31,8 +29,9 @@ const config = {
     database: 'ng',
   },
 
+  
   Tokens: {
-    OpenAI: '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',
+    OpenAI: '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',
     Meta: 'EAAXOmruNQ1kBO1xzy60W8ZAqj47lSlUFSd2FQjSb2IyJZAsXaB8xoxCB5zj2ZBb5OoJcZAUPmZBheXGWPe52RZBoM0sz8YnkUchEhzFoOTkGZCC2OXaLzu3xFfRHH2ba4ikKZAum2VOfAMIb7kRWlZA1rwiaDUDQaiOvjiVQjmZBcCnc7rJPimADH6BYUxpuK5X9SxcODec9cuZBfsCidtyf4wfgpXZB9grrBeZAVIg9IuTlh'
   },
   
