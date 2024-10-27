@@ -36,7 +36,7 @@ export class OpenAIController {
   private async initialize() {
     try {
       this.openai = new OpenAI({
-        apiKey: keys.Tokens.OpenAI
+        apiKey: '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'
       });
 
       
