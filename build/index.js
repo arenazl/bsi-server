@@ -13,6 +13,7 @@ const metadataRoutes_1 = __importDefault(require("./routes/metadataRoutes"));
 const userRoutes_1 = __importDefault(require("./routes/userRoutes"));
 const openaiRoutes_1 = __importDefault(require("./routes/openaiRoutes"));
 require('dotenv').config();
+const ngrok = require('ngrok');
 /**
  * Represents the server class responsible for setting up and starting the Express application.
  */
@@ -21,6 +22,13 @@ class Server {
         this.app = (0, express_1.default)();
         this.config();
         this.routes();
+        /*
+        const PORT = 3000;
+
+        // Ruta básica para verificar que la app funcione
+        this.app.get('/', (req, res) => {
+        res.send('¡Hola, ngrok está funcionando!');
+        });*/
     }
     /**
      *
@@ -94,6 +102,8 @@ class Server {
             const httpsOptions = {
                 key: fs.readFileSync(path.join(__dirname, 'crt/key.pem')),
                 cert: fs.readFileSync(path.join(__dirname, 'crt/cert.pem'))
+                
+            
         };*/
         this.app.listen(this.app.get('port'), () => {
             console.log('Server on port', this.app.get('port'));
@@ -104,8 +114,7 @@ class Server {
         /*
         https.createServer(httpsOptions, this.app).listen(3000, () => {
         console.log('HTTPS Server running on port 3000');
-        X
-    });*/
+        */
     }
 }
 const server = new Server();

@@ -28,14 +28,17 @@ export class OpenAIController {
     this.verifyWebhook = this.verifyWebhook.bind(this);
     this.handleWebhook = this.handleWebhook.bind(this);
 
-    this.initialize();
+    //(this.initialize();
+
   }
 
 
   private async initialize() {
     try {
+
+
       this.openai = new OpenAI({
-        apiKey: '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'
+        apiKey: keys.OpenAi.key
       });
 
       this.assistant = await this.openai.beta.assistants.create({
@@ -86,13 +89,15 @@ export class OpenAIController {
 
                 console.log(`Mensaje recibido de ${from}: ${messageText}`);
 
-                // Llamar a `sendMessage` con el mensaje recibido y obtener la respuesta del asistente
-                const assistantResponse = await this.sendMessage(messageText);
 
-                console.log(`Respuesta del asistente: ${assistantResponse}`);
+                // Llamar a `sendMessage` con el mensaje recibido y obtener la respuesta del asistente
+                this.sendWhatsAppMessage(from, messageText);
+
+                ///console.log(`Respuesta del asistente: ${assistantResponse}`);
 
                 // Enviar la respuesta al usuario de WhatsApp
-                await this.sendWhatsAppMessage(from, assistantResponse);
+                //await this.sendWhatsAppMessage(from, assistantResponse);
+
               }
             }
           }
@@ -109,6 +114,7 @@ export class OpenAIController {
 
   public async sendMessage(message: string): Promise<string> {
   try {
+
     let showCategory = false;
 
     // Asegurarse de que OpenAI y el asistente estén inicializados
@@ -122,7 +128,6 @@ export class OpenAIController {
     if (message.includes('menu') || message.includes('carta')) {
       showCategory = true;
     }
-
 
     // Obtener datos externos si es necesario
     const externalData = await this.fetchDataFromSP(showCategory);
@@ -186,6 +191,7 @@ export class OpenAIController {
   }
 }
 
+
   private async sendWhatsAppMessage(to: string, message: string) {
     try {
       const token = keys.Tokens.Meta;
@@ -194,7 +200,7 @@ export class OpenAIController {
         {
           messaging_product: 'whatsapp',
           to,
-          text: { body: message },
+          text: { body: "Llego el Mensaje: " },
         },
         {
           headers: { Authorization: `Bearer ${token}` },

@@ -26,13 +26,13 @@ class OpenAIController {
         //this.sendWhatsApp = this.sendWhatsApp.bind(this);
         this.verifyWebhook = this.verifyWebhook.bind(this);
         this.handleWebhook = this.handleWebhook.bind(this);
-        this.initialize();
+        //(this.initialize();
     }
     initialize() {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 this.openai = new openai_1.default({
-                    apiKey: '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'
+                    apiKey: keys_1.default.OpenAi.key
                 });
                 this.assistant = yield this.openai.beta.assistants.create({
                     name: 'mozo experimentado en el restaurante De la Bien Querida',
@@ -83,10 +83,10 @@ class OpenAIController {
                                     const messageText = message.text.body;
                                     console.log(`Mensaje recibido de ${from}: ${messageText}`);
                                     // Llamar a `sendMessage` con el mensaje recibido y obtener la respuesta del asistente
-                                    const assistantResponse = yield this.sendMessage(messageText);
-                                    console.log(`Respuesta del asistente: ${assistantResponse}`);
+                                    this.sendWhatsAppMessage(from, messageText);
+                                    ///console.log(`Respuesta del asistente: ${assistantResponse}`);
                                     // Enviar la respuesta al usuario de WhatsApp
-                                    yield this.sendWhatsAppMessage(from, assistantResponse);
+                                    //await this.sendWhatsAppMessage(from, assistantResponse);
                                 }
                             }
                         }
@@ -177,7 +177,7 @@ class OpenAIController {
                 yield axios_1.default.post(`https://graph.facebook.com/v21.0/124321500653142/messages`, {
                     messaging_product: 'whatsapp',
                     to,
-                    text: { body: message },
+                    text: { body: "Llego el Mensaje: " },
                 }, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
