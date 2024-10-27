@@ -3,6 +3,7 @@ import path from 'path';
 import dotenv from 'dotenv';
 import OpenAI from 'openai';
 import { env } from 'process';
+require('dotenv').config();
 
 dotenv.config();
 
@@ -35,9 +36,8 @@ const config = {
     Meta: 'EAAXOmruNQ1kBO1xzy60W8ZAqj47lSlUFSd2FQjSb2IyJZAsXaB8xoxCB5zj2ZBb5OoJcZAUPmZBheXGWPe52RZBoM0sz8YnkUchEhzFoOTkGZCC2OXaLzu3xFfRHH2ba4ikKZAum2VOfAMIb7kRWlZA1rwiaDUDQaiOvjiVQjmZBcCnc7rJPimADH6BYUxpuK5X9SxcODec9cuZBfsCidtyf4wfgpXZB9grrBeZAVIg9IuTlh'
   },
 
-
   OpenAi: {
-    key: dotenv.config().parsed.OPENAI_API_KEY
+    key: process.env.OPENAI_API_KEY
   },
 
   AWS: {

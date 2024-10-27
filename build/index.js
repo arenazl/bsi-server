@@ -12,6 +12,7 @@ const IORoutes_1 = __importDefault(require("./routes/IORoutes"));
 const metadataRoutes_1 = __importDefault(require("./routes/metadataRoutes"));
 const userRoutes_1 = __importDefault(require("./routes/userRoutes"));
 const openaiRoutes_1 = __importDefault(require("./routes/openaiRoutes"));
+require('dotenv').config();
 /**
  * Represents the server class responsible for setting up and starting the Express application.
  */
@@ -97,6 +98,8 @@ class Server {
         this.app.listen(this.app.get('port'), () => {
             console.log('Server on port', this.app.get('port'));
         });
+        console.log('my key');
+        console.log(process.env.OPENAI_API_KEY);
         // Iniciar el servidor HTTPS
         /*
         https.createServer(httpsOptions, this.app).listen(3000, () => {
