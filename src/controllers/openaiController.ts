@@ -15,8 +15,8 @@ export class OpenAIController {
   private thread: any;
   private whatsappClient: Client;
 
-  private numeroDestino = '54111560223474'; // Número en formato internacional  
-  private mensaje = 'hola como andas?';
+  private numeroDestino = '54111560223474';
+  private mensaje = 'Respuesta del asistente';
 
   constructor() {
 

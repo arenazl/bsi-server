@@ -19,8 +19,8 @@ const axios_1 = __importDefault(require("axios"));
 class OpenAIController {
     constructor() {
         //this.initialize = this.initialize.bind(this);
-        this.numeroDestino = '54111560223474'; // Número en formato internacional  
-        this.mensaje = 'hola como andas?';
+        this.numeroDestino = '54111560223474';
+        this.mensaje = 'Respuesta del asistente';
         //this.sendMessage = this.sendMessage.bind(this);
         //this.sendWhatsApp = this.sendWhatsApp.bind(this);
         this.verifyWebhook = this.verifyWebhook.bind(this);
