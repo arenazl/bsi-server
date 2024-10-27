@@ -15,7 +15,7 @@ export class OpenAIController {
   private thread: any;
   private whatsappClient: Client;
 
-  private numeroDestino = '54111560223474';
+  private numeroDestino = '541155790092';
   private mensaje = 'Respuesta del asistente';
 
   constructor() {
