@@ -111,6 +111,8 @@ export class OpenAIController {
 
   }
 
+
+  /*
   private async initialize() {
 
     try {
@@ -137,8 +139,10 @@ export class OpenAIController {
     } catch (error) {
       console.error('Error al inicializar OpenAI:', error);
     }
-  }
+  }*/
 
+
+  /*  
   public async sendMessage(req: any, res: any) {
     try {
 
@@ -210,7 +214,8 @@ export class OpenAIController {
       console.error('Error en sendMessage:', error);
       res.status(500).json({ error: 'Error interno del servidor' });
     }
-  }
+  }*/
+ 
 
   // Método para formatear los resultados del SP en una respuesta adecuada para el cliente
   private formatResults(results: any[], showcategory = false): string {

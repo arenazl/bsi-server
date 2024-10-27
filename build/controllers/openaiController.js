@@ -13,8 +13,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.openaiController = exports.OpenAIController = void 0;
-const keys_1 = __importDefault(require("./../keys"));
-const openai_1 = __importDefault(require("openai"));
 const databaseHelper_1 = __importDefault(require("../databaseHelper"));
 const axios_1 = __importDefault(require("axios"));
 class OpenAIController {
@@ -94,88 +92,107 @@ class OpenAIController {
             }
         });
     }
-    initialize() {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                // Inicializar OpenAI con la clave de API
-                this.openai = new openai_1.default({
-                    apiKey: keys_1.default.Tokens.OpenAI
-                });
-                // Crear el asistente solo una vez al inicializar el controlador
-                this.assistant = yield this.openai.beta.assistants.create({
-                    name: 'mozo experimentado en el restaurante De la Bien Querida',
-                    instructions: `
-          Sos un mozo con mucha experiencia que trabaja en un restaurante llamado "De la Bien Querida".         
-          Ayudás a los clientes a tomar decisiones sobre los mejores platos según sus gustos y necesidades. También podés recomendar vinos y postres, 
-          y siempre das una explicación completa sobre los ingredientes y los métodos de preparación de los platos. 
-          Siempre te aseguras de que los clientes se sientan bienvenidos y cómodos.
-          Siempre que des informacion sobre un producto, recorda poner por debajo la descripción y el precio.
-        `,
-                    model: 'gpt-3.5-turbo',
-                });
-            }
-            catch (error) {
-                console.error('Error al inicializar OpenAI:', error);
-            }
+    /*
+    private async initialize() {
+  
+      try {
+        // Inicializar OpenAI con la clave de API
+        this.openai = new OpenAI({
+          apiKey: keys.Tokens.OpenAI
         });
-    }
-    sendMessage(req, res) {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                let showCategory = false;
-                if (!this.openai || !this.assistant) {
-                    // Reintentar inicializar si no están definidos
-                    yield this.initialize();
-                }
-                const { message } = req.body;
-                if (message.includes('menu') || message.includes('carta'))
-                    showCategory = true;
-                // Cargar el menú solo al crear el hilo
-                const externalData = yield this.fetchDataFromSP(showCategory);
-                // Crear un nuevo hilo para la conversación solo si no está definido
-                if (!this.thread) {
-                    this.thread = yield this.openai.beta.threads.create();
-                    // Añadir el menú al contexto del hilo como un mensaje del "sistema"
-                    const promptWithDBData = `
-      Te proporciono la carta completa del menú del restaurante:
-      "${externalData}"
-      <ssss
-      A partir de ahora, podrás referenciar esta información para ayudar al usuario.
-      Si el usuario en su mensaje pone la palabra menu o carta, tb mostra la subcategoria de los productos.
-    `;
-                    yield this.openai.beta.threads.messages.create(this.thread.id, {
-                        role: 'user',
-                        content: promptWithDBData,
-                    });
-                }
-                // Añadir el mensaje del usuario al hilo
-                yield this.openai.beta.threads.messages.create(this.thread.id, {
-                    role: 'user',
-                    content: message,
-                });
-                // Ejecutar el asistente con el contexto y el mensaje del usuario
-                const run = yield this.openai.beta.threads.runs.create(this.thread.id, {
-                    assistant_id: this.assistant.id,
-                });
-                // Esperar a que el asistente termine de procesar
-                let runStatus = yield this.openai.beta.threads.runs.retrieve(this.thread.id, run.id);
-                while (runStatus.status !== 'completed') {
-                    yield new Promise((resolve) => setTimeout(resolve, 10000));
-                    runStatus = yield this.openai.beta.threads.runs.retrieve(this.thread.id, run.id);
-                }
-                // Obtener los mensajes del hilos
-                const messages = yield this.openai.beta.threads.messages.list(this.thread.id);
-                // Obtener la última respuesta del asistente
-                const assistantResponse = messages.data.filter((msg) => msg.role === 'assistant')[0];
-                // Enviar la respuesta generada por OpenAI al usuario
-                res.json({ response: assistantResponse.content });
-            }
-            catch (error) {
-                console.error('Error en sendMessage:', error);
-                res.status(500).json({ error: 'Error interno del servidor' });
-            }
+  
+        // Crear el asistente solo una vez al inicializar el controlador
+  
+        this.assistant = await this.openai.beta.assistants.create({
+          name: 'mozo experimentado en el restaurante De la Bien Querida',
+          instructions:
+            `
+            Sos un mozo con mucha experiencia que trabaja en un restaurante llamado "De la Bien Querida".
+            Ayudás a los clientes a tomar decisiones sobre los mejores platos según sus gustos y necesidades. También podés recomendar vinos y postres,
+            y siempre das una explicación completa sobre los ingredientes y los métodos de preparación de los platos.
+            Siempre te aseguras de que los clientes se sientan bienvenidos y cómodos.
+            Siempre que des informacion sobre un producto, recorda poner por debajo la descripción y el precio.
+          `,
+          model: 'gpt-3.5-turbo',
         });
-    }
+  
+      } catch (error) {
+        console.error('Error al inicializar OpenAI:', error);
+      }
+    }*/
+    /*
+    public async sendMessage(req: any, res: any) {
+      try {
+  
+          let showCategory = false;
+  
+        if (!this.openai || !this.assistant) {
+          // Reintentar inicializar si no están definidos
+          await this.initialize();
+        }
+  
+        const { message } = req.body;
+  
+        if(message.includes('menu') || message.includes('carta'))
+              showCategory = true;
+  
+           // Cargar el menú solo al crear el hilo
+           const externalData = await this.fetchDataFromSP(showCategory);
+  
+        // Crear un nuevo hilo para la conversación solo si no está definido
+        if (!this.thread) {
+          this.thread = await this.openai.beta.threads.create();
+       
+          // Añadir el menú al contexto del hilo como un mensaje del "sistema"
+          const promptWithDBData = `
+        Te proporciono la carta completa del menú del restaurante:
+        "${externalData}"
+        <ssss
+        A partir de ahora, podrás referenciar esta información para ayudar al usuario.
+        Si el usuario en su mensaje pone la palabra menu o carta, tb mostra la subcategoria de los productos.
+      `;
+  
+          await this.openai.beta.threads.messages.create(this.thread.id, {
+            role: 'user',
+            content: promptWithDBData,
+          });
+        }
+  
+        // Añadir el mensaje del usuario al hilo
+        await this.openai.beta.threads.messages.create(this.thread.id, {
+          role: 'user',
+          content: message,
+        });
+  
+         // Ejecutar el asistente con el contexto y el mensaje del usuario
+         const run = await this.openai.beta.threads.runs.create(this.thread.id, {
+          assistant_id: this.assistant.id,
+        });
+  
+          // Esperar a que el asistente termine de procesar
+          let runStatus = await this.openai.beta.threads.runs.retrieve(this.thread.id, run.id);
+  
+        while (runStatus.status !== 'completed') {
+          await new Promise((resolve) => setTimeout(resolve, 10000));
+          runStatus = await this.openai.beta.threads.runs.retrieve(
+            this.thread.id,
+            run.id
+          );
+        }
+  
+        // Obtener los mensajes del hilos
+        const messages = await this.openai.beta.threads.messages.list(this.thread.id);
+  
+        // Obtener la última respuesta del asistente
+        const assistantResponse = messages.data.filter((msg) => msg.role === 'assistant')[0];
+  
+        // Enviar la respuesta generada por OpenAI al usuario
+        res.json({ response: assistantResponse.content });
+      } catch (error) {
+        console.error('Error en sendMessage:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+      }
+    }*/
     // Método para formatear los resultados del SP en una respuesta adecuada para el cliente
     formatResults(results, showcategory = false) {
         let formattedData = '';
