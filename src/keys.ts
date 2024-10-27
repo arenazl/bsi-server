@@ -43,6 +43,7 @@ const config = {
     secretKey: 'erKj6KeUOTky3+YnYzwzdVtTavbkBR+bINLWEOnb'
   },
 
+  
   mails: {
     documentacion: 'sisbarrios',
     control: 'Proyectos.don.luisk41@gmail.com',
