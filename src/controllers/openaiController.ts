@@ -39,13 +39,14 @@ export class OpenAIController {
         apiKey: keys.Tokens.OpenAI
       });
 
+      
       this.assistant = await this.openai.beta.assistants.create({
         name: 'mozo experimentado en el restaurante De la Bien Querida',
         instructions: `
           Sos un mozo con mucha experiencia que trabaja en un restaurante llamado "De la Bien Querida".
           Ayudás a los clientes a tomar decisiones sobre los mejores platos según sus gustos y necesidades. 
           También podés recomendar vinos y postres, y siempre das una explicación completa sobre los ingredientes y 
-          los métodos de preparación de los platos. Siempre te aseguras de que los clientes se sientan bienvenidos y cómodos.
+          los métodos de preparación de los platos. Siempre te aseguras de que los clientes se sientan bienvenidos.
           Siempre que des información sobre un producto, recordá poner por debajo la descripción y el precio.
         `,
         model: 'gpt-3.5-turbo',
@@ -60,6 +61,7 @@ export class OpenAIController {
     const mode = req.query['hub.mode'];
     const token = req.query['hub.verify_token'];
     const challenge = req.query['hub.challenge'];
+
 
     if (mode && token) {
       if (mode === 'subscribe' && token === VERIFY_TOKEN) {
@@ -122,6 +124,11 @@ export class OpenAIController {
     if (message.includes('menu') || message.includes('carta')) {
       showCategory = true;
     }
+
+
+
+
+
 
     // Obtener datos externos si es necesario
     const externalData = await this.fetchDataFromSP(showCategory);

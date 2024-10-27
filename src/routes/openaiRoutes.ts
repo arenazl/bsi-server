@@ -12,6 +12,7 @@ class OpenAIRoutes {
     config(): void { 
 
         this.router.get('/webhook', openaiController.verifyWebhook);
+        
         this.router.post('/webhook', openaiController.handleWebhook);
     
     }
