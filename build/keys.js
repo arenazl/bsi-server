@@ -6,7 +6,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
 const dotenv_1 = __importDefault(require("dotenv"));
-const process_1 = require("process");
 dotenv_1.default.config();
 const sslCert = fs_1.default.readFileSync(path_1.default.join(__dirname, 'crt/ca.pem'));
 const config = {
@@ -28,8 +27,10 @@ const config = {
         database: 'ng',
     },
     Tokens: {
-        OpenAI: process_1.env.OPENAI,
         Meta: 'EAAXOmruNQ1kBO1xzy60W8ZAqj47lSlUFSd2FQjSb2IyJZAsXaB8xoxCB5zj2ZBb5OoJcZAUPmZBheXGWPe52RZBoM0sz8YnkUchEhzFoOTkGZCC2OXaLzu3xFfRHH2ba4ikKZAum2VOfAMIb7kRWlZA1rwiaDUDQaiOvjiVQjmZBcCnc7rJPimADH6BYUxpuK5X9SxcODec9cuZBfsCidtyf4wfgpXZB9grrBeZAVIg9IuTlh'
+    },
+    OpenAi: {
+        key: dotenv_1.default.config().parsed.OPENAI_API_KEY
     },
     AWS: {
         bucketName: 'sisbarrios',

@@ -35,7 +35,7 @@ export class OpenAIController {
   private async initialize() {
     try {
       this.openai = new OpenAI({
-        apiKey: keys.Tokens.OpenAI
+        apiKey: keys.OpenAi.key
       });
 
       this.assistant = await this.openai.beta.assistants.create({
