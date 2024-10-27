@@ -87,7 +87,7 @@ export class OpenAIController {
   public async sendWhatsApp(req: any, res: any) {
     try {
 
-      const token = 'EAAXOmruNQ1kBO0eudA8U6vSGWDsnAmzg3qZAHp68ZCJzAyfZADJ2tbfIy4Avf53tdmQNPQoR0gMKOloHBJUb0IJ6wimDG4XGfQ08bPZBglSY9DCBJvl9i1kfbThwCeQM4hTQ6ZB9RQAkGfasJjpMA5QS1ToAil1k5mdDuRoIlIZAmKKBhYeugnYc38f2AGPV55RtD8bbbqoqI9E411cj3uMA3ZCyQFW2mWyva5hZAaI8'; 
+      const token = keys.Tokens.Meta;
 
       const response = await axios.post(
         `https://graph.facebook.com/v20.0/124321500653142/messages`,
@@ -215,7 +215,7 @@ export class OpenAIController {
       res.status(500).json({ error: 'Error interno del servidor' });
     }
   }*/
- 
+
 
   // Método para formatear los resultados del SP en una respuesta adecuada para el cliente
   private formatResults(results: any[], showcategory = false): string {

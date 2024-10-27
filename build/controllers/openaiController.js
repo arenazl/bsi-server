@@ -13,6 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.openaiController = exports.OpenAIController = void 0;
+const keys_1 = __importDefault(require("./../keys"));
 const databaseHelper_1 = __importDefault(require("../databaseHelper"));
 const axios_1 = __importDefault(require("axios"));
 class OpenAIController {
@@ -77,7 +78,7 @@ class OpenAIController {
     sendWhatsApp(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const token = 'EAAXOmruNQ1kBO0eudA8U6vSGWDsnAmzg3qZAHp68ZCJzAyfZADJ2tbfIy4Avf53tdmQNPQoR0gMKOloHBJUb0IJ6wimDG4XGfQ08bPZBglSY9DCBJvl9i1kfbThwCeQM4hTQ6ZB9RQAkGfasJjpMA5QS1ToAil1k5mdDuRoIlIZAmKKBhYeugnYc38f2AGPV55RtD8bbbqoqI9E411cj3uMA3ZCyQFW2mWyva5hZAaI8';
+                const token = keys_1.default.Tokens.Meta;
                 const response = yield axios_1.default.post(`https://graph.facebook.com/v20.0/124321500653142/messages`, {
                     messaging_product: 'whatsapp',
                     to: this.numeroDestino,
