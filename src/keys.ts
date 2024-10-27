@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import dotenv from 'dotenv';
+import OpenAI from 'openai';
 
 dotenv.config();
 
@@ -30,9 +31,9 @@ const config = {
     database: 'ng',
   },
 
-
-  OpenAi: {
-    key: process.env.OPENAI_API_KEY
+  Tokens: {
+    OpenAI: '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',
+    Meta: 'EAAXOmruNQ1kBOZCVhVaZCq2aBKFsvAhsT4fnUpKZCM5Ef0muuE34lekyyq5w1HMjaN9maW2ZAoqVVEt0NzqdG5jBRiYVUvyQ1VRbDaLzmIKGZBCh88PCIGqN5qPChANgIZBxPBe337cDl4jNkxsWAuDQAVZAAeqzXIXGIxlqZA8Kp8iT3dt7tZC4YxGiWSalMBvKJbv1xkZAEjG8r5oDTQ7t0QE8LyZA4RcAP2s5xTpp6nU'
   },
   
   AWS: {

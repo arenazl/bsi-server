@@ -20,15 +20,18 @@ export class OpenAIController {
 
   constructor() {
 
-    this.initialize = this.initialize.bind(this);
-    this.sendMessage = this.sendMessage.bind(this);
-    this.sendWhatsApp = this.sendWhatsApp.bind(this);
-    this.webhook = this.webhook.bind(this);
-    this.initialize();
+    //this.initialize = this.initialize.bind(this);
+    //this.sendMessage = this.sendMessage.bind(this);
+    //this.sendWhatsApp = this.sendWhatsApp.bind(this);
+
+    this.verifyWebhook = this.verifyWebhook.bind(this);
+    this.handleWebhook = this.handleWebhook.bind(this);
+
+    //this.initialize();
 
   }
 
-  public async webhook(req: any, res: any) {
+  public async verifyWebhook(req: any, res: any) {
 
     const VERIFY_TOKEN = "LOOKUS";
 
@@ -45,35 +48,8 @@ export class OpenAIController {
         }
   }
   }
-  
-  public async sendWhatsApp(req: any, res: any) {
-    try {
 
-      const token = 'EAAXOmruNQ1kBO0eudA8U6vSGWDsnAmzg3qZAHp68ZCJzAyfZADJ2tbfIy4Avf53tdmQNPQoR0gMKOloHBJUb0IJ6wimDG4XGfQ08bPZBglSY9DCBJvl9i1kfbThwCeQM4hTQ6ZB9RQAkGfasJjpMA5QS1ToAil1k5mdDuRoIlIZAmKKBhYeugnYc38f2AGPV55RtD8bbbqoqI9E411cj3uMA3ZCyQFW2mWyva5hZAaI8'; 
-
-      const response = await axios.post(
-        `https://graph.facebook.com/v20.0/124321500653142/messages`,
-        {
-          messaging_product: 'whatsapp',
-          to: this.numeroDestino,
-          text: { body: this.mensaje },
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-
-      );
-
-    console.log('Mensaje de WhatsApp enviado:', response.data);
-
-    } catch (error) {
-      console.error('Error al enviar mensaje de WhatsApp:', error);
-
-    }
-
-  }
-
-  public async receiveWhatsApp(req: any, res: any): Promise<void> {
+  public async handleWebhook(req: any, res: any): Promise<void> {
 
     try {
 
@@ -107,13 +83,40 @@ export class OpenAIController {
     }
   
   }
+  
+  public async sendWhatsApp(req: any, res: any) {
+    try {
+
+      const token = 'EAAXOmruNQ1kBO0eudA8U6vSGWDsnAmzg3qZAHp68ZCJzAyfZADJ2tbfIy4Avf53tdmQNPQoR0gMKOloHBJUb0IJ6wimDG4XGfQ08bPZBglSY9DCBJvl9i1kfbThwCeQM4hTQ6ZB9RQAkGfasJjpMA5QS1ToAil1k5mdDuRoIlIZAmKKBhYeugnYc38f2AGPV55RtD8bbbqoqI9E411cj3uMA3ZCyQFW2mWyva5hZAaI8'; 
+
+      const response = await axios.post(
+        `https://graph.facebook.com/v20.0/124321500653142/messages`,
+        {
+          messaging_product: 'whatsapp',
+          to: this.numeroDestino,
+          text: { body: this.mensaje },
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+
+      );
+
+    console.log('Mensaje de WhatsApp enviado:', response.data);
+
+    } catch (error) {
+      console.error('Error al enviar mensaje de WhatsApp:', error);
+
+    }
+
+  }
 
   private async initialize() {
 
     try {
       // Inicializar OpenAI con la clave de API
       this.openai = new OpenAI({
-        apiKey: env.OPENAI_API_KEY.toString(),
+        apiKey: keys.Tokens.OpenAI
       });
 
       // Crear el asistente solo una vez al inicializar el controlador
@@ -229,13 +232,10 @@ export class OpenAIController {
     return formattedData.trim(); // Elimina espacios adicionales al final
 }
 
-  // Método para obtener datos desde el Stored Procedure basado en palabras clave
   private async fetchDataFromSP(showcategory=false): Promise<string> {
 
     let resultData = '';
 
-    // Conectar con la base de datos y ejecutar el stored procedure con las keywords
-    //for (const keyword of keywords) {
 
     const queryResult = await DatabaseHelper.executeSpSelect("GetClientFriendlyMenu", []);
 
