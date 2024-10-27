@@ -29,7 +29,6 @@ export class OpenAIController {
     this.handleWebhook = this.handleWebhook.bind(this);
 
     this.initialize();
-
   }
 
 
