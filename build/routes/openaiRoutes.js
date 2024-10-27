@@ -8,8 +8,8 @@ class OpenAIRoutes {
         this.config();
     }
     config() {
-        this.router.post('/message', openaiController_1.openaiController.sendMessage);
-        this.router.get('/webhook', openaiController_1.openaiController.webhook);
+        this.router.get('/webhook', openaiController_1.openaiController.verifyWebhook);
+        this.router.post('/webhook', openaiController_1.openaiController.handleWebhook);
     }
 }
 const openaiRoutes = new OpenAIRoutes();

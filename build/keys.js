@@ -26,8 +26,9 @@ const config = {
         password: 'qqqaaa',
         database: 'ng',
     },
-    OpenAi: {
-        key: process.env.OPENAI_API_KEY
+    Tokens: {
+        OpenAI: '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',
+        Meta: 'EAAXOmruNQ1kBOzBIe0ZA5wZAfcSxVSTxZAZCT9i1SvqxAvGNbr8biZAIou2NiaLZB6UKHaHGkt7jU4lz1FTk2DdaCKkMeOzyT95OJZBEYbq40fZCIfk6eQxBTzJtaJXRhzZCmxEscQSJ5C1FhjmfZCsq0TIHLAm7M7TrcjstoRXnveEPTNZCabpwUZA47Dm2f8Rb5KZBjGwJF9WHhNXYtpUlZBfN9U1gtCouJVEriJHs8mf6FyHwZDZD'
     },
     AWS: {
         bucketName: 'sisbarrios',

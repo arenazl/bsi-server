@@ -13,21 +13,22 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.openaiController = exports.OpenAIController = void 0;
-const process_1 = require("process");
+const keys_1 = __importDefault(require("./../keys"));
 const openai_1 = __importDefault(require("openai"));
 const databaseHelper_1 = __importDefault(require("../databaseHelper"));
 const axios_1 = __importDefault(require("axios"));
 class OpenAIController {
     constructor() {
+        //this.initialize = this.initialize.bind(this);
+        //this.sendMessage = this.sendMessage.bind(this);
+        //this.sendWhatsApp = this.sendWhatsApp.bind(this);
         this.numeroDestino = '5491160223474'; // Número en formato internacional  
-        this.mensaje = 'hola';
-        this.initialize = this.initialize.bind(this);
-        this.sendMessage = this.sendMessage.bind(this);
-        this.sendWhatsApp = this.sendWhatsApp.bind(this);
-        this.webhook = this.webhook.bind(this);
-        this.initialize();
+        this.mensaje = 'hola como andas?';
+        this.verifyWebhook = this.verifyWebhook.bind(this);
+        this.handleWebhook = this.handleWebhook.bind(this);
+        //this.initialize();
     }
-    webhook(req, res) {
+    verifyWebhook(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             const VERIFY_TOKEN = "LOOKUS";
             const mode = req.query['hub.mode'];
@@ -44,10 +45,41 @@ class OpenAIController {
             }
         });
     }
+    handleWebhook(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const body = req.body;
+                // Verifica que el mensaje venga de WhatsApp
+                if (body.object === 'whatsapp_business_account') {
+                    body.entry.forEach(entry => {
+                        const changes = entry.changes;
+                        changes.forEach(change => {
+                            const messageData = change.value.messages;
+                            if (messageData) {
+                                messageData.forEach((message) => {
+                                    // Aquí procesas el mensaje entrante
+                                    const from = message.from; // El número de teléfono que envía el mensaje
+                                    const messageText = message.text.body; // El contenido del mensaje
+                                    console.log(`Nuevo mensaje de: ${from}, Mensaje: ${messageText}`);
+                                    // Aquí podrías llamar a tu método para responder
+                                    this.sendWhatsApp(from, `Gracias por tu mensaje: ${messageText}`);
+                                });
+                            }
+                        });
+                    });
+                }
+                res.status(200).send('EVENT_RECEIVED');
+            }
+            catch (error) {
+                console.error('Error al recibir mensaje de WhatsApp:', error);
+                res.sendStatus(500);
+            }
+        });
+    }
     sendWhatsApp(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const token = 'EAAH3vCxdMZBoBO8c9mZB12Xg3ZBHldsRlrZBqSK2pBUPQbqzhbUrZA2OJsmwuLOcKwZCGVd4ijTR45Wom6wuI56YM53RqiLz4TbUqkf2ecglNrPhbU384pnIEKqio8J5sVZCIN8JIIfZA5jsdYHT5hBHvLK2P5ucOVjreorAZC8yXFIJ1epIK2tAoVdDq6FUdtncFTha9rRXYrAkT4eArqa1nTuY4Y6yAwyTbQwOZCBrTtUAZDZD';
+                const token = 'EAAXOmruNQ1kBO0eudA8U6vSGWDsnAmzg3qZAHp68ZCJzAyfZADJ2tbfIy4Avf53tdmQNPQoR0gMKOloHBJUb0IJ6wimDG4XGfQ08bPZBglSY9DCBJvl9i1kfbThwCeQM4hTQ6ZB9RQAkGfasJjpMA5QS1ToAil1k5mdDuRoIlIZAmKKBhYeugnYc38f2AGPV55RtD8bbbqoqI9E411cj3uMA3ZCyQFW2mWyva5hZAaI8';
                 const response = yield axios_1.default.post(`https://graph.facebook.com/v20.0/124321500653142/messages`, {
                     messaging_product: 'whatsapp',
                     to: this.numeroDestino,
@@ -67,7 +99,7 @@ class OpenAIController {
             try {
                 // Inicializar OpenAI con la clave de API
                 this.openai = new openai_1.default({
-                    apiKey: process_1.env.OPENAI_API_KEY.toString(),
+                    apiKey: keys_1.default.Tokens.OpenAI
                 });
                 // Crear el asistente solo una vez al inicializar el controlador
                 this.assistant = yield this.openai.beta.assistants.create({
@@ -159,12 +191,9 @@ class OpenAIController {
         }
         return formattedData.trim(); // Elimina espacios adicionales al final
     }
-    // Método para obtener datos desde el Stored Procedure basado en palabras clave
     fetchDataFromSP() {
         return __awaiter(this, arguments, void 0, function* (showcategory = false) {
             let resultData = '';
-            // Conectar con la base de datos y ejecutar el stored procedure con las keywords
-            //for (const keyword of keywords) {
             const queryResult = yield databaseHelper_1.default.executeSpSelect("GetClientFriendlyMenu", []);
             if (queryResult.length > 0) {
                 resultData += this.formatResults(queryResult, showcategory);
