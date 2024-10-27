@@ -17,6 +17,7 @@ var TipoModulo;
     TipoModulo["PAGO"] = "PAGO";
     TipoModulo["CUENTA"] = "CUENTA";
     TipoModulo["NOMINA"] = "NOMINA";
+    TipoModulo["NOMINA_XSL"] = "NOMINA_XSL";
 })(TipoModulo || (exports.TipoModulo = TipoModulo = {}));
 var TipoMetada;
 (function (TipoMetada) {

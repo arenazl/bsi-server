@@ -142,7 +142,7 @@ class MetadataController {
                     const dataFromUI = (_a = req.file) === null || _a === void 0 ? void 0 : _a.originalname.split("-");
                     const TIPO_MODULO = dataFromUI[0];
                     const config = exports.mappings[TIPO_MODULO];
-                    const jsonResult = { ITEMS: [] };
+                    let jsonResult = { ITEMS: [] };
                     if (config) {
                         config.fields.forEach((field, index) => {
                             let value = dataFromUI[index + 1];
@@ -164,12 +164,39 @@ class MetadataController {
                             jsonResult.ITEMS = items;
                             const spName = `${TIPO_MODULO}_VALIDAD_INSERTAR_FULL_VALIDATION`;
                             const result = yield databaseHelper_1.default.executeJsonInsert(spName, jsonResult);
+                            fs.unlink(req.file.path, (err) => {
+                                if (err) {
+                                    console.error("Error al eliminar el archivo:", err);
+                                }
+                                else {
+                                    console.log("Archivo eliminado correctamente.");
+                                }
+                            });
                             res.json(result[0][0][0]);
                         }));
                     }
-                    else {
+                    else //PAGO O CUENTAS
+                     {
                         const rows = yield (0, node_1.default)(req.file.path);
                         const dataFromRows = rows.slice(config.startRow);
+                        if (TIPO_MODULO === "PAGO") {
+                            dataFromRows.forEach((row) => {
+                                if (!row[3])
+                                    return;
+                                const [CBU, CUIL, NOMBRE] = row.slice(3);
+                                jsonResult.ITEMS.push({ CBU, CUIL, NOMBRE });
+                            });
+                            const spNameNomina = `NOMINA_VALIDAD_INSERTAR_FULL_VALIDATION`;
+                            const resultb = yield databaseHelper_1.default.executeJsonInsert(spNameNomina, jsonResult);
+                            resultb[0][0][0].tipo_modulo = "NOMINA";
+                            console.log("NOMINA");
+                            console.log(resultb[0][0][0]);
+                            if (resultb[0][0][0].estado == 0) {
+                                res.json(resultb[0][0][0]);
+                                return;
+                            }
+                        }
+                        jsonResult.ITEMS = [];
                         dataFromRows.forEach((row) => {
                             if ((TIPO_MODULO === "PAGO" && !row[3]) || (TIPO_MODULO === "CUENTA" && !row[4]))
                                 return;
@@ -184,8 +211,59 @@ class MetadataController {
                         });
                         const spName = `${TIPO_MODULO}_VALIDAR_INSERTAR_ENTRADA`;
                         const result = yield databaseHelper_1.default.executeJsonInsert(spName, jsonResult);
+                        fs.unlink(req.file.path, (err) => {
+                            if (err) {
+                                console.error("Error al eliminar el archivo:", err);
+                            }
+                            else {
+                                console.log("Archivo eliminado correctamente.");
+                            }
+                        });
+                        console.log('Response Pagos');
+                        console.log(result[0][0][0]);
                         res.json(result[0][0][0]);
                     }
+                }
+                catch (error) {
+                    console.error("Error durante la operación:", error);
+                    res.json({ message: "Internal server error", error: error.message });
+                }
+            }));
+        });
+    }
+    postNominaDesdeImport(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            var upload = yield databaseHelper_1.default.TempUploadProcess();
+            upload(req, res, () => __awaiter(this, void 0, void 0, function* () {
+                var _a;
+                try {
+                    const dataFromUI = (_a = req.file) === null || _a === void 0 ? void 0 : _a.originalname.split("-");
+                    const TIPO_MODULO = enums_1.TipoModulo.NOMINA_XSL;
+                    const config = exports.mappings[TIPO_MODULO];
+                    const jsonResult = { ITEMS: [] };
+                    config.fields.forEach((field, index) => {
+                        let value = dataFromUI[index + 1];
+                        jsonResult[field] = value;
+                    });
+                    const rows = yield (0, node_1.default)(req.file.path);
+                    const dataFromRows = rows.slice(config.startRow);
+                    dataFromRows.forEach((row) => {
+                        if (!row[3])
+                            return;
+                        const [CBU, CUIL, NOMBRE] = row.slice(3);
+                        jsonResult.ITEMS.push({ CBU, CUIL, NOMBRE });
+                    });
+                    const spName = `NOMINA_VALIDAD_INSERTAR_FULL_VALIDATION`;
+                    const result = yield databaseHelper_1.default.executeJsonInsert(spName, jsonResult);
+                    fs.unlink(req.file.path, (err) => {
+                        if (err) {
+                            console.error("Error al eliminar el archivo:", err);
+                        }
+                        else {
+                            console.log("Archivo eliminado correctamente.");
+                        }
+                    });
+                    res.json(result[0][0][0]);
                 }
                 catch (error) {
                     console.error("Error durante la operación:", error);
@@ -235,6 +313,10 @@ exports.mappings = {
     NOMINA: {
         startRow: 0,
         fields: ['IDUSER', 'IDORG', 'IDCONT']
+    },
+    NOMINA_XSL: {
+        startRow: 3,
+        fields: ['IDUSER', 'IDORG', 'IDCONT', 'CONCEPTO', 'FECHAPAGO']
     }
 };
 const metadataController = new MetadataController();

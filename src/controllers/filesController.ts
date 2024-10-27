@@ -147,13 +147,14 @@ class FilesController
     return str + padChar.repeat(length);
   }
   
-  /*
+  
   public async uploadTR(req: Request, res: Response): Promise<void> {
     try {
     
-      const upload = databaseHelper.TempUploadProcess(); 
-
+      var upload = await DatabaseHelper.TempUploadProcess()
+  
       upload(req, res, async () => {
+
         try {
           
           const content: string = fs.readFileSync(req.file.path, "utf-8");
@@ -184,7 +185,8 @@ class FilesController
       console.error("Error in upload:", error);
       res.status(500).json({ message: "Error in upload", error: "Internal server error" });
     }
-  }*/
+  }
+
 
   /*
   public async getResponseTR(req: Request, res: Response): Promise<any> {

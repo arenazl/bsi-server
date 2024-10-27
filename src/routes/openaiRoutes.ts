@@ -10,9 +10,12 @@ class OpenAIRoutes {
     }
 
     config(): void { 
-        this.router.post('/message', openaiController.sendMessage);
-    }
 
+        this.router.get('/webhook', openaiController.verifyWebhook);
+        
+        this.router.post('/webhook', openaiController.handleWebhook);
+    
+    }
     
 }
 

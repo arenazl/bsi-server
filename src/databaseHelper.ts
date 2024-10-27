@@ -10,7 +10,7 @@ class DatabaseHelper {
 
   private constructor() {
     // Configuración del pool de conexiones usando createPool
-    this.pool = createPool(keys.database as any);
+    this.pool = createPool(keys.databaseNucleo);
   }
 
   public static getInstance(): DatabaseHelper {
@@ -148,6 +148,8 @@ public async executeSpJsonReturn(
       return ".xlsx";
     else if (tipoModulo == TipoModulo.NOMINA || tipoModulo == TipoModulo.TRANSFERENCIAS)
       return ".txt"; 
+    else if (tipoModulo == TipoModulo.NOMINA_XSL)
+      return ".xlsx"; 
   }
 
   private extractOutParams(queryResult: any, outParams: string[]): any {

@@ -19,7 +19,7 @@ const multer_1 = __importDefault(require("multer"));
 class DatabaseHelper {
     constructor() {
         // Configuración del pool de conexiones usando createPool
-        this.pool = (0, promise_1.createPool)(keys_1.default.database);
+        this.pool = (0, promise_1.createPool)(keys_1.default.databaseNucleo);
     }
     static getInstance() {
         if (!DatabaseHelper.instance) {
@@ -144,6 +144,8 @@ class DatabaseHelper {
             return ".xlsx";
         else if (tipoModulo == enums_1.TipoModulo.NOMINA || tipoModulo == enums_1.TipoModulo.TRANSFERENCIAS)
             return ".txt";
+        else if (tipoModulo == enums_1.TipoModulo.NOMINA_XSL)
+            return ".xlsx";
     }
     extractOutParams(queryResult, outParams) {
         const output = {};

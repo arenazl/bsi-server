@@ -18,6 +18,7 @@ class MetadataRoutes {
         this.router.get('//:tipomodulo/:user/:contrato/:organismo', metadataController_1.default.getUIResumen);
         this.router.post('/POST_INSERT_GENERIC_SP', metadataController_1.default.postInsertGenericSP);
         this.router.post('/POST_SELECT_GENERIC_SP', metadataController_1.default.postSelectGenericSP);
+        this.router.post('/POST_INSERTAR_NOMINA_DESDE_IMPORT', metadataController_1.default.postNominaDesdeImport);
     }
 }
 exports.default = new MetadataRoutes().router;

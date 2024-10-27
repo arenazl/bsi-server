@@ -19,8 +19,18 @@ const config = {
             ca: sslCert,
         },
     },
+    databaseNucleo: {
+        host: 'localhost',
+        user: 'root',
+        port: 3306,
+        password: 'qqqaaa',
+        database: 'ng',
+    },
+    Tokens: {
+        Meta: 'EAAXOmruNQ1kBO1xzy60W8ZAqj47lSlUFSd2FQjSb2IyJZAsXaB8xoxCB5zj2ZBb5OoJcZAUPmZBheXGWPe52RZBoM0sz8YnkUchEhzFoOTkGZCC2OXaLzu3xFfRHH2ba4ikKZAum2VOfAMIb7kRWlZA1rwiaDUDQaiOvjiVQjmZBcCnc7rJPimADH6BYUxpuK5X9SxcODec9cuZBfsCidtyf4wfgpXZB9grrBeZAVIg9IuTlh'
+    },
     OpenAi: {
-        key: process.env.OPENAI_API_KEY
+        key: dotenv_1.default.config().parsed.OPENAI_API_KEY
     },
     AWS: {
         bucketName: 'sisbarrios',
