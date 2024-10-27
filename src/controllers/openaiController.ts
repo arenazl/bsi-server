@@ -84,8 +84,12 @@ export class OpenAIController {
                 const from = message.from;
                 const messageText = message.text.body;
 
+                console.log(`Mensaje recibido de ${from}: ${messageText}`);
+
                 // Llamar a `sendMessage` con el mensaje recibido y obtener la respuesta del asistente
                 const assistantResponse = await this.sendMessage(messageText);
+
+                console.log(`Respuesta del asistente: ${assistantResponse}`);
 
                 // Enviar la respuesta al usuario de WhatsApp
                 await this.sendWhatsAppMessage(from, assistantResponse);
@@ -102,7 +106,6 @@ export class OpenAIController {
       res.sendStatus(500);
     }
   }
-
 
   public async sendMessage(message: string): Promise<string> {
   try {
@@ -156,6 +159,7 @@ export class OpenAIController {
     let runStatus = await this.openai.beta.threads.runs.retrieve(this.thread.id, run.id);
     let attempts = 0;
     const maxAttempts = 10;
+    
     while (runStatus.status !== 'completed' && attempts < maxAttempts) {
       await new Promise((resolve) => setTimeout(resolve, 10000));
       runStatus = await this.openai.beta.threads.runs.retrieve(this.thread.id, run.id);
@@ -165,13 +169,15 @@ export class OpenAIController {
       throw new Error('El asistente tardó demasiado en responder.');
     }
 
-    // Obtener la respuesta del asistente
-    const messages = await this.openai.beta.threads.messages.list(this.thread.id);
-    const assistantResponse = messages.data.find((msg) => msg.role === 'assistant');
+      const messages = await this.openai.beta.threads.messages.list(this.thread.id);
 
-    var response = assistantResponse ? assistantResponse.content : 'Hubo un problema al procesar tu Smensaje.'
+      // Obtener la última respuesta del asistente
+      const assistantResponse = messages.data.filter((msg) => msg.role === 'assistant')[0];
 
-    return response[0].toString();
+    var response: any = assistantResponse ? assistantResponse.content : 'Hubo un problema al procesar tu Smensaje.'
+
+    //ts-ignore
+    return response[0].text.value
     
   } catch (error) {
     console.error('Error en sendMessage:', error);
@@ -195,6 +201,7 @@ export class OpenAIController {
         }
       );
       console.log(`Mensaje enviado a ${to}: ${message}`);
+
     } catch (error) {
       console.error('Error al enviar mensaje de WhatsApp:', error);
     }

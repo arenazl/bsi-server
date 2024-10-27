@@ -27,8 +27,8 @@ const config = {
         database: 'ng',
     },
     Tokens: {
-        OpenAI: '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',
-        Meta: 'EAAXOmruNQ1kBOzBIe0ZA5wZAfcSxVSTxZAZCT9i1SvqxAvGNbr8biZAIou2NiaLZB6UKHaHGkt7jU4lz1FTk2DdaCKkMeOzyT95OJZBEYbq40fZCIfk6eQxBTzJtaJXRhzZCmxEscQSJ5C1FhjmfZCsq0TIHLAm7M7TrcjstoRXnveEPTNZCabpwUZA47Dm2f8Rb5KZBjGwJF9WHhNXYtpUlZBfN9U1gtCouJVEriJHs8mf6FyHwZDZD'
+        OpenAI: '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',
+        Meta: 'EAAXOmruNQ1kBO1xzy60W8ZAqj47lSlUFSd2FQjSb2IyJZAsXaB8xoxCB5zj2ZBb5OoJcZAUPmZBheXGWPe52RZBoM0sz8YnkUchEhzFoOTkGZCC2OXaLzu3xFfRHH2ba4ikKZAum2VOfAMIb7kRWlZA1rwiaDUDQaiOvjiVQjmZBcCnc7rJPimADH6BYUxpuK5X9SxcODec9cuZBfsCidtyf4wfgpXZB9grrBeZAVIg9IuTlh'
     },
     AWS: {
         bucketName: 'sisbarrios',

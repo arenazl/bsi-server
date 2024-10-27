@@ -81,8 +81,10 @@ class OpenAIController {
                                 for (const message of messageData) {
                                     const from = message.from;
                                     const messageText = message.text.body;
+                                    console.log(`Mensaje recibido de ${from}: ${messageText}`);
                                     // Llamar a `sendMessage` con el mensaje recibido y obtener la respuesta del asistente
                                     const assistantResponse = yield this.sendMessage(messageText);
+                                    console.log(`Respuesta del asistente: ${assistantResponse}`);
                                     // Enviar la respuesta al usuario de WhatsApp
                                     yield this.sendWhatsAppMessage(from, assistantResponse);
                                 }
@@ -155,11 +157,12 @@ class OpenAIController {
                 if (runStatus.status !== 'completed') {
                     throw new Error('El asistente tardó demasiado en responder.');
                 }
-                // Obtener la respuesta del asistente
                 const messages = yield this.openai.beta.threads.messages.list(this.thread.id);
-                const assistantResponse = messages.data.find((msg) => msg.role === 'assistant');
+                // Obtener la última respuesta del asistente
+                const assistantResponse = messages.data.filter((msg) => msg.role === 'assistant')[0];
                 var response = assistantResponse ? assistantResponse.content : 'Hubo un problema al procesar tu Smensaje.';
-                return response[0].toString();
+                //ts-ignore
+                return response[0].text.value;
             }
             catch (error) {
                 console.error('Error en sendMessage:', error);
