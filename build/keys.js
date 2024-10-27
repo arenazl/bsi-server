@@ -27,7 +27,7 @@ const config = {
         database: 'ng',
     },
     Tokens: {
-        OpenAI: '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',
+        OpenAI: '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',
         Meta: 'EAAXOmruNQ1kBOzBIe0ZA5wZAfcSxVSTxZAZCT9i1SvqxAvGNbr8biZAIou2NiaLZB6UKHaHGkt7jU4lz1FTk2DdaCKkMeOzyT95OJZBEYbq40fZCIfk6eQxBTzJtaJXRhzZCmxEscQSJ5C1FhjmfZCsq0TIHLAm7M7TrcjstoRXnveEPTNZCabpwUZA47Dm2f8Rb5KZBjGwJF9WHhNXYtpUlZBfN9U1gtCouJVEriJHs8mf6FyHwZDZD'
     },
     AWS: {
