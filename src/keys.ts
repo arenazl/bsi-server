@@ -31,10 +31,10 @@ const config = {
 
   
   Tokens: {
-    OpenAI: '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',
+    OpenAI: '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',
     Meta: 'EAAXOmruNQ1kBO1xzy60W8ZAqj47lSlUFSd2FQjSb2IyJZAsXaB8xoxCB5zj2ZBb5OoJcZAUPmZBheXGWPe52RZBoM0sz8YnkUchEhzFoOTkGZCC2OXaLzu3xFfRHH2ba4ikKZAum2VOfAMIb7kRWlZA1rwiaDUDQaiOvjiVQjmZBcCnc7rJPimADH6BYUxpuK5X9SxcODec9cuZBfsCidtyf4wfgpXZB9grrBeZAVIg9IuTlh'
   },
-  
+
   
   AWS: {
     bucketName: 'sisbarrios',

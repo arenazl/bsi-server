@@ -32,7 +32,7 @@ class OpenAIController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 this.openai = new openai_1.default({
-                    apiKey: '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'
+                    apiKey: keys_1.default.Tokens.OpenAI
                 });
                 this.assistant = yield this.openai.beta.assistants.create({
                     name: 'mozo experimentado en el restaurante De la Bien Querida',

@@ -36,7 +36,7 @@ export class OpenAIController {
   private async initialize() {
     try {
       this.openai = new OpenAI({
-        apiKey: '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'
+        apiKey: keys.Tokens.OpenAI
       });
 
       this.assistant = await this.openai.beta.assistants.create({
@@ -123,10 +123,6 @@ export class OpenAIController {
     if (message.includes('menu') || message.includes('carta')) {
       showCategory = true;
     }
-
-
-
-
 
 
     // Obtener datos externos si es necesario
