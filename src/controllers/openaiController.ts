@@ -15,7 +15,7 @@ export class OpenAIController {
   private thread: any;
   private whatsappClient: Client;
 
-  private numeroDestino = '5491160223474'; // Número en formato internacional  
+  private numeroDestino = '54111560223474'; // Número en formato internacional  
   private mensaje = 'hola como andas?';
 
   constructor() {
@@ -90,7 +90,7 @@ export class OpenAIController {
       const token = keys.Tokens.Meta;
 
       const response = await axios.post(
-        `https://graph.facebook.com/v20.0/124321500653142/messages`,
+        `https://graph.facebook.com/v21.0/124321500653142/messages`,
         {
           messaging_product: 'whatsapp',
           to: this.numeroDestino,

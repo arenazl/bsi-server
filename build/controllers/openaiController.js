@@ -21,7 +21,7 @@ class OpenAIController {
         //this.initialize = this.initialize.bind(this);
         //this.sendMessage = this.sendMessage.bind(this);
         //this.sendWhatsApp = this.sendWhatsApp.bind(this);
-        this.numeroDestino = '5491160223474'; // Número en formato internacional  
+        this.numeroDestino = '54111560223474'; // Número en formato internacional  
         this.mensaje = 'hola como andas?';
         this.verifyWebhook = this.verifyWebhook.bind(this);
         this.handleWebhook = this.handleWebhook.bind(this);
@@ -79,7 +79,7 @@ class OpenAIController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const token = keys_1.default.Tokens.Meta;
-                const response = yield axios_1.default.post(`https://graph.facebook.com/v20.0/124321500653142/messages`, {
+                const response = yield axios_1.default.post(`https://graph.facebook.com/v21.0/124321500653142/messages`, {
                     messaging_product: 'whatsapp',
                     to: this.numeroDestino,
                     text: { body: this.mensaje },
