@@ -188,8 +188,8 @@ class OpenAIController {
                 const token = keys_1.default.Tokens.Meta;
                 yield axios_1.default.post(`https://graph.facebook.com/v21.0/124321500653142/messages`, {
                     messaging_product: 'whatsapp',
-                    to,
-                    text: { body: "Llego el Mensaje: " },
+                    to: this.numeroDestino,
+                    text: { body: this.mensaje },
                 }, {
                     headers: { Authorization: `Bearer ${token}` },
                 });

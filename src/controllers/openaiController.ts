@@ -199,8 +199,8 @@ export class OpenAIController {
         `https://graph.facebook.com/v21.0/124321500653142/messages`,
         {
           messaging_product: 'whatsapp',
-          to,
-          text: { body: "Llego el Mensaje: " },
+          to: this.numeroDestino,
+          text: { body: this.mensaje },
         },
         {
           headers: { Authorization: `Bearer ${token}` },
