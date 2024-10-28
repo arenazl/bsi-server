@@ -202,7 +202,7 @@ export class OpenAIController {
   private async sendWhatsAppMessage(to: string, message: string) {
     try {
 
-      console.log(`Mensaje a enviar: ${validateHeaderName}`);
+      console.log(`Mensaje a enviar: ${message}`);
 
       const token = keys.Tokens.Meta;
       await axios.post(

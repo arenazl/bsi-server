@@ -17,7 +17,6 @@ const keys_1 = __importDefault(require("./../keys"));
 const openai_1 = __importDefault(require("openai"));
 const databaseHelper_1 = __importDefault(require("../databaseHelper"));
 const axios_1 = __importDefault(require("axios"));
-const http_1 = require("http");
 class OpenAIController {
     constructor() {
         this.numeroDestino = '54111560223474';
@@ -177,7 +176,7 @@ class OpenAIController {
     sendWhatsAppMessage(to, message) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                console.log(`Mensaje a enviar: ${http_1.validateHeaderName}`);
+                console.log(`Mensaje a enviar: ${message}`);
                 const token = keys_1.default.Tokens.Meta;
                 yield axios_1.default.post(`https://graph.facebook.com/v21.0/124321500653142/messages`, {
                     messaging_product: 'whatsapp',
