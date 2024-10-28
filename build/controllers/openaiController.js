@@ -115,11 +115,13 @@ class OpenAIController {
                 if (message.includes('menu') || message.includes('carta')) {
                     showCategory = true;
                 }
+                const externalData = "";
                 // Obtener datos externos si es necesario
-                const externalData = yield this.fetchDataFromSP(showCategory);
+                /*
+                const externalData = await this.fetchDataFromSP(showCategory);
                 if (!externalData) {
-                    throw new Error('No se pudo obtener el menú desde el SP.');
-                }
+                  throw new Error('No se pudo obtener el menú desde el SP.');
+                }*/
                 // Crear un hilo si no existe
                 if (!this.thread) {
                     this.thread = yield this.openai.beta.threads.create();

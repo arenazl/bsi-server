@@ -127,11 +127,14 @@ export class OpenAIController {
       showCategory = true;
     }
 
+    const externalData= "";
+
     // Obtener datos externos si es necesario
+    /*
     const externalData = await this.fetchDataFromSP(showCategory);
     if (!externalData) {
       throw new Error('No se pudo obtener el menú desde el SP.');
-    }
+    }*/
 
     // Crear un hilo si no existe
     if (!this.thread) {
@@ -233,9 +236,7 @@ export class OpenAIController {
 
     let resultData = '';
 
-
     const queryResult = await DatabaseHelper.executeSpSelect("GetClientFriendlyMenu", []);
-
 
     if (queryResult.length > 0) {
       resultData += this.formatResults(queryResult, showcategory);
