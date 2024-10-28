@@ -32,7 +32,6 @@ export class OpenAIController {
 
   }
 
-
   private async initialize() {
     try {
 
@@ -76,40 +75,43 @@ export class OpenAIController {
 
   public async handleWebhook(req: any, res: any): Promise<void> {
     try {
-      const body = req.body;
-      if (body.object === 'whatsapp_business_account') {
-        body.entry.forEach(async (entry) => {
-          const changes = entry.changes;
-          for (const change of changes) {
-            const messageData = change.value.messages;
-            if (messageData) {
-              for (const message of messageData) {
-                const from = message.from;
-                const messageText = message.text.body;
+        const body = req.body;
+        if (body.object === 'whatsapp_business_account') {
+            body.entry.forEach(async (entry) => {
+                const changes = entry.changes;
+                for (const change of changes) {
+                    const messageData = change.value.messages;
+                    if (messageData) {
+                        for (const message of messageData) {
+                            const from = message.from;
+                            const messageText = message.text.body;
 
-                console.log(`Mensaje recibido de ${from}: ${messageText}`);
+                            console.log(`Mensaje recibido de ${from}: ${messageText}`);
 
-                var assistantResponse = await this.sendMessage(messageText);
+                            // 1. Enviar mensaje de carga
+                            await this.sendWhatsAppMessage(from, "⏳ Procesando tu solicitud, por favor espera un momento...");
 
-                console.log(`Respuesta del asistente: ${assistantResponse}`);
-                
-                await this.sendWhatsAppMessage(from, assistantResponse);
+                            // 2. Obtener respuesta del asistente
+                            const assistantResponse = await this.sendMessage(messageText);
+                            console.log(`Respuesta del asistente: ${assistantResponse}`);
 
-              }
-            }
-          }
-        });
-        res.status(200).send('EVENT_RECEIVED');
-      } else {
-        res.sendStatus(404);
-      }
+                            // 3. Enviar respuesta final
+                            await this.sendWhatsAppMessage(from, assistantResponse);
+                        }
+                    }
+                }
+            });
+            res.status(200).send('EVENT_RECEIVED');
+        } else {
+            res.sendStatus(404);
+        }
     } catch (error) {
-      console.error('Error al recibir mensaje de WhatsApp:', error);
-      res.sendStatus(500);
+        console.error('Error al recibir mensaje de WhatsApp:', error);
+        res.sendStatus(500);
     }
-  }
+}
 
-  
+
   public async sendMessage(message: string): Promise<string> {
   try {
 
@@ -211,9 +213,9 @@ export class OpenAIController {
       console.error('Error al enviar mensaje de WhatsApp:', error);
     }
   }
-
+  
   private formatResults(results: any[], showCategory = false): string {
-    
+
     let formattedData = '';
     let subCategoria = ''; // Variable para rastrear la subcategoría actual
 

@@ -82,8 +82,12 @@ class OpenAIController {
                                     const from = message.from;
                                     const messageText = message.text.body;
                                     console.log(`Mensaje recibido de ${from}: ${messageText}`);
-                                    var assistantResponse = yield this.sendMessage(messageText);
+                                    // 1. Enviar mensaje de carga
+                                    yield this.sendWhatsAppMessage(from, "⏳ Procesando tu solicitud, por favor espera un momento...");
+                                    // 2. Obtener respuesta del asistente
+                                    const assistantResponse = yield this.sendMessage(messageText);
                                     console.log(`Respuesta del asistente: ${assistantResponse}`);
+                                    // 3. Enviar respuesta final
                                     yield this.sendWhatsAppMessage(from, assistantResponse);
                                 }
                             }
