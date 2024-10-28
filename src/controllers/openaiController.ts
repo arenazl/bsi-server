@@ -212,20 +212,22 @@ export class OpenAIController {
     }
   }
 
-  private formatResults(results: any[], showcategory = false): string {
-
+  private formatResults(results: any[], showCategory = false): string {
+    
     let formattedData = '';
-    let subcategoria = '';  // Variable para rastrear la categoría actual
+    let subCategoria = ''; // Variable para rastrear la subcategoría actual
 
     for (const result of results) {
-      if (showcategory && (result.subcategoria !== subcategoria)) {
-        // Si la categoría cambia o es la primera vez, se muestra la categoría y subcategoría
-        formattedData += `\n${result.SubCategoría} (${result.SubCategoría})\n`;
-        subcategoria = result.SubCategoría; // Actualizar la categoría actual
-      }
-      
-      // Mostrar los detalles del producto
-      formattedData += `${result.NombreProducto} \n ${result.Descripción}. \n ${result.Precio} \n`;
+        // Si la categoría cambia, mostrarla con un icono
+        if (showCategory && (result.subCategoria !== subCategoria)) {
+            formattedData += `\n\n🍹 *${result.subCategoria}*\n`; // Icono y subcategoría en negrita
+            subCategoria = result.subCategoria; // Actualizar la categoría actual
+        }
+
+        // Agregar detalles del producto con iconos y saltos de línea para formato
+        formattedData += `\n• *${result.NombreProducto}* \n`;
+        formattedData += `   📜 ${result.Descripción}\n`;
+        formattedData += `   💲 Precio: $${result.Precio}\n`;
     }
 
     return formattedData.trim(); // Elimina espacios adicionales al final
