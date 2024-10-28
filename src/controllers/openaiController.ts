@@ -92,7 +92,7 @@ export class OpenAIController {
                             console.log(`Mensaje recibido de ${from}: ${messageText}`);
 
                             // 1. Enviar mensaje de carga
-                            await this.sendWhatsAppMessage(from, "⏳Cargando Asitente de Nucleo Check ");
+                            await this.sendWhatsAppMessage(from, "⏳Obteniendo respuesta del asistente...");
 
                             // 2. Obtener respuesta del asistente
 

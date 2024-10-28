@@ -83,7 +83,7 @@ class OpenAIController {
                                     const messageText = message.text.body;
                                     console.log(`Mensaje recibido de ${from}: ${messageText}`);
                                     // 1. Enviar mensaje de carga
-                                    yield this.sendWhatsAppMessage(from, "⏳Cargando Asitente de Nucleo Check ");
+                                    yield this.sendWhatsAppMessage(from, "⏳Obteniendo respuesta del asistente...");
                                     // 2. Obtener respuesta del asistente
                                     const assistantResponse = yield this.sendMessage(messageText);
                                     console.log(`Respuesta del asistente: ${assistantResponse}`);
@@ -135,6 +135,7 @@ class OpenAIController {
         A partir de ahora, podrás referenciar esta información para ayudar al usuario.
         Si el usuario en su mensaje pone la palabra menu o carta, también muestra la subcategoría de los productos.
         En la descripcion incluir una breve descripcion y en el caso de tener ingredientes, señalarlos.
+        Utiliza iconos en tu mensaje para mejorar la legibilidad.
       `;
                     yield this.openai.beta.threads.messages.create(this.thread.id, {
                         role: 'user',
