@@ -123,8 +123,8 @@ class OpenAIController {
                 if (!externalData) {
                     throw new Error('No se pudo obtener el menú desde el SP.');
                 }
-                console.log('Datos del menú:', externalData);
-                // Crear un hilo si no existe
+                //console.log('Datos del menú:', externalData);
+                // Crear un hilo si no existes
                 if (!this.thread) {
                     this.thread = yield this.openai.beta.threads.create();
                     const promptWithDBData = `

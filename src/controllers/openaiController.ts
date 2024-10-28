@@ -135,9 +135,9 @@ export class OpenAIController {
       throw new Error('No se pudo obtener el menú desde el SP.');
     }
 
-    console.log('Datos del menú:', externalData);
+    //console.log('Datos del menú:', externalData);
 
-    // Crear un hilo si no existe
+    // Crear un hilo si no existes
     if (!this.thread) {
       this.thread = await this.openai.beta.threads.create();
       const promptWithDBData = `
