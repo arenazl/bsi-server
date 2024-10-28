@@ -116,7 +116,7 @@ class OpenAIController {
                 if (!this.assistant) {
                     throw new Error('No se pudo inicializar el asistente de OpenAI.');
                 }
-                if (message.includes('menu') || message.includes('carta')) {
+                if (message.includes('men') || message.includes('carta')) {
                     showCategory = true;
                 }
                 const externalData = yield this.fetchDataFromSP(showCategory);
@@ -202,6 +202,7 @@ class OpenAIController {
             // Agregar detalles del producto con iconos y saltos de línea para formato
             formattedData += `\n• *${result.NombreProducto}* \n`;
             formattedData += `   🏷️ ${result.Descripción}\n`;
+            formattedData += `   🏷️ ${result.Ingredientes}\n`;
             formattedData += `   💲 Precio: ${result.Precio}\n`;
         }
         return formattedData.trim(); // Elimina espacios adicionales al final

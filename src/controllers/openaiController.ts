@@ -92,7 +92,9 @@ export class OpenAIController {
                             await this.sendWhatsAppMessage(from, "⏳ Procesando tu solicitud, por favor espera un momento...");
 
                             // 2. Obtener respuesta del asistente
+
                             const assistantResponse = await this.sendMessage(messageText);
+
                             console.log(`Respuesta del asistente: ${assistantResponse}`);
 
                             // 3. Enviar respuesta final
@@ -125,7 +127,7 @@ export class OpenAIController {
       throw new Error('No se pudo inicializar el asistente de OpenAI.');
     }
 
-    if (message.includes('menu') || message.includes('carta')) {
+    if (message.includes('men') ||  message.includes('carta')) {
       showCategory = true;
     }
 
@@ -229,6 +231,7 @@ export class OpenAIController {
         // Agregar detalles del producto con iconos y saltos de línea para formato
         formattedData += `\n• *${result.NombreProducto}* \n`;
         formattedData += `   🏷️ ${result.Descripción}\n`;
+        formattedData += `   🏷️ ${result.Ingredientes}\n`;
         formattedData += `   💲 Precio: ${result.Precio}\n`;
     }
 
