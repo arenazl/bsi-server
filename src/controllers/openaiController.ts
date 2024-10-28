@@ -6,6 +6,9 @@ import qrcode from 'qrcode-terminal';
 import { Client } from 'whatsapp-web.js';
 import DatabaseHelper from "../databaseHelper";
 import axios from 'axios';
+import { ConnectContactLens } from 'aws-sdk';
+import { Console } from 'console';
+import { validateHeaderName } from 'http';
 
 
 export class OpenAIController {
@@ -198,6 +201,9 @@ export class OpenAIController {
 
   private async sendWhatsAppMessage(to: string, message: string) {
     try {
+
+      console.log(`Mensaje a enviar: ${validateHeaderName}`);
+
       const token = keys.Tokens.Meta;
       await axios.post(
         `https://graph.facebook.com/v21.0/124321500653142/messages`,

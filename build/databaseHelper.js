@@ -19,7 +19,7 @@ const multer_1 = __importDefault(require("multer"));
 class DatabaseHelper {
     constructor() {
         // Configuración del pool de conexiones usando createPool
-        this.pool = (0, promise_1.createPool)(keys_1.default.databaseNucleoOnline);
+        this.pool = (0, promise_1.createPool)(keys_1.default.databaseNucleo);
     }
     static getInstance() {
         if (!DatabaseHelper.instance) {
