@@ -27,6 +27,16 @@ const config = {
         password: 'qqqaaa',
         database: 'ng',
     },
+    databaseNucleoOnline: {
+        host: 'mysql-aiven-arenazl.e.aivencloud.com',
+        user: 'avnadmin',
+        port: 23108,
+        password: 'AVNS_Fqe0qsChCHnqSnVsvoi',
+        database: 'ng',
+        ssl: {
+            ca: sslCert,
+        },
+    },
     Tokens: {
         Meta: 'EAAXOmruNQ1kBO6qeizjQIGcSjvCpuZC5f97RL3Clvq6OvkBstiKKqBQk1VXYB6QBH1Y7I0ZBRGSwCnLLoveTjWKJg8ZAGubwLy0VAZA4qppuZBKeuSXZCYAEygmIlBa1OIdZAMTVQcxOqmQdD0m5317jZCQcuKha59GLMjGWpIWNtSWNSZCnfFzfaH1r9elExh1BHBOATgMB541glL7IvuSqJmbzguH2IUC8OXm1fsyLb'
     },
