@@ -82,11 +82,9 @@ class OpenAIController {
                                     const from = message.from;
                                     const messageText = message.text.body;
                                     console.log(`Mensaje recibido de ${from}: ${messageText}`);
-                                    // Llamar a `sendMessage` con el mensaje recibido y obtener la respuesta del asistente
-                                    //this.sendMessage(messageText);
-                                    //console.log(`Respuesta del asistente: ${assistantResponse}`);
-                                    // Enviar la respuesta al usuario de WhatsApp
-                                    //await this.sendWhatsAppMessage(from, assistantResponse);
+                                    var assistantResponse = yield this.sendMessage(messageText);
+                                    console.log(`Respuesta del asistente: ${assistantResponse}`);
+                                    yield this.sendWhatsAppMessage(from, assistantResponse);
                                 }
                             }
                         }
@@ -188,7 +186,6 @@ class OpenAIController {
             }
         });
     }
-    //Método para formatear los resultados del SP en una respuesta adecuada para el cliente
     formatResults(results, showcategory = false) {
         let formattedData = '';
         let subcategoria = ''; // Variable para rastrear la categoría actual

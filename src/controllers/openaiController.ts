@@ -89,14 +89,11 @@ export class OpenAIController {
 
                 console.log(`Mensaje recibido de ${from}: ${messageText}`);
 
+                var assistantResponse = await this.sendMessage(messageText);
 
-                // Llamar a `sendMessage` con el mensaje recibido y obtener la respuesta del asistente
-                //this.sendMessage(messageText);
-
-                //console.log(`Respuesta del asistente: ${assistantResponse}`);
-
-                // Enviar la respuesta al usuario de WhatsApp
-                //await this.sendWhatsAppMessage(from, assistantResponse);
+                console.log(`Respuesta del asistente: ${assistantResponse}`);
+                
+                await this.sendWhatsAppMessage(from, assistantResponse);
 
               }
             }
@@ -213,8 +210,6 @@ export class OpenAIController {
     }
   }
 
-
-  //Método para formatear los resultados del SP en una respuesta adecuada para el cliente
   private formatResults(results: any[], showcategory = false): string {
 
     let formattedData = '';

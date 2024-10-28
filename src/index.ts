@@ -115,8 +115,6 @@ class Server {
                 const httpsOptions = {
                     key: fs.readFileSync(path.join(__dirname, 'crt/key.pem')),
                     cert: fs.readFileSync(path.join(__dirname, 'crt/cert.pem'))
-                    
-                
             };*/
 
         this.app.listen(this.app.get('port'), () => {
