@@ -228,7 +228,7 @@ export class OpenAIController {
 
         // Agregar detalles del producto con iconos y saltos de línea para formato
         formattedData += `\n• *${result.NombreProducto}* \n`;
-        formattedData += `   📜 ${result.Descripción}\n`;
+        formattedData += `   🏷️ ${result.Descripción}\n`;
         formattedData += `   💲 Precio: $${result.Precio}\n`;
     }
 
