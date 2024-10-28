@@ -200,7 +200,7 @@ export class OpenAIController {
         {
           messaging_product: 'whatsapp',
           to: this.numeroDestino,
-          text: { body: this.mensaje },
+          text: { body: message },
         },
         {
           headers: { Authorization: `Bearer ${token}` },

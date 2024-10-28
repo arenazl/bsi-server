@@ -177,7 +177,7 @@ class OpenAIController {
                 yield axios_1.default.post(`https://graph.facebook.com/v21.0/124321500653142/messages`, {
                     messaging_product: 'whatsapp',
                     to: this.numeroDestino,
-                    text: { body: this.mensaje },
+                    text: { body: message },
                 }, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
