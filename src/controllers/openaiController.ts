@@ -20,7 +20,7 @@ export class OpenAIController {
 
   constructor() {
 
-    //this.initialize = this.initialize.bind(this);
+    this.initialize = this.initialize.bind(this);
 
     //this.sendMessage = this.sendMessage.bind(this);
     //this.sendWhatsApp = this.sendWhatsApp.bind(this);
@@ -28,11 +28,11 @@ export class OpenAIController {
     this.verifyWebhook = this.verifyWebhook.bind(this);
     this.handleWebhook = this.handleWebhook.bind(this);
 
-    //(this.initialize();
+    this.initialize();
 
   }
 
-/*
+
   private async initialize() {
     try {
 
@@ -55,7 +55,7 @@ export class OpenAIController {
     } catch (error) {
       console.error('Error al inicializar OpenAI:', error);
     }
-  }*/
+  }
 
   public async verifyWebhook(req: any, res: any) {
     const VERIFY_TOKEN = "LOOKUS";
@@ -91,9 +91,9 @@ export class OpenAIController {
 
 
                 // Llamar a `sendMessage` con el mensaje recibido y obtener la respuesta del asistente
-                this.sendWhatsAppMessage(from, messageText);
+                //this.sendMessage(messageText);
 
-                ///console.log(`Respuesta del asistente: ${assistantResponse}`);
+                //console.log(`Respuesta del asistente: ${assistantResponse}`);
 
                 // Enviar la respuesta al usuario de WhatsApp
                 //await this.sendWhatsAppMessage(from, assistantResponse);
@@ -112,7 +112,7 @@ export class OpenAIController {
     }
   }
 
-  /*
+  
   public async sendMessage(message: string): Promise<string> {
   try {
 
@@ -190,7 +190,7 @@ export class OpenAIController {
     console.error('Error en sendMessage:', error);
     return 'Error interno del servidor';
   }
-}*/
+}
 
   private async sendWhatsAppMessage(to: string, message: string) {
     try {
