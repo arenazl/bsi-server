@@ -19,7 +19,7 @@ const databaseHelper_1 = __importDefault(require("../databaseHelper"));
 const axios_1 = __importDefault(require("axios"));
 class OpenAIController {
     constructor() {
-        this.numeroDestino = '541155790092';
+        this.numeroDestino = '54111560223474';
         this.mensaje = 'Respuesta del asistente';
         this.initialize = this.initialize.bind(this);
         //this.sendMessage = this.sendMessage.bind(this);
