@@ -155,6 +155,7 @@ export class OpenAIController {
         A partir de ahora, podrás referenciar esta información para ayudar al usuario.
         Si el usuario en su mensaje pone la palabra menu o carta, también muestra la subcategoría de los productos.
         En la descripcion incluir una breve descripcion y en el caso de tener ingredientes, señalarlos.
+        Utiliza iconos en tu mensaje para mejorar la legibilidad.
       `;
       await this.openai.beta.threads.messages.create(this.thread.id, {
         role: 'user',
