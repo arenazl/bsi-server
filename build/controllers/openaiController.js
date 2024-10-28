@@ -109,11 +109,12 @@ class OpenAIController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 let showCategory = false;
-                // Asegurarse de que OpenAI y el asistente estén inicializados
                 if (!this.openai || !this.assistant) {
                     yield this.initialize();
+                    console.log('Asistente de OpenAI inicializado');
                 }
                 if (!this.assistant) {
+                    console.log('No se pudo inicializar el asistente de OpenAI');
                     throw new Error('No se pudo inicializar el asistente de OpenAI.');
                 }
                 if (message.includes('men') || message.includes('carta')) {
@@ -126,6 +127,7 @@ class OpenAIController {
                 //console.log('Datos del menú:', externalData);
                 // Crear un hilo si no existes
                 if (!this.thread) {
+                    console.log('Creando nuevo hilo');
                     this.thread = yield this.openai.beta.threads.create();
                     const promptWithDBData = `
         Te proporciono la carta completa del menú del restaurante:
