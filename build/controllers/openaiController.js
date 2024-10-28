@@ -135,7 +135,7 @@ class OpenAIController {
         A partir de ahora, podrás referenciar esta información para ayudar al usuario.
         Si el usuario en su mensaje pone la palabra menu o carta, también muestra la subcategoría de los productos.
         En la descripcion incluir una breve descripcion y en el caso de tener ingredientes, señalarlos.
-        Utiliza iconos en tu mensaje para mejorar la legibilidad.
+        Utiliza iconos en todos los mensajes para mejorar la legibilidad.
       `;
                     yield this.openai.beta.threads.messages.create(this.thread.id, {
                         role: 'user',
@@ -205,7 +205,7 @@ class OpenAIController {
                 subCategoria = result.subCategoria; // Actualizar la categoría actual
             }
             // Agregar detalles del producto con iconos y saltos de línea para formato
-            formattedData += `\n• *${result.NombreProducto}* \n`;
+            formattedData += `\n•   ${result.NombreProducto} \n`;
             formattedData += `   🏷️ ${result.Descripción}\n`;
             formattedData += `   🏷️ ${result.Ingredientes}\n`;
             formattedData += `   💲 Precio: ${result.Precio}\n`;
