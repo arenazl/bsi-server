@@ -24,9 +24,9 @@ class OpenAIController {
         this.initialize = this.initialize.bind(this);
         //this.sendMessage = this.sendMessage.bind(this);
         //this.sendWhatsApp = this.sendWhatsApp.bind(this);
-        this.verifyWebhook = this.verifyWebhook.bind(this);
-        this.handleWebhook = this.handleWebhook.bind(this);
-        this.initialize();
+        //this.verifyWebhook = this.verifyWebhook.bind(this);
+        //this.handleWebhook = this.handleWebhook.bind(this);
+        //this.initialize();
     }
     initialize() {
         return __awaiter(this, void 0, void 0, function* () {

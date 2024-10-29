@@ -28,10 +28,10 @@ export class OpenAIController {
     //this.sendMessage = this.sendMessage.bind(this);
     //this.sendWhatsApp = this.sendWhatsApp.bind(this);
 
-    this.verifyWebhook = this.verifyWebhook.bind(this);
-    this.handleWebhook = this.handleWebhook.bind(this);
+    //this.verifyWebhook = this.verifyWebhook.bind(this);
+    //this.handleWebhook = this.handleWebhook.bind(this);
 
-    this.initialize();
+    //this.initialize();
 
   }
 
