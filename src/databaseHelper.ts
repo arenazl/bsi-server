@@ -10,7 +10,7 @@ class DatabaseHelper {
 
   private constructor() {
     // Configuración del pool de conexiones usando createPool
-    this.pool = createPool(keys.databaseNucleoOnline);
+    this.pool = createPool(keys.database);
   }
 
   public static getInstance(): DatabaseHelper {
