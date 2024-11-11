@@ -92,7 +92,7 @@ export class OpenAIController {
                             console.log(`Mensaje recibido de ${from}: ${messageText}`);
 
                             // 1. Enviar mensaje de carga
-                            await this.sendWhatsAppMessage(from, "⏳Obteniendo respuesta del asistente...");
+                            await this.sendWhatsAppMessage(from, "⏳Procesando tu mensaje...");
 
                             // 2. Obtener respuesta del asistente
 
@@ -242,7 +242,7 @@ export class OpenAIController {
 
         // Agregar detalles del producto con iconos y saltos de línea para formato
         formattedData += `\n•   ${result.NombreProducto} \n`;
-        formattedData += `   🏷️ ${result.Descripción}\n`;
+        formattedData += `   🗒️ ${result.Descripción}\n`;
         formattedData += `   🏷️ ${result.Ingredientes}\n`;
         formattedData += `   💲 Precio: ${result.Precio}\n`;
     }
