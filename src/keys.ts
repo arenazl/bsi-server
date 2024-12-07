@@ -3,6 +3,7 @@ import path from 'path';
 import dotenv from 'dotenv';
 import OpenAI from 'openai';
 import { env } from 'process';
+require('dotenv').config();
 
 dotenv.config();
 
@@ -15,8 +16,7 @@ const config = {
     user: 'avnadmin',
     port: 23108,
     password: 'AVNS_Fqe0qsChCHnqSnVsvoi',
-    database: 'defaultdb',
-    
+    database: 'defaultdev',
     ssl: {
       ca: sslCert,  
     },
@@ -30,14 +30,23 @@ const config = {
     database: 'ng',
   },
 
-  
-  Tokens: {
-    Meta: 'EAAXOmruNQ1kBO1xzy60W8ZAqj47lSlUFSd2FQjSb2IyJZAsXaB8xoxCB5zj2ZBb5OoJcZAUPmZBheXGWPe52RZBoM0sz8YnkUchEhzFoOTkGZCC2OXaLzu3xFfRHH2ba4ikKZAum2VOfAMIb7kRWlZA1rwiaDUDQaiOvjiVQjmZBcCnc7rJPimADH6BYUxpuK5X9SxcODec9cuZBfsCidtyf4wfgpXZB9grrBeZAVIg9IuTlh'
+  databaseNucleoOnline: {
+    host: 'mysql-aiven-arenazl.e.aivencloud.com',
+    user: 'avnadmin',
+    port: 23108,
+    password: 'AVNS_Fqe0qsChCHnqSnVsvoi',
+    database: 'ng',
+    ssl: {
+      ca: sslCert,  
+    },
   },
 
+  Tokens: {
+    Meta: 'EAAXOmruNQ1kBO4vbCzMXiDOYRVJU2j8gOmdXXs1Xvp9KJwNJcBcEJmNZBnpkhuo1cQyH2v85T4Y6PqZCB2ZBLlRXmQuZC3bX0qpiNHKRQ6vqYNZAfixaemlTvM8iwc5XOZCmuf1IQNqIUjp9BdawXZBAo0y1qM8WuHBL8LYo7bbyF91JiRsTM8oxplxb3hKPOyWJwqE5i2b9EI37DsZAbduISipFWRg4VAJTdfsJqIWH'
+  },
 
   OpenAi: {
-    key: dotenv.config().parsed.OPENAI_API_KEY
+    key: process.env.OPENAI_API_KEY
   },
 
   AWS: {

@@ -19,14 +19,14 @@ const databaseHelper_1 = __importDefault(require("../databaseHelper"));
 const axios_1 = __importDefault(require("axios"));
 class OpenAIController {
     constructor() {
-        this.numeroDestino = '54111560223474'; // Número en formato internacional  
-        this.mensaje = 'hola como andas?';
-        this.initialize = this.initialize.bind(this);
+        //this.initialize = this.initialize.bind(this);
+        this.numeroDestino = '54111554827419';
+        this.mensaje = 'Respuesta del asistente';
         //this.sendMessage = this.sendMessage.bind(this);
         //this.sendWhatsApp = this.sendWhatsApp.bind(this);
-        this.verifyWebhook = this.verifyWebhook.bind(this);
-        this.handleWebhook = this.handleWebhook.bind(this);
-        this.initialize();
+        //this.verifyWebhook = this.verifyWebhook.bind(this);
+        //this.handleWebhook = this.handleWebhook.bind(this);
+        //this.initialize();
     }
     initialize() {
         return __awaiter(this, void 0, void 0, function* () {
@@ -82,10 +82,12 @@ class OpenAIController {
                                     const from = message.from;
                                     const messageText = message.text.body;
                                     console.log(`Mensaje recibido de ${from}: ${messageText}`);
-                                    // Llamar a `sendMessage` con el mensaje recibido y obtener la respuesta del asistente
+                                    // 1. Enviar mensaje de carga
+                                    yield this.sendWhatsAppMessage(from, "⏳Procesando tu mensaje...");
+                                    // 2. Obtener respuesta del asistente
                                     const assistantResponse = yield this.sendMessage(messageText);
                                     console.log(`Respuesta del asistente: ${assistantResponse}`);
-                                    // Enviar la respuesta al usuario de WhatsApp
+                                    // 3. Enviar respuesta final
                                     yield this.sendWhatsAppMessage(from, assistantResponse);
                                 }
                             }
@@ -107,29 +109,33 @@ class OpenAIController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 let showCategory = false;
-                // Asegurarse de que OpenAI y el asistente estén inicializados
                 if (!this.openai || !this.assistant) {
                     yield this.initialize();
+                    console.log('Asistente de OpenAI inicializado');
                 }
                 if (!this.assistant) {
+                    console.log('No se pudo inicializar el asistente de OpenAI');
                     throw new Error('No se pudo inicializar el asistente de OpenAI.');
                 }
-                if (message.includes('menu') || message.includes('carta')) {
+                if (message.includes('men') || message.includes('carta')) {
                     showCategory = true;
                 }
-                // Obtener datos externos si es necesario
                 const externalData = yield this.fetchDataFromSP(showCategory);
                 if (!externalData) {
                     throw new Error('No se pudo obtener el menú desde el SP.');
                 }
-                // Crear un hilo si no existe
+                //console.log('Datos del menú:', externalData);
+                // Crear un hilo si no existes
                 if (!this.thread) {
+                    console.log('Creando nuevo hilo');
                     this.thread = yield this.openai.beta.threads.create();
                     const promptWithDBData = `
         Te proporciono la carta completa del menú del restaurante:
         "${externalData}"
         A partir de ahora, podrás referenciar esta información para ayudar al usuario.
         Si el usuario en su mensaje pone la palabra menu o carta, también muestra la subcategoría de los productos.
+        En la descripcion incluir una breve descripcion y en el caso de tener ingredientes, señalarlos.
+        Utiliza iconos en todos los mensajes para mejorar la legibilidad.
       `;
                     yield this.openai.beta.threads.messages.create(this.thread.id, {
                         role: 'user',
@@ -173,10 +179,11 @@ class OpenAIController {
     sendWhatsAppMessage(to, message) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
+                console.log(`Mensaje a enviar: ${message}`);
                 const token = keys_1.default.Tokens.Meta;
                 yield axios_1.default.post(`https://graph.facebook.com/v21.0/124321500653142/messages`, {
                     messaging_product: 'whatsapp',
-                    to,
+                    to: this.numeroDestino,
                     text: { body: message },
                 }, {
                     headers: { Authorization: `Bearer ${token}` },
@@ -188,18 +195,20 @@ class OpenAIController {
             }
         });
     }
-    //Método para formatear los resultados del SP en una respuesta adecuada para el cliente
-    formatResults(results, showcategory = false) {
+    formatResults(results, showCategory = false) {
         let formattedData = '';
-        let subcategoria = ''; // Variable para rastrear la categoría actual
+        let subCategoria = ''; // Variable para rastrear la subcategoría actual
         for (const result of results) {
-            if (showcategory && (result.subcategoria !== subcategoria)) {
-                // Si la categoría cambia o es la primera vez, se muestra la categoría y subcategoría
-                formattedData += `\n${result.SubCategoría} (${result.SubCategoría})\n`;
-                subcategoria = result.SubCategoría; // Actualizar la categoría actual
+            // Si la categoría cambia, mostrarla con un icono
+            if (showCategory && (result.subCategoria !== subCategoria)) {
+                formattedData += `\n\n🍹 *${result.subCategoria}*\n`; // Icono y subcategoría en negrita
+                subCategoria = result.subCategoria; // Actualizar la categoría actual
             }
-            // Mostrar los detalles del producto
-            formattedData += `${result.NombreProducto} \n ${result.Descripción}. \n ${result.Precio} \n`;
+            // Agregar detalles del producto con iconos y saltos de línea para formato
+            formattedData += `\n•   ${result.NombreProducto} \n`;
+            formattedData += `   🗒️ ${result.Descripción}\n`;
+            formattedData += `   🏷️ ${result.Ingredientes}\n`;
+            formattedData += `   💲 Precio: ${result.Precio}\n`;
         }
         return formattedData.trim(); // Elimina espacios adicionales al final
     }
