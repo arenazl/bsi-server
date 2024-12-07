@@ -15,10 +15,10 @@ class MetadataRoutes {
         this.router.post('/POST_VALIDATE_INSERT/', metadataController_1.default.postValidarInsertar);
         this.router.post('/POST_INSERT_PAGOS_MANUAL', metadataController_1.default.postValidarInsertarPagos);
         this.router.post('/POST_INSERT_NOMINA_MANUAL', metadataController_1.default.postValidarInsertarNomina);
-        this.router.get('//:tipomodulo/:user/:contrato/:organismo', metadataController_1.default.getUIResumen);
         this.router.post('/POST_INSERT_GENERIC_SP', metadataController_1.default.postInsertGenericSP);
         this.router.post('/POST_SELECT_GENERIC_SP', metadataController_1.default.postSelectGenericSP);
         this.router.post('/POST_INSERTAR_NOMINA_DESDE_IMPORT', metadataController_1.default.postNominaDesdeImport);
+        this.router.get('//:tipomodulo/:user/:contrato/:organismo', metadataController_1.default.getUIResumen);
     }
 }
 exports.default = new MetadataRoutes().router;

@@ -23,7 +23,7 @@ export class OpenAIController {
 
   constructor() {
 
-    this.initialize = this.initialize.bind(this);
+    //this.initialize = this.initialize.bind(this);
 
     //this.sendMessage = this.sendMessage.bind(this);
     //this.sendWhatsApp = this.sendWhatsApp.bind(this);

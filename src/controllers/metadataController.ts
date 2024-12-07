@@ -38,10 +38,9 @@ class MetadataController {
         });
       }
 
-
       // Ejecutar el stored procedure con los valores
       const rows = await DatabaseHelper.executeSpJsonReturn(sp_name, values);
-
+     
       const result = rows[0];
 
       return res.json(result);

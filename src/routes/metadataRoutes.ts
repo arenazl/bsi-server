@@ -16,10 +16,10 @@ class MetadataRoutes {
         this.router.post('/POST_VALIDATE_INSERT/', MetadataController.postValidarInsertar);
         this.router.post('/POST_INSERT_PAGOS_MANUAL', MetadataController.postValidarInsertarPagos);
         this.router.post('/POST_INSERT_NOMINA_MANUAL', MetadataController.postValidarInsertarNomina);
-        this.router.get('//:tipomodulo/:user/:contrato/:organismo', MetadataController.getUIResumen); 
         this.router.post('/POST_INSERT_GENERIC_SP', MetadataController.postInsertGenericSP);  
         this.router.post('/POST_SELECT_GENERIC_SP', MetadataController.postSelectGenericSP); 
         this.router.post('/POST_INSERTAR_NOMINA_DESDE_IMPORT', MetadataController.postNominaDesdeImport); 
+        this.router.get('//:tipomodulo/:user/:contrato/:organismo', MetadataController.getUIResumen); 
     }
 }
 
