@@ -186,7 +186,7 @@ class MetadataController {
                                 const [CBU, CUIL, NOMBRE] = row.slice(3);
                                 jsonResult.ITEMS.push({ CBU, CUIL, NOMBRE });
                             });
-                            const spNameNomina = `NOMINA_VALIDAD_INSERTAR_FULL_VALIDATION`;
+                            const spNameNomina = `NOMINA_VALIDAD_INSERTAR_FULL_VALIDATION_2`;
                             const resultb = yield databaseHelper_1.default.executeJsonInsert(spNameNomina, jsonResult);
                             resultb[0][0][0].tipo_modulo = "NOMINA";
                             console.log("NOMINA");

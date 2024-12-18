@@ -181,7 +181,7 @@ class MetadataController {
 
             });
 
-            const spNameNomina = `NOMINA_VALIDAD_INSERTAR_FULL_VALIDATION`;
+            const spNameNomina = `NOMINA_VALIDAD_INSERTAR_FULL_VALIDATION_2`;
 
             const resultb = await DatabaseHelper.executeJsonInsert(spNameNomina, jsonResult);
 
