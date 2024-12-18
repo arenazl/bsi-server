@@ -146,7 +146,7 @@ class MetadataController {
 
             jsonResult.ITEMS = items;
 
-            const spName = `${TIPO_MODULO}_VALIDAD_INSERTAR_FULL_VALIDATION`;
+            const spName = `${TIPO_MODULO}_VALIDAD_INSERTAR_FULL_VALIDATION_2`;
 
             const result = await DatabaseHelper.executeJsonInsert(spName, jsonResult);
 
@@ -275,7 +275,7 @@ class MetadataController {
 
         });
 
-        const spName = `NOMINA_VALIDAD_INSERTAR_FULL_VALIDATION`;
+        const spName = `NOMINA_VALIDAD_INSERTAR_FULL_VALIDATION_2`;
 
         const result = await DatabaseHelper.executeJsonInsert(spName, jsonResult);
 
