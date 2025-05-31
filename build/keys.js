@@ -15,7 +15,7 @@ const config = {
         user: 'avnadmin',
         port: 23108,
         password: 'AVNS_Fqe0qsChCHnqSnVsvoi',
-        database: 'defaultdb',
+        database: 'defauldbqa',
         ssl: {
             ca: sslCert,
         },

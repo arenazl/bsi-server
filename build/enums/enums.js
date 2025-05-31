@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getFileType = exports.TipoData = exports.TipoMetada = exports.TipoModulo = exports.TipoPantalla = void 0;
+exports.TipoData = exports.TipoMetada = exports.TipoModulo = exports.TipoPantalla = void 0;
+exports.getFileType = getFileType;
 var TipoPantalla;
 (function (TipoPantalla) {
     TipoPantalla[TipoPantalla["PAGO_HABERES"] = 1] = "PAGO_HABERES";
@@ -45,4 +46,3 @@ function getFileType(tipoModulo) {
             return ".xlsx";
     }
 }
-exports.getFileType = getFileType;
