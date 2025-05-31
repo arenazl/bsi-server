@@ -16,9 +16,9 @@ const config = {
     user: 'avnadmin',
     port: 23108,
     password: 'AVNS_Fqe0qsChCHnqSnVsvoi',
-    database: 'defaultdb',
+    database: 'defaultdev',
     ssl: {
-      ca: sslCert,  
+      ca: sslCert,
     },
   },
 
@@ -37,7 +37,7 @@ const config = {
     password: 'AVNS_Fqe0qsChCHnqSnVsvoi',
     database: 'ng',
     ssl: {
-      ca: sslCert,  
+      ca: sslCert,
     },
   },
 
@@ -56,7 +56,7 @@ const config = {
     secretKey: 'erKj6KeUOTky3+YnYzwzdVtTavbkBR+bINLWEOnb'
   },
 
-  
+
   mails: {
     documentacion: 'sisbarrios',
     control: 'Proyectos.don.luisk41@gmail.com',
