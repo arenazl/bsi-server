@@ -3,6 +3,7 @@ import DatabaseHelper from "../databaseHelper";
 import { TipoModulo, TipoMetada, TipoData } from "../enums/enums";
 import databaseHelper from "../databaseHelper";
 import readXlsxFile from "read-excel-file/node";
+import ResponseHelper from "../utils/responseHelper";
 import * as fs from "fs"
 
 class MetadataController {
@@ -12,46 +13,30 @@ class MetadataController {
     try {
       const { sp_name, body, jsonUnify = false, } = req.body;
 
-      // Verificar si los parámetros requeridos están presentes
       if (!sp_name || !body) {
-        return res.status(400).json({
-          estado: 0,
-          descripcion: 'Faltan parámetros requeridos.',
-          data: null,
-        });
+        throw new Error('Faltan parámetros requeridos: sp_name y body son obligatorios');
       }
 
-      // Preparar los valores para enviar al SP
       let values: Record<string, string | number> = {};
 
-      // Si jsonUnify es true, mandar el body completo como un JSON único
       if (jsonUnify) {
-        values = { p_json: JSON.stringify(body) }; // Envía todo el body como JSON único
+        values = { p_json: JSON.stringify(body) };
       } else {
-        // Mandar los parámetros de manera tradicional, cada clave-valor por separado
         Object.entries(body).forEach(([key, value]) => {
           if (typeof value === 'string' || typeof value === 'number') {
             values[key] = value;
           } else {
-            values[key] = JSON.stringify(value); // Convertir objetos y arrays a JSON
+            values[key] = JSON.stringify(value);
           }
         });
       }
 
-      // Ejecutar el stored procedure con los valores
       const rows = await DatabaseHelper.executeSpJsonReturn(sp_name, values);
-     
-      const result = rows[0];
-
-      return res.json(result);
-
+      ResponseHelper.sendDatabaseResponse(res, rows);
+      
     } catch (error: any) {
-      console.error("Error en el procedimiento:", error.message || error);
-      return res.status(500).json({
-        estado: 0,
-        descripcion: 'Error interno del servidor.',
-        data: null,
-      });
+      console.error("Error durante postSelectGenericSP:", error);
+      ResponseHelper.throwMethodError(error);
     }
   }
 
@@ -59,53 +44,39 @@ class MetadataController {
     try {
       const { sp_name, body } = req.body;
 
-      // Ejecutar el stored procedure con los valores
+      if (!sp_name || !body) {
+        throw new Error('Faltan parámetros requeridos : sp_name y body son obligatorios');
+      }
+
       const rows = await DatabaseHelper.executeJsonInsert(sp_name, body);
-
-      const result = rows[0][0][0];
-
-      // Retornar la respuesta si el estado es 1
-      return res.json(result);
-
+      ResponseHelper.sendDatabaseResponse(res, rows);
     } catch (error: any) {
-      console.error("Error en el procedimiento:", error.message || error);
-      return res.status(500).json({
-        estado: 0,
-        descripcion: 'Error interno del servidor.',
-        data: null,
-      });
+      console.error("Error durante postInsertGenericSP:", error);
+      ResponseHelper.throwMethodError(error);
     }
   }
 
   public async getMetadataUI(req: Request, res: Response): Promise<any> {
-
-    const { tipomodulo, tipometada, contrato } = req.params;
-
-    let params: (string | number)[] = [];
-
     try {
-      // Configuración de los parámetros en función de la entrada
+      const { tipomodulo, tipometada, contrato } = req.params;
+
+      let params: (string | number)[] = [];
+
       if (contrato !== 'NONE') {
         params.push(Number(contrato));
       }
 
-      // Obtiene el nombre del stored procedure basado en los parámetros recibidos
       const spName = databaseHelper.getSpNameForMetada(tipomodulo as TipoModulo, tipometada as TipoMetada);
 
-      // Llama al stored procedure usando los parámetros configurados
+      if (!spName) {
+        throw new Error(`No se encontró stored procedure para tipomodulo: ${tipomodulo}, tipometada: ${tipometada}`);
+      }
+
       const rows = await DatabaseHelper.executeSpSelect(spName, params);
-
-      // Devuelve la primera fila obtenida del procedimiento almacenado
-      res.json(rows[0]);
-
-    } catch (error) {
-      console.error("Error:", error);
-      // Manejo de errores: devuelve una respuesta con estructura estándar
-      res.status(500).json({
-        estado: 0,
-        descripcion: "Error interno del servidor.",
-        data: null
-      });
+      ResponseHelper.sendDatabaseResponse(res, rows);
+    } catch (error: any) {
+      console.error("Error durante getMetadataUI:", error);
+      ResponseHelper.throwMethodError(error);
     }
   }
 
@@ -138,8 +109,7 @@ class MetadataController {
 
             if (err) {
               console.error("Error leyendo el archivo de texto:", err);
-              res.json({ error: "Error leyendo el archivo de texto" });
-              return;
+              throw new Error("Error leyendo el archivo de texto: " + err.message);
             }
 
             const items = data.split("\n").map(line => line.trim()).filter(line => line.length > 0);
@@ -158,7 +128,7 @@ class MetadataController {
               }
             });
 
-            res.json(result[0][0][0]);
+            ResponseHelper.sendDatabaseResponse(res, result);
 
           });
 
@@ -192,7 +162,7 @@ class MetadataController {
 
             if(resultb[0][0][0].estado == 0)
             {
-              res.json(resultb[0][0][0]);
+              ResponseHelper.sendDatabaseResponse(res, resultb);
               return;
             }  
 
@@ -230,13 +200,13 @@ class MetadataController {
           console.log('Response Pagos');
           console.log(result[0][0][0]);
 
-          res.json(result[0][0][0]);
+          ResponseHelper.sendDatabaseResponse(res, result);
 
         }
 
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error durante la operación:", error);
-        res.json({ message: "Internal server error", error: error.message });
+        ResponseHelper.throwMethodError(error);
       }
 
     });
@@ -287,44 +257,68 @@ class MetadataController {
           }
         });
 
-        res.json(result[0][0][0]);
+        ResponseHelper.sendDatabaseResponse(res, result);
 
 
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error durante la operación:", error);
-        res.json({ message: "Internal server error", error: error.message });
+        ResponseHelper.throwMethodError(error);
       }
 
     });
   }
 
   public async postValidarInsertarPagos(req: Request, res: Response): Promise<void> {
-    const spName = `PAGO_VALIDAR_INSERTAR_ENTRADA`;
-    const result = await DatabaseHelper.executeJsonInsert(spName, req.body);
-    res.json(result[0][0][0]);
+    try {
+      if (!req.body) {
+        throw new Error('Body es requerido para validar insertar pagos');
+      }
+
+      const spName = `PAGO_VALIDAR_INSERTAR_ENTRADA`;
+      const result = await DatabaseHelper.executeJsonInsert(spName, req.body);
+      ResponseHelper.sendDatabaseResponse(res, result);
+    } catch (error: any) {
+      console.error("Error durante postValidarInsertarPagos:", error);
+      ResponseHelper.throwMethodError(error);
+    }
   }
 
   public async postValidarInsertarNomina(req: Request, res: Response): Promise<void> {
-    const spName = `NOMINA_VALIDAR_INSERTAR_ENTRADA_JSON`;
+    try {
+      if (!req.body) {
+        throw new Error('Body es requerido para validar insertar nómina');
+      }
 
-    const result = await DatabaseHelper.executeJsonInsert(spName, req.body);
-    res.json(result[0][0][0]);
+      const spName = `NOMINA_VALIDAR_INSERTAR_ENTRADA_JSON`;
+      const result = await DatabaseHelper.executeJsonInsert(spName, req.body);
+      ResponseHelper.sendDatabaseResponse(res, result);
+    } catch (error: any) {
+      console.error("Error durante postValidarInsertarNomina:", error);
+      ResponseHelper.throwMethodError(error);
+    }
   }
 
   public async getUIResumen(req: Request, res: Response): Promise<any> {
-    const { tipomodulo, id } = req.params;
-
     try {
+      const { tipomodulo, id } = req.params;
+
+      if (!tipomodulo || !id) {
+        throw new Error('Faltan parámetros requeridos: tipomodulo e id son obligatorios');
+      }
 
       const params = [id];
 
-      const rows = await DatabaseHelper.executeSpSelect(databaseHelper.getSpNameForData(tipomodulo as TipoModulo, TipoData.LIST), params);
+      const spName = databaseHelper.getSpNameForData(tipomodulo as TipoModulo, TipoData.LIST);
+      
+      if (!spName) {
+        throw new Error(`No se encontró stored procedure para tipomodulo: ${tipomodulo} con TipoData.LIST`);
+      }
 
-      res.json(rows[0]);
-
-    } catch (error) {
-      console.error("Error:", error);
-      res.status(500).json({ message: "Error fetching resumen:", error: "Internal server error" });
+      const rows = await DatabaseHelper.executeSpSelect(spName, params);
+      ResponseHelper.sendDatabaseResponse(res, rows);
+    } catch (error: any) {
+      console.error("Error durante getUIResumen:", error);
+      ResponseHelper.throwMethodError(error);
     }
   }
 
@@ -351,5 +345,3 @@ export const mappings: Record<string, { startRow: number; fields: string[] }> = 
 
 const metadataController = new MetadataController();
 export default metadataController;
-
-

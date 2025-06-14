@@ -58,13 +58,21 @@ const config = {
 
 
   mails: {
-    documentacion: 'sisbarrios',
-    control: 'Proyectos.don.luisk41@gmail.com',
-    new: 'Marcela@newlife.com',
-    cj: 'bienescintiap@gmail.com',
-    real: 'pablorealstate@hotmail.com',
-    ar: 'desarrolloinmobiliarioar@hotmail.com',
+    control: 'arenazl@gmail.com',
     admin: 'arenazl@gmail.com'
+  },
+
+  emailConfig: {
+    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false,
+    auth: {
+      user: process.env.EMAIL_USER || 'arenazl@gmail.com',
+      pass: process.env.EMAIL_PASSWORD || (() => {
+        throw new Error('EMAIL_PASSWORD no está configurada en las variables de entorno. Consulta documentacion/Gmail-Setup.md');
+      })()
+    }
   }
 };
 

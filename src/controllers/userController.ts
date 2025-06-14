@@ -1,86 +1,63 @@
 import { Request, Response } from "express";
 import DatabaseHelper from "../databaseHelper";
 import databaseHelper from "../databaseHelper";
+import EmailService from "../services/emailService";
+import ResponseHelper from "../utils/responseHelper";
+import config from "../keys";
 
 class UserController {
 
 
   public async login(req: Request, res: Response): Promise<any> {
-
-    const nombre = req.body.nombre;
-    const pass = req.body.password;
-
-    const values = [nombre, pass];
-
     try {
-      // Llama al procedimiento almacenado usando el método executeSpSelect
+      const { nombre, password } = req.body;
+      const values = [nombre, password];
+      
       const rows = await databaseHelper.executeSpSelect('sp_login_user', values);
-
-      // Devuelve directamente el primer registro de los resultados, que contiene estado, descripcion y data
-      return res.json(rows[0]);
-
+      ResponseHelper.sendDatabaseResponse(res, rows);
     } catch (error: any) {
       console.error("Error en el login:", error.message || error);
-      // En caso de error, devuelve una estructura con los campos estándar
-      return res.status(500).json({
-        estado: 0,
-        descripcion: 'Error interno del servidor.',
-        data: null,
-      });
+      ResponseHelper.throwMethodError(error);
     }
   }
 
   public async getUsers(req: Request, res: Response): Promise<void> {
     try {
       const result = await DatabaseHelper.executeSpSelect("GetAllUsers", []);
-
-      res.json(result);
-
+      ResponseHelper.sendSuccess(res, result, 'Usuarios obtenidos correctamente');
     } catch (error) {
       console.error("Error fetching users:", error);
-      res.status(500).json({ message: "Error fetching users", error: "Internal server error" });
+      ResponseHelper.throwMethodError(error);
     }
   }
 
   public async createUser(req: Request, res: Response): Promise<void> {
     try {
-      const result = await DatabaseHelper.executeJsonInsert("InsertUser", req.body, ["ID", "ESTADO", "DESCRIPCION"]);
-      if (!result.ID) {
-        res.json({ error: result.Data });
-        return;
-      }
-      res.json({ ID: result.ID, ESTADO: result.ESTADO, DESCRIPCION: result.DESCRIPCION });
-    } catch (error) {
+      const result = await DatabaseHelper.executeJsonInsert("InsertUser", req.body);
+      ResponseHelper.sendDatabaseResponse(res, result);
+    } catch (error: any) {
       console.error("Error creating user:", error);
-      res.status(500).json({ message: "Error creating user", error: "Internal server error" });
+      ResponseHelper.throwMethodError(error);
     }
   }
 
   public async updateUser(req: Request, res: Response): Promise<void> {
     try {
-      const result = await DatabaseHelper.executeJsonInsert("UpdateUser", req.body, ["ESTADO", "DESCRIPCION"]);
-      if (result.ESTADO === undefined) {
-        res.json({ error: result.Data });
-        return;
-      }
-      res.json({ ESTADO: result.ESTADO, DESCRIPCION: result.DESCRIPCION });
+      const result = await DatabaseHelper.executeJsonInsert("UpdateUser", req.body);
+      ResponseHelper.sendDatabaseResponse(res, result);
     } catch (error) {
       console.error("Error updating user:", error);
-      res.status(500).json({ message: "Error updating user", error: "Internal server error" });
+      ResponseHelper.throwMethodError(error);
     }
   }
 
   public async deleteUser(req: Request, res: Response): Promise<void> {
     try {
       const result = await DatabaseHelper.executeSpJsonReturn("DeleteUser", { id: req.params.id });
-      if (result.ESTADO === undefined) {
-        res.json({ error: result.Data });
-        return;
-      }
-      res.json({ ESTADO: result.ESTADO, DESCRIPCION: result.DESCRIPCION });
+      ResponseHelper.sendDatabaseResponse(res, result);
     } catch (error) {
       console.error("Error deleting user:", error);
-      res.status(500).json({ message: "Error deleting user", error: "Internal server error" });
+      ResponseHelper.throwMethodError(error);
     }
   }
 }

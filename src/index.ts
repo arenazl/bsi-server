@@ -8,6 +8,8 @@ import IORoutes from './routes/IORoutes';
 import metadataRoutes from './routes/metadataRoutes';
 import userRoutes from './routes/userRoutes';
 import openaiRoutes from './routes/openaiRoutes';
+import EmailService from './services/emailService';
+import config from './keys';
 import https from 'https';
 import fs from 'fs';
 import path from 'path';
@@ -43,11 +45,96 @@ class Server {
      * @param res - The response object.
      * @param next - The next middleware function in the stack.
      */
-    errorHandler(err, req, res, next) {
+    async errorHandler(err: any, req: Request, res: Response, next: NextFunction) {
+
+        
         console.error(err.stack);
+        
+        // Extraer información detallada del error
+        const timestamp = new Date().toLocaleString('es-AR');
+        const method = req.method;
+        const url = req.originalUrl || req.url;
+        const userAgent = req.get('User-Agent') || 'Unknown';
+        const ip = req.ip || req.connection.remoteAddress || 'Unknown';
+        
+        // Extraer ID del municipio del request body y obtener su descripción
+        let municipioId = 'No especificado';
+        let municipioDescripcion = 'No especificado';
+        
+        try {
+            if (req.body?.body?.id_organismo) {
+                municipioId = req.body.body.id_organismo.toString();
+            } else if (req.body?.id_organismo) {
+                municipioId = req.body.id_organismo.toString();
+            } else if (req.body?.IDORG) {
+                municipioId = req.body.IDORG.toString();
+            } else if (req.params?.organismo) {
+                municipioId = req.params.organismo.toString();
+            }
+
+            // Obtener descripción del municipio si tenemos el ID
+            if (municipioId !== 'No especificado') {
+                try {
+                    const DatabaseHelper = require('./databaseHelper').default;
+                    const result = await DatabaseHelper.executeSpSelect('ObtenerNombreOrganismo', [municipioId]);
+                    if (result && result.length > 0 && result[0].NombreOrganismo ) {
+                        municipioDescripcion = result[0].NombreOrganismo ;
+                    } else {
+                        municipioDescripcion = `Municipio ID: ${municipioId}`;
+                    }
+                } catch (dbError) {
+                    console.log('Error obteniendo descripción del municipio:', dbError);
+                    municipioDescripcion = `Municipio ID: ${municipioId}`;
+                }
+            }
+        } catch (e) {
+            // Si hay error extrayendo el ID, mantener valor por defecto
+        }
+        
+        // Construir mensaje detallado del error
+        const errorDetails = `
+MÉTODO HTTP: ${method}
+ENDPOINT: ${url}
+HORA: ${timestamp}
+MUNICIPIO: ${municipioDescripcion}
+USER AGENT: ${userAgent}
+
+PARÁMETROS RECIBIDOS:
+- Body: ${JSON.stringify(req.body, null, 2)}
+- Query: ${JSON.stringify(req.query, null, 2)}
+- Params: ${JSON.stringify(req.params, null, 2)}
+
+STACK TRACE:
+${err.stack}
+        `;
+
+        const friendlyDescription = `
+Se produjo un error en el servidor BSI durante la ejecución de una operación.
+
+Detalles del contexto:
+- Endpoint afectado: ${method} ${url}
+- Fecha y hora: ${timestamp}
+- Dirección IP del cliente: ${ip}
+
+Por favor revise los logs del servidor y tome las acciones necesarias.
+        `;
+
+        // Enviar email automáticamente
+        try {
+            await EmailService.sendErrorNotificationSimple(
+                'Error',
+                errorDetails.trim(),
+                friendlyDescription.trim()
+            );
+        } catch (emailError) {
+            console.error('Error enviando notificación por email:', emailError);
+        }
+
+        // Responder al cliente con formato estándar
         res.status(500).json({
-            message: 'Ocurrió un error en el servidor (metodo globlal)',
-            error: err.message,
+            estado: 0,
+            descripcion: err.message || 'Error interno del servidor',
+            data: null
         });
     }
 
@@ -102,7 +189,7 @@ class Server {
         this.app.use('/api/user', userRoutes);
         this.app.use('/api/openai', openaiRoutes);
 
-        this.app.use(this.errorHandler);
+        this.app.use(this.errorHandler.bind(this));
     }
 
     /**

@@ -92,6 +92,7 @@ public async executeJsonInsert(
     const sql = `CALL ${spName}(?);`;
 
     const values = [JSON.stringify(jsonData)];
+    
     const [queryResult] = await connection.execute(sql, values);
 
     return [queryResult];
