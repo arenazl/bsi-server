@@ -41,10 +41,10 @@ export const config = {
     waitForConnections: true,
     queueLimit: 0,
     timezone: 'Z',
-    // SSL configuration for production
-    ...(process.env.NODE_ENV === 'production' && process.env.DB_SSL_CA && {
+    // SSL configuration
+    ...(process.env.DB_SSL_CA && {
       ssl: {
-        ca: process.env.DB_SSL_CA
+        ca: require('fs').readFileSync(require('path').resolve(process.env.DB_SSL_CA), 'utf-8')
       }
     })
   },

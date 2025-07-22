@@ -1,66 +1,116 @@
-import { Request, Response } from "express";
-import DatabaseHelper from "../databaseHelper";
-import databaseHelper from "../databaseHelper";
-import EmailService from "../services/emailService";
-import ResponseHelper from "../utils/responseHelper";
-import config from "../keys";
+import { Request, Response } from 'express';
+import logger from '@config/logger';
 
-class UserController {
-
-
-  public async login(req: Request, res: Response): Promise<any> {
-    try {
-      const { nombre, password } = req.body;
-      const values = [nombre, password];
-      
-      const rows = await databaseHelper.executeSpSelect('sp_login_user', values);
-      ResponseHelper.sendDatabaseResponse(res, rows);
-    } catch (error: any) {
-      console.error("Error en el login:", error.message || error);
-      ResponseHelper.throwMethodError(error);
-    }
+export class UserController {
+  async getAll(req: Request, res: Response): Promise<Response> {
+    logger.info('Getting all users');
+    
+    // TODO: Implementar con base de datos real
+    return res.json({
+      success: true,
+      data: [
+        {
+          id: '1',
+          email: 'admin@bsi.com',
+          firstName: 'Admin',
+          lastName: 'BSI',
+          role: 'ADMIN',
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }
+      ],
+      pagination: {
+        page: 1,
+        limit: 10,
+        total: 1,
+        pages: 1
+      }
+    });
   }
 
-  public async getUsers(req: Request, res: Response): Promise<void> {
-    try {
-      const result = await DatabaseHelper.executeSpSelect("GetAllUsers", []);
-      ResponseHelper.sendSuccess(res, result, 'Usuarios obtenidos correctamente');
-    } catch (error) {
-      console.error("Error fetching users:", error);
-      ResponseHelper.throwMethodError(error);
-    }
+  async getById(req: Request, res: Response): Promise<Response> {
+    const { id } = req.params;
+    logger.info(`Getting user by id: ${id}`);
+    
+    return res.json({
+      success: true,
+      data: {
+        id,
+        email: 'user@bsi.com',
+        firstName: 'User',
+        lastName: 'BSI',
+        role: 'USER',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+    });
   }
 
-  public async createUser(req: Request, res: Response): Promise<void> {
-    try {
-      const result = await DatabaseHelper.executeJsonInsert("InsertUser", req.body);
-      ResponseHelper.sendDatabaseResponse(res, result);
-    } catch (error: any) {
-      console.error("Error creating user:", error);
-      ResponseHelper.throwMethodError(error);
-    }
+  async create(req: Request, res: Response): Promise<Response> {
+    const userData = req.body;
+    logger.info('Creating new user', { email: userData.email });
+    
+    return res.status(201).json({
+      success: true,
+      data: {
+        id: '2',
+        ...userData,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+    });
   }
 
-  public async updateUser(req: Request, res: Response): Promise<void> {
-    try {
-      const result = await DatabaseHelper.executeJsonInsert("UpdateUser", req.body);
-      ResponseHelper.sendDatabaseResponse(res, result);
-    } catch (error) {
-      console.error("Error updating user:", error);
-      ResponseHelper.throwMethodError(error);
-    }
+  async update(req: Request, res: Response): Promise<Response> {
+    const { id } = req.params;
+    const updateData = req.body;
+    
+    logger.info(`Updating user ${id}`);
+    
+    return res.json({
+      success: true,
+      data: {
+        id,
+        ...updateData,
+        updatedAt: new Date()
+      }
+    });
   }
 
-  public async deleteUser(req: Request, res: Response): Promise<void> {
-    try {
-      const result = await DatabaseHelper.executeSpJsonReturn("DeleteUser", { id: req.params.id });
-      ResponseHelper.sendDatabaseResponse(res, result);
-    } catch (error) {
-      console.error("Error deleting user:", error);
-      ResponseHelper.throwMethodError(error);
-    }
+  async delete(req: Request, res: Response): Promise<Response> {
+    const { id } = req.params;
+    
+    logger.info(`Deleting user ${id}`);
+    
+    return res.json({
+      success: true,
+      message: `User ${id} deleted successfully`
+    });
+  }
+
+  async getProfile(req: Request, res: Response): Promise<Response> {
+    // TODO: Obtener del usuario autenticado
+    return res.json({
+      success: true,
+      data: {
+        id: '1',
+        email: 'current@bsi.com',
+        firstName: 'Current',
+        lastName: 'User',
+        role: 'USER'
+      }
+    });
+  }
+
+  async updateProfile(req: Request, res: Response): Promise<Response> {
+    const updateData = req.body;
+    
+    return res.json({
+      success: true,
+      data: {
+        ...updateData,
+        updatedAt: new Date()
+      }
+    });
   }
 }
-
-const userController = new UserController();
-export default userController;
