@@ -2,8 +2,8 @@ import { Request, Response, NextFunction } from 'express';
 import logger from '@config/logger';
 import { config } from '@config/index';
 import { auditService, AuditEventType } from '@config/audit';
-import EmailService from '@services/emailService';
-import DatabaseHelper from '../databaseHelper';
+import EmailService from '@services-v2/emailService';
+import DatabaseHelper from '../DB/databaseHelper';
 import { ZodError } from 'zod';
 
 // Custom error classes
@@ -208,8 +208,7 @@ export const errorHandler = async (
   logger.error('Error en la aplicación', errorLog);
 
   // Auditar el error
-  auditService.log({
-    eventType: AuditEventType.SYSTEM_ERROR,
+  auditService.log(AuditEventType.SYSTEM_ERROR, {
     action: `Error ${statusCode}: ${message}`,
     result: 'failure',
     errorMessage: message,

@@ -57,7 +57,7 @@ function auditResponse(req: Request & { user?: any }, res: Response) {
 
   // Construir evento de auditoría
   const auditEvent = {
-    ...auditService.fromRequest(req, eventType, `${req.method} ${req.path}`),
+    eventType,
     result: success ? 'success' as const : 'failure' as const,
     statusCode: res.statusCode,
     duration,
@@ -73,7 +73,7 @@ function auditResponse(req: Request & { user?: any }, res: Response) {
   };
 
   // Registrar el evento
-  auditService.log(auditEvent);
+  auditService.log(eventType, auditEvent);
 }
 
 // Determinar tipo de evento basado en la ruta
@@ -89,14 +89,14 @@ function determineEventType(method: string, path: string, statusCode: number): A
 
   // Operaciones CRUD
   if (method === 'POST' && !path.includes('/auth/')) return AuditEventType.CREATE;
-  if (method === 'GET' && path.includes('/api/')) return AuditEventType.READ;
+  if (method === 'GET' && path.includes('/api/')) return AuditEventType.RESOURCE_ACCESS;
   if (method === 'PUT' || method === 'PATCH') return AuditEventType.UPDATE;
   if (method === 'DELETE') return AuditEventType.DELETE;
 
   // Operaciones de archivos
-  if (path.includes('/files/upload')) return AuditEventType.FILE_UPLOAD;
-  if (path.includes('/files/download')) return AuditEventType.FILE_DOWNLOAD;
-  if (method === 'DELETE' && path.includes('/files/')) return AuditEventType.FILE_DELETE;
+  if (path.includes('/files/upload')) return AuditEventType.DATA_CREATE;
+  if (path.includes('/files/download')) return AuditEventType.RESOURCE_ACCESS;
+  if (method === 'DELETE' && path.includes('/files/')) return AuditEventType.DATA_DELETE;
 
   // No auditar health checks y recursos estáticos
   if (path.includes('/health') || path.includes('/static/')) return null;
@@ -107,7 +107,7 @@ function determineEventType(method: string, path: string, statusCode: number): A
 // Middleware específico para auditar accesos denegados
 export const auditAccessDenied = (reason: string) => {
   return (req: Request & { user?: any }, res: Response, next: NextFunction) => {
-    auditService.logAccessDenied(req, req.originalUrl, reason);
+    auditService.logError(new Error(`Access denied: ${reason}`), { url: req.originalUrl, reason });
     next();
   };
 };

@@ -19,12 +19,20 @@ const swaggerOptions: swaggerJsdoc.Options = {
     },
     servers: [
       {
-        url: `http://localhost:${config.port}${config.apiPrefix}`,
-        description: 'Development server',
+        url: `http://localhost:${config.port}/api/v1`,
+        description: 'API v1 - Development',
       },
       {
-        url: `https://api.bsi.com${config.apiPrefix}`,
-        description: 'Production server',
+        url: `http://localhost:${config.port}/api/v2`,
+        description: 'API v2 - Development (Orientada al negocio)',
+      },
+      {
+        url: `https://api.bsi.com/api/v1`,
+        description: 'API v1 - Production',
+      },
+      {
+        url: `https://api.bsi.com/api/v2`,
+        description: 'API v2 - Production',
       },
     ],
     components: {
@@ -137,6 +145,113 @@ const swaggerOptions: swaggerJsdoc.Options = {
             data: {
               type: 'object',
               description: 'Response data',
+            },
+          },
+        },
+        // Schemas para V2
+        Nomina: {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'integer',
+              example: 1,
+            },
+            cuil: {
+              type: 'string',
+              example: '20123456789',
+            },
+            nombre: {
+              type: 'string',
+              example: 'Juan Pérez',
+            },
+            cbu: {
+              type: 'string',
+              example: '1234567890123456789012',
+            },
+            estado: {
+              type: 'string',
+              enum: ['VALIDADO', 'ERROR', 'PROCESADO'],
+              example: 'VALIDADO',
+            },
+          },
+        },
+        Pago: {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'integer',
+              example: 1,
+            },
+            concepto: {
+              type: 'string',
+              example: 'SUELDO',
+            },
+            fechaPago: {
+              type: 'string',
+              format: 'date',
+              example: '2024-01-15',
+            },
+            importe: {
+              type: 'number',
+              example: 150000.50,
+            },
+            estado: {
+              type: 'string',
+              enum: ['PENDIENTE', 'PROCESADO', 'ENVIADO'],
+              example: 'PROCESADO',
+            },
+          },
+        },
+        Archivo: {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'integer',
+              example: 1,
+            },
+            nombreOriginal: {
+              type: 'string',
+              example: 'nomina_enero_2024.txt',
+            },
+            tipoModulo: {
+              type: 'string',
+              enum: ['NOMINA', 'PAGO', 'CUENTA'],
+              example: 'NOMINA',
+            },
+            estado: {
+              type: 'string',
+              enum: ['SUBIDO', 'PROCESANDO', 'PROCESADO', 'ERROR'],
+              example: 'PROCESADO',
+            },
+            fechaSubida: {
+              type: 'string',
+              format: 'date-time',
+              example: '2024-01-15T10:30:00Z',
+            },
+          },
+        },
+        Organismo: {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'integer',
+              example: 1,
+            },
+            nombre: {
+              type: 'string',
+              example: 'Municipalidad de La Plata',
+            },
+            cuit: {
+              type: 'string',
+              example: '30123456789',
+            },
+            tipoOrganismo: {
+              type: 'string',
+              example: 'MUNICIPIO',
+            },
+            activo: {
+              type: 'boolean',
+              example: true,
             },
           },
         },
@@ -291,6 +406,23 @@ const swaggerOptions: swaggerJsdoc.Options = {
         name: 'Health',
         description: 'Health check endpoints',
       },
+      // Tags V2 - Orientados al negocio
+      {
+        name: 'Nominas',
+        description: 'Gestión de nóminas - Procesamiento de archivos TXT/Excel',
+      },
+      {
+        name: 'Pagos',
+        description: 'Gestión de pagos - Generación de archivos y transferencias',
+      },
+      {
+        name: 'Archivos',
+        description: 'Gestión de archivos - Subida, descarga y procesamiento',
+      },
+      {
+        name: 'Organismos',
+        description: 'Gestión de organismos/municipios',
+      },
     ],
   },
   apis: [
@@ -301,4 +433,33 @@ const swaggerOptions: swaggerJsdoc.Options = {
   ],
 };
 
+// Configuración separada para v2
+const swaggerOptionsV2 = {
+  definition: {
+    ...swaggerOptions.definition,
+    info: {
+      ...swaggerOptions.definition?.info,
+      title: 'BSI API v2.0 - Business Oriented',
+      description: 'API v2 orientada al negocio con arquitectura MVC simple',
+    },
+    servers: [
+      {
+        url: `http://localhost:${config.port}/api/v2`,
+        description: 'API v2 - Development',
+      },
+      {
+        url: `https://api.bsi.com/api/v2`,
+        description: 'API v2 - Production',
+      },
+    ],
+  },
+  apis: [
+    './src/routes-v2/*.ts',
+    './src/routes-v2/*.js',
+    './src/models/*.ts',
+    './src/models/*.js',
+  ],
+};
+
 export const swaggerSpec = swaggerJsdoc(swaggerOptions);
+export const swaggerSpecV2 = swaggerJsdoc(swaggerOptionsV2);

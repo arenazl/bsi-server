@@ -46,6 +46,7 @@ export class ResponseHelper {
     });
   }
 
+
   public static createErrorResponse(message: string): StandardResponse {
     return {
       estado: 0,
@@ -138,6 +139,9 @@ export class ResponseHelper {
     }
   }
 
+
+
+
   /**
    * Método auxiliar que analiza automáticamente el formato del objeto resultado
    */
@@ -159,7 +163,8 @@ export class ResponseHelper {
         data: parsedResult
       };
     }
-    
+
+
     // Formato 1: {ID, ESTADO, DESCRIPCION} - típico de INSERT simples
     if (result.ID !== undefined && result.ESTADO !== undefined && result.DESCRIPCION !== undefined) {
       return {

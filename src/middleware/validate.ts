@@ -6,7 +6,7 @@ import { validationResult } from 'express-validator';
  * Middleware para validar requests usando Zod schemas
  */
 export const validate = (schema: AnyZodObject) => {
-  return async (req: Request, res: Response, next: NextFunction) => {
+  return async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
     try {
       await schema.parseAsync({
         body: req.body,
@@ -31,7 +31,7 @@ export const validate = (schema: AnyZodObject) => {
           },
         });
       }
-      next(error);
+      return next(error);
     }
   };
 };
@@ -39,7 +39,7 @@ export const validate = (schema: AnyZodObject) => {
 /**
  * Middleware para usar con express-validator
  */
-export const validateExpressValidator = (req: Request, res: Response, next: NextFunction) => {
+export const validateExpressValidator = (req: Request, res: Response, next: NextFunction): Response | void => {
   const errors = validationResult(req);
   
   if (!errors.isEmpty()) {

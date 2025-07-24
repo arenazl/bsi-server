@@ -16,12 +16,15 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 
-# Environment
+# Environment & Security
 .env
 .env.local
 .env.development
 .env.production
 .env.test
+src/keys.ts
+keys.ts
+config/keys.ts
 
 # IDE
 .vscode/

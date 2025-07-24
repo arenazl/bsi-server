@@ -6,7 +6,6 @@ dotenv.config();
 
 import { App } from './app';
 import logger from '@config/logger';
-import { config } from '@config/index';
 
 // Manejo de errores no capturados
 process.on('uncaughtException', (error: Error) => {

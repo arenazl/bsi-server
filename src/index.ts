@@ -6,9 +6,9 @@ import fileRoutes from './routes/fileRoutes';
 import HelperRoutes from './routes/helperRoutes';
 import IORoutes from './routes/IORoutes';
 import metadataRoutes from './routes/metadataRoutes';
-import userRoutes from './routes/userRoutes';
-import openaiRoutes from './routes/openaiRoutes';
-import EmailService from './services/emailService';
+// import userRoutes from './routes/userRoutes'; // Comentado temporalmente
+// import openaiRoutes from './routes/openaiRoutes'; // Comentado temporalmente
+import EmailService from './services-v2/emailService';
 import config from './keys';
 import https from 'https';
 import fs from 'fs';
@@ -186,8 +186,8 @@ Por favor revise los logs del servidor y tome las acciones necesarias.
         this.app.use('/api/helper', HelperRoutes);
         this.app.use('/api/IO', IORoutes);
         this.app.use('/api/metadata', metadataRoutes);
-        this.app.use('/api/user', userRoutes);
-        this.app.use('/api/openai', openaiRoutes);
+        // this.app.use('/api/user', userRoutes); // Comentado temporalmente
+        // this.app.use('/api/openai', openaiRoutes); // Comentado temporalmente
 
         this.app.use(this.errorHandler.bind(this));
     }

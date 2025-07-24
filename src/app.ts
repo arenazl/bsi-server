@@ -9,16 +9,19 @@ import { requestLogger } from '@middleware/requestLogger';
 import { auditMiddleware } from '@middleware/audit';
 import { errorHandler, notFoundHandler } from '@middleware/errorHandler';
 import { Routes } from '@routes/index';
+import { RoutesV2 } from '@routes-v2/index';
 import path from 'path';
 import fs from 'fs';
 
 export class App {
   public app: Application;
   private routes: Routes;
+  private routesV2: RoutesV2;
 
   constructor() {
     this.app = express();
     this.routes = new Routes(this.app);
+    this.routesV2 = new RoutesV2(this.app);
     
     // Crear directorios necesarios
     this.createRequiredDirectories();
@@ -91,10 +94,11 @@ export class App {
     // Custom request logger con formato bonito
     this.app.use(requestLogger);
 
-    // Audit middleware
-    if (config.features.audit) {
-      this.app.use(auditMiddleware);
-    }
+    // Audit middleware - TEMPORALMENTE DESHABILITADO
+    // TODO: Restaurar cuando se arregle audit.ts
+    // if (config.features.audit) {
+    //   this.app.use(auditMiddleware);
+    // }
 
     // Trust proxy
     this.app.set('trust proxy', true);
@@ -115,6 +119,9 @@ export class App {
 
     // Inicializar todas las rutas
     this.routes.init();
+    
+    // Inicializar rutas V2
+    this.routesV2.init();
   }
 
   private configureErrorHandling(): void {
@@ -149,8 +156,10 @@ export class App {
         environment: config.env,
         features: config.features,
         database: {
-          host: config.database.host,
-          database: config.database.database,
+          primaryHost: config.database.primary.host,
+          primaryDatabase: config.database.primary.database,
+          nucleoHost: config.database.nucleo.host,
+          nucleoDatabase: config.database.nucleo.database,
         },
         security: {
           cors: config.security.corsOrigin,

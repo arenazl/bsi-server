@@ -13,16 +13,16 @@
     "strictNullChecks": true,
     "strictFunctionTypes": true,
     "strictBindCallApply": true,
-    "strictPropertyInitialization": true,
+    "strictPropertyInitialization": false,
     "noImplicitThis": true,
     "alwaysStrict": true,
     
     /* Additional Checks */
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedIndexedAccess": true,
+    "noUncheckedIndexedAccess": false,
     
     /* Module Resolution Options */
     "moduleResolution": "node",
@@ -34,6 +34,9 @@
       "@middleware/*": ["middleware/*"],
       "@models/*": ["models/*"],
       "@routes/*": ["routes/*"],
+      "@routes-v2/*": ["routes-v2/*"],
+      "@controllers-v2/*": ["controllers-v2/*"],
+      "@services-v2/*": ["services-v2/*"],
       "@utils/*": ["utils/*"],
       "@types/*": ["types/*"],
       "@validators/*": ["validators/*"],

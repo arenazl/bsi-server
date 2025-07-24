@@ -1,15 +1,14 @@
 import dotenv from 'dotenv';
-import path from 'path';
 
 // Cargar variables de entorno
 dotenv.config();
 
 // Validar variables de entorno requeridas
 const requiredEnvVars = [
-  'DB_HOST',
-  'DB_USER',
-  'DB_PASSWORD',
-  'DB_NAME',
+  'DB_PRIMARY_HOST',
+  'DB_PRIMARY_USER', 
+  'DB_PRIMARY_PASSWORD',
+  'DB_PRIMARY_NAME',
   'JWT_SECRET',
   'JWT_REFRESH_SECRET'
 ];
@@ -30,23 +29,54 @@ export const config = {
   port: parseInt(process.env.PORT || '3000', 10),
   apiPrefix: process.env.API_PREFIX || '/api/v1',
   
-  // Database
+  // Database Configurations
   database: {
-    host: process.env.DB_HOST!,
-    port: parseInt(process.env.DB_PORT || '3306', 10),
-    user: process.env.DB_USER!,
-    password: process.env.DB_PASSWORD!,
-    database: process.env.DB_NAME!,
-    connectionLimit: parseInt(process.env.DB_CONNECTION_LIMIT || '10', 10),
-    waitForConnections: true,
-    queueLimit: 0,
-    timezone: 'Z',
-    // SSL configuration
-    ...(process.env.DB_SSL_CA && {
-      ssl: {
-        ca: require('fs').readFileSync(require('path').resolve(process.env.DB_SSL_CA), 'utf-8')
-      }
-    })
+    // Primary Database (Main)
+    primary: {
+      host: process.env.DB_PRIMARY_HOST!,
+      port: parseInt(process.env.DB_PRIMARY_PORT || '3306', 10),
+      user: process.env.DB_PRIMARY_USER!,
+      password: process.env.DB_PRIMARY_PASSWORD!,
+      database: process.env.DB_PRIMARY_NAME!,
+      connectionLimit: parseInt(process.env.DB_CONNECTION_LIMIT || '10', 10),
+      waitForConnections: true,
+      queueLimit: 0,
+      timezone: 'Z',
+      ...(process.env.DB_PRIMARY_SSL_CA && {
+        ssl: {
+          ca: require('fs').readFileSync(require('path').resolve(process.env.DB_PRIMARY_SSL_CA), 'utf-8')
+        }
+      })
+    },
+    // Núcleo Database Local
+    nucleo: {
+      host: process.env.DB_NUCLEO_HOST!,
+      port: parseInt(process.env.DB_NUCLEO_PORT || '3306', 10),
+      user: process.env.DB_NUCLEO_USER!,
+      password: process.env.DB_NUCLEO_PASSWORD!,
+      database: process.env.DB_NUCLEO_NAME!,
+      connectionLimit: parseInt(process.env.DB_CONNECTION_LIMIT || '10', 10),
+      waitForConnections: true,
+      queueLimit: 0,
+      timezone: 'Z'
+    },
+    // Núcleo Database Online
+    nucleoOnline: {
+      host: process.env.DB_NUCLEO_ONLINE_HOST!,
+      port: parseInt(process.env.DB_NUCLEO_ONLINE_PORT || '3306', 10),
+      user: process.env.DB_NUCLEO_ONLINE_USER!,
+      password: process.env.DB_NUCLEO_ONLINE_PASSWORD!,
+      database: process.env.DB_NUCLEO_ONLINE_NAME!,
+      connectionLimit: parseInt(process.env.DB_CONNECTION_LIMIT || '10', 10),
+      waitForConnections: true,
+      queueLimit: 0,
+      timezone: 'Z',
+      ...(process.env.DB_NUCLEO_ONLINE_SSL_CA && {
+        ssl: {
+          ca: require('fs').readFileSync(require('path').resolve(process.env.DB_NUCLEO_ONLINE_SSL_CA), 'utf-8')
+        }
+      })
+    }
   },
   
   // JWT
@@ -65,16 +95,19 @@ export const config = {
     s3Bucket: process.env.AWS_S3_BUCKET,
   },
   
-  // Email
+  // Email Configuration  
   email: {
-    host: process.env.SMTP_HOST || 'smtp.gmail.com',
-    port: parseInt(process.env.SMTP_PORT || '587', 10),
-    secure: process.env.SMTP_SECURE === 'true',
+    service: process.env.EMAIL_SERVICE || 'gmail',
+    host: process.env.EMAIL_HOST || process.env.SMTP_HOST || 'smtp.gmail.com',
+    port: parseInt(process.env.EMAIL_PORT || process.env.SMTP_PORT || '587', 10),
+    secure: process.env.EMAIL_SECURE === 'true' || process.env.SMTP_SECURE === 'true',
     auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASSWORD,
+      user: process.env.EMAIL_USER || process.env.SMTP_USER,
+      pass: process.env.EMAIL_PASSWORD || process.env.SMTP_PASSWORD,
     },
-    from: process.env.EMAIL_FROM || 'noreply@bsi.com',
+    from: process.env.EMAIL_FROM || 'BSI System <noreply@bsi.com>',
+    adminEmail: process.env.ADMIN_EMAIL,
+    controlEmail: process.env.CONTROL_EMAIL,
   },
   
   // External APIs
