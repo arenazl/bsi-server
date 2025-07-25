@@ -157,7 +157,7 @@ export class PagoService {
       fecha_hasta: filtros.fecha_hasta || null
     };
     
-    return await this.spService.executeSelectSP('PAGO_LIST_FILTERED', params);
+    return await this.spService.executeSelectSP('PAGO_LIST_FILTERED', [params.organismo, params.estado, params.fecha_desde, params.fecha_hasta]);
   }
 
   /**

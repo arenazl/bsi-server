@@ -69,6 +69,33 @@ export class DatabaseService {
   }
 
   /**
+   * Ejecuta un Stored Procedure genérico (alias para executeSelectSP)
+   */
+  async executeStoredProcedure(spName: string, params: any): Promise<any> {
+    return this.executeSelectSP(spName, params);
+  }
+
+  /**
+   * Ejecuta un SP que retorna JSON
+   */
+  async executeSpJsonReturn(spName: string, params: any): Promise<any> {
+    try {
+      const rows = await DatabaseHelper.executeSpJsonReturn(spName, params);
+      return rows;
+    } catch (error: any) {
+      console.error(`Error ejecutando SP ${spName}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Ejecuta una inserción JSON (alias para compatibilidad)
+   */
+  async executeJsonInsert(spName: string, body: any): Promise<any> {
+    return this.executeInsertSP(spName, body);
+  }
+
+  /**
    * Helper para enviar respuesta HTTP consistente
    */
   sendResponse(res: any, data: any): void {

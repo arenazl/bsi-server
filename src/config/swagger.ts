@@ -438,9 +438,9 @@ const swaggerOptionsV2 = {
   definition: {
     ...swaggerOptions.definition,
     info: {
-      ...swaggerOptions.definition?.info,
       title: 'BSI API v2.0 - Business Oriented',
       description: 'API v2 orientada al negocio con arquitectura MVC simple',
+      version: '2.0.0',
     },
     servers: [
       {

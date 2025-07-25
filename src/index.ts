@@ -1,11 +1,11 @@
 import express, { Application, Request, Response, NextFunction } from 'express';
 import morgan from 'morgan';
 import cors from 'cors';
-import indexRoutes from './routes/indexRoutes';
-import fileRoutes from './routes/fileRoutes';
-import HelperRoutes from './routes/helperRoutes';
-import IORoutes from './routes/IORoutes';
-import metadataRoutes from './routes/metadataRoutes';
+// import indexRoutes from './routes/indexRoutes';
+// import fileRoutes from './routes/fileRoutes';
+// import HelperRoutes from './routes/helperRoutes';
+// import IORoutes from './routes/IORoutes';
+// import metadataRoutes from './routes/metadataRoutes';
 // import userRoutes from './routes/userRoutes'; // Comentado temporalmente
 // import openaiRoutes from './routes/openaiRoutes'; // Comentado temporalmente
 import EmailService from './services-v2/emailService';
@@ -181,11 +181,11 @@ Por favor revise los logs del servidor y tome las acciones necesarias.
      */
     routes(): void {
 
-        this.app.use('/', indexRoutes);
-        this.app.use('/api/file', fileRoutes);
-        this.app.use('/api/helper', HelperRoutes);
-        this.app.use('/api/IO', IORoutes);
-        this.app.use('/api/metadata', metadataRoutes);
+        // this.app.use('/', indexRoutes);
+        // this.app.use('/api/file', fileRoutes);
+        // this.app.use('/api/helper', HelperRoutes);
+        // this.app.use('/api/IO', IORoutes);
+        // this.app.use('/api/metadata', metadataRoutes);
         // this.app.use('/api/user', userRoutes); // Comentado temporalmente
         // this.app.use('/api/openai', openaiRoutes); // Comentado temporalmente
 

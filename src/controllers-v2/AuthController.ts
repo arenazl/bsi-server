@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
 import { DatabaseService } from '@services-v2/DatabaseService';
-import { ResponseHelper } from '@utils/responseHelper';
+import ResponseHelper from '@utils/responseHelper';
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+import jwt, { SignOptions } from 'jsonwebtoken';
 import { config } from '@config/index';
 
 export class AuthController {
@@ -49,27 +49,50 @@ export class AuthController {
       });
 
       if (!result || result.length === 0) {
-        responseHelper.error(res, 'Credenciales inválidas', 401);
+        ResponseHelper.error(res, 'Credenciales inválidas', 401);
         return;
       }
 
-      const user = result[0];
+      const spResult = result[0];
+      
+      // Log para debug
+      console.log('Usuario del SP:', spResult);
+
+      // Verificar si el login fue exitoso
+      if (!spResult || spResult.estado === 0) {
+        ResponseHelper.error(res, spResult?.descripcion || 'Credenciales inválidas', 401);
+        return;
+      }
+
+      // Extraer datos del usuario desde el campo data
+      const userData = spResult.data;
+      
+      // Parsear Contratos si viene como string
+      let contratos = [];
+      try {
+        contratos = typeof userData.Contratos === 'string' 
+          ? JSON.parse(userData.Contratos) 
+          : userData.Contratos || [];
+      } catch (e) {
+        console.error('Error parseando contratos:', e);
+        contratos = [];
+      }
 
       // Generar tokens JWT
       const accessToken = jwt.sign(
         { 
-          id: user.ID_User,
-          nombre: user.Nombre,
-          organismo: user.ID_Organismo
+          id: userData.ID_User,
+          nombre: userData.Nombre,
+          organismo: userData.ID_Organismo
         },
         config.jwt.secret,
-        { expiresIn: config.jwt.expiresIn }
+        { expiresIn: config.jwt.expiresIn } as SignOptions
       );
 
       const refreshToken = jwt.sign(
-        { id: user.ID_User },
+        { id: userData.ID_User },
         config.jwt.refreshSecret,
-        { expiresIn: config.jwt.refreshExpiresIn }
+        { expiresIn: config.jwt.refreshExpiresIn } as SignOptions
       );
 
       // Formatear respuesta como el frontend espera
@@ -77,11 +100,13 @@ export class AuthController {
         estado: 1,
         mensaje: 'Login exitoso',
         datos: {
-          ID_User: user.ID_User,
-          Nombre: user.Nombre,
-          Apellido: user.Apellido,
-          ID_Organismo: user.ID_Organismo,
-          Contratos: user.Contratos || []
+          ID_User: userData.ID_User,
+          Nombre: userData.Nombre,
+          Apellido: userData.Apellido,
+          ID_Organismo: userData.ID_Organismo,
+          Nombre_Organismo: userData.Nombre_Organismo || '',
+          Cargo_Funcion: userData.Cargo_Funcion || '',
+          Contratos: contratos
         },
         tokens: {
           accessToken,
@@ -89,10 +114,11 @@ export class AuthController {
         }
       };
 
-      responseHelper.success(res, response);
+      // Enviar respuesta directamente sin wrapper adicional
+      res.json(response);
     } catch (error) {
       console.error('Error en login:', error);
-      responseHelper.error(res, 'Error al iniciar sesión');
+      ResponseHelper.error(res, 'Error al iniciar sesión');
     }
   };
 
@@ -122,7 +148,7 @@ export class AuthController {
       const { refreshToken } = req.body;
 
       if (!refreshToken) {
-        responseHelper.error(res, 'Refresh token requerido', 400);
+        ResponseHelper.error(res, 'Refresh token requerido', 400);
         return;
       }
 
@@ -133,13 +159,13 @@ export class AuthController {
       const accessToken = jwt.sign(
         { id: decoded.id },
         config.jwt.secret,
-        { expiresIn: config.jwt.expiresIn }
+        { expiresIn: config.jwt.expiresIn } as SignOptions
       );
 
-      responseHelper.success(res, { accessToken });
+      ResponseHelper.success(res, { accessToken });
     } catch (error) {
       console.error('Error al refrescar token:', error);
-      responseHelper.error(res, 'Token inválido', 401);
+      ResponseHelper.error(res, 'Token inválido', 401);
     }
   };
 
@@ -160,10 +186,10 @@ export class AuthController {
       // En una implementación real, aquí podrías invalidar el token
       // guardándolo en una blacklist en Redis o base de datos
       
-      responseHelper.success(res, { mensaje: 'Sesión cerrada exitosamente' });
+      ResponseHelper.success(res, { mensaje: 'Sesión cerrada exitosamente' });
     } catch (error) {
       console.error('Error en logout:', error);
-      responseHelper.error(res, 'Error al cerrar sesión');
+      ResponseHelper.error(res, 'Error al cerrar sesión');
     }
   };
 
@@ -184,7 +210,7 @@ export class AuthController {
       const userId = (req as any).user?.id;
 
       if (!userId) {
-        responseHelper.error(res, 'Usuario no autenticado', 401);
+        ResponseHelper.error(res, 'Usuario no autenticado', 401);
         return;
       }
 
@@ -194,14 +220,14 @@ export class AuthController {
       });
 
       if (!result || result.length === 0) {
-        responseHelper.error(res, 'Usuario no encontrado', 404);
+        ResponseHelper.error(res, 'Usuario no encontrado', 404);
         return;
       }
 
-      responseHelper.success(res, result[0]);
+      ResponseHelper.success(res, result[0]);
     } catch (error) {
       console.error('Error al obtener usuario actual:', error);
-      responseHelper.error(res, 'Error al obtener datos del usuario');
+      ResponseHelper.error(res, 'Error al obtener datos del usuario');
     }
   };
 }

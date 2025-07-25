@@ -140,6 +140,43 @@ export class CuentaController {
   }
 
   /**
+   * GET /api/cuentas/:id
+   * Obtiene una cuenta específica (alias para obtenerDetalle)
+   */
+  async obtener(req: Request, res: Response): Promise<void> {
+    return this.obtenerDetalle(req, res);
+  }
+
+  /**
+   * POST /api/cuentas/generar-alta-masiva
+   * Genera archivo de alta masiva
+   */
+  async generarAltaMasiva(req: Request, res: Response): Promise<void> {
+    try {
+      const result = await this.cuentaService.generarAltaMasiva(req.body);
+      this.dbService.sendResponse(res, result);
+    } catch (error: any) {
+      console.error("Error generando alta masiva:", error);
+      this.dbService.throwError(error);
+    }
+  }
+
+  /**
+   * GET /api/cuentas/estado/:id
+   * Obtiene estado de procesamiento
+   */
+  async obtenerEstado(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const result = await this.cuentaService.obtenerEstado(id);
+      this.dbService.sendResponse(res, result);
+    } catch (error: any) {
+      console.error("Error obteniendo estado:", error);
+      this.dbService.throwError(error);
+    }
+  }
+
+  /**
    * Helper: Obtiene metadata usando DatabaseHelper
    */
   private async obtenerMetadataHelper(

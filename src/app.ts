@@ -60,7 +60,26 @@ export class App {
 
     // CORS configuration
     this.app.use(cors({
-      origin: config.security.corsOrigin,
+      origin: (origin, callback) => {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+        
+        // In development, allow any localhost origin
+        if (config.isDevelopment && origin.includes('localhost')) {
+          return callback(null, true);
+        }
+        
+        // Otherwise check against configured origins
+        const allowedOrigins = Array.isArray(config.security.corsOrigin) 
+          ? config.security.corsOrigin 
+          : [config.security.corsOrigin];
+          
+        if (allowedOrigins.includes(origin)) {
+          callback(null, true);
+        } else {
+          callback(new Error('Not allowed by CORS'));
+        }
+      },
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],

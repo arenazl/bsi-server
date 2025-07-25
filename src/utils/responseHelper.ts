@@ -8,6 +8,23 @@ interface StandardResponse {
 
 export class ResponseHelper {
   
+  // Métodos simplificados para usar en controllers
+  public static success(res: Response, data: any, message: string = 'Operación exitosa'): void {
+    res.json({
+      estado: 1,
+      descripcion: message,
+      data: data
+    });
+  }
+
+  public static error(res: Response, message: string, statusCode: number = 500): void {
+    res.status(statusCode).json({
+      estado: 0,
+      descripcion: message,
+      data: null
+    });
+  }
+  
   public static sendError(res: Response, message?: string): void {
     res.json({
       estado: 0,

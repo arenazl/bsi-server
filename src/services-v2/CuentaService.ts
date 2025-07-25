@@ -84,7 +84,7 @@ export class CuentaService {
       fecha_hasta: filtros.fecha_hasta || null
     };
     
-    return await this.spService.executeSelectSP('CUENTA_LIST_FILTERED', params);
+    return await this.spService.executeSelectSP('CUENTA_LIST_FILTERED', [params.organismo, params.tipo_doc, params.fecha_desde, params.fecha_hasta]);
   }
 
   /**
@@ -96,6 +96,24 @@ export class CuentaService {
     }
     
     return await this.spService.executeSelectSP('CUENTA_GET_DETALLE', [cuentaId]);
+  }
+
+  /**
+   * Genera archivo de alta masiva
+   */
+  async generarAltaMasiva(data: any): Promise<any> {
+    return await this.spService.executeSelectSP('CUENTA_GENERAR_ALTA_MASIVA', data);
+  }
+
+  /**
+   * Obtiene estado de procesamiento
+   */
+  async obtenerEstado(id: string | number): Promise<any> {
+    if (!id) {
+      throw new Error('ID es requerido');
+    }
+    
+    return await this.spService.executeSelectSP('CUENTA_GET_ESTADO', [id]);
   }
 
   /**

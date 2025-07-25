@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { DatabaseService } from '@services-v2/DatabaseService';
-import { ResponseHelper } from '@utils/responseHelper';
+import ResponseHelper from '@utils/responseHelper';
 // import bcrypt from 'bcryptjs'; // Removido - sistema legacy usa passwords en texto plano
 
 export class UserController {
@@ -26,10 +26,10 @@ export class UserController {
     try {
       const result = await this.databaseService.executeStoredProcedure('GetAllUsers', {});
       
-      responseHelper.success(res, result);
+      ResponseHelper.success(res, result);
     } catch (error) {
       console.error('Error al listar usuarios:', error);
-      responseHelper.error(res, 'Error al obtener usuarios');
+      ResponseHelper.error(res, 'Error al obtener usuarios');
     }
   };
 
@@ -62,14 +62,14 @@ export class UserController {
       });
 
       if (!result || result.length === 0) {
-        responseHelper.error(res, 'Usuario no encontrado', 404);
+        ResponseHelper.error(res, 'Usuario no encontrado', 404);
         return;
       }
 
-      responseHelper.success(res, result[0]);
+      ResponseHelper.success(res, result[0]);
     } catch (error) {
       console.error('Error al obtener usuario:', error);
-      responseHelper.error(res, 'Error al obtener usuario');
+      ResponseHelper.error(res, 'Error al obtener usuario');
     }
   };
 
@@ -117,10 +117,10 @@ export class UserController {
 
       const result = await this.databaseService.executeJsonInsert('InsertUser', userData);
 
-      responseHelper.success(res, result, 201);
+      ResponseHelper.success(res, result, 'Usuario creado exitosamente');
     } catch (error) {
       console.error('Error al crear usuario:', error);
-      responseHelper.error(res, 'Error al crear usuario');
+      ResponseHelper.error(res, 'Error al crear usuario');
     }
   };
 
@@ -172,10 +172,10 @@ export class UserController {
 
       const result = await this.databaseService.executeJsonInsert('UpdateUser', userData);
 
-      responseHelper.success(res, result);
+      ResponseHelper.success(res, result);
     } catch (error) {
       console.error('Error al actualizar usuario:', error);
-      responseHelper.error(res, 'Error al actualizar usuario');
+      ResponseHelper.error(res, 'Error al actualizar usuario');
     }
   };
 
@@ -205,10 +205,10 @@ export class UserController {
         id: parseInt(id)
       });
 
-      responseHelper.success(res, { mensaje: 'Usuario eliminado exitosamente', result });
+      ResponseHelper.success(res, { mensaje: 'Usuario eliminado exitosamente', result });
     } catch (error) {
       console.error('Error al eliminar usuario:', error);
-      responseHelper.error(res, 'Error al eliminar usuario');
+      ResponseHelper.error(res, 'Error al eliminar usuario');
     }
   };
 
@@ -238,10 +238,10 @@ export class UserController {
         userId: parseInt(id)
       });
 
-      responseHelper.success(res, result);
+      ResponseHelper.success(res, result);
     } catch (error) {
       console.error('Error al obtener contratos del usuario:', error);
-      responseHelper.error(res, 'Error al obtener contratos');
+      ResponseHelper.error(res, 'Error al obtener contratos');
     }
   };
 }

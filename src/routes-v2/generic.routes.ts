@@ -1,10 +1,10 @@
 import { Router } from 'express';
-import { GenericController } from '@controllers-v2/GenericController';
+import GenericController from '@controllers-v2/GenericController';
 import { authenticateToken } from '@middleware/auth';
 import { asyncHandler } from '@utils/asyncHandler';
 
 const router = Router();
-const genericController = new GenericController();
+const genericController = GenericController;
 
 /**
  * @swagger
