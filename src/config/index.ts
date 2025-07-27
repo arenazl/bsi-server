@@ -4,6 +4,9 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 // Database configuration - using hardcoded values for Heroku (like your other 3 apps)
+const isProduction = process.env.NODE_ENV === 'production';
+const sslCertPath = isProduction ? './build/DB/crt/ca.pem' : './src/DB/crt/ca.pem';
+
 const databaseConfig = {
   host: 'mysql-aiven-arenazl.e.aivencloud.com',
   user: 'avnadmin',
@@ -11,7 +14,7 @@ const databaseConfig = {
   database: 'defaultdev',
   port: 23108,
   ssl: {
-    ca: './src/DB/crt/ca.pem'
+    ca: sslCertPath
   }
 };
 
