@@ -3,25 +3,25 @@ import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
 import morgan from 'morgan';
+import swaggerUi from 'swagger-ui-express';
 import { config } from '@config/index';
 import logger from '@config/logger';
+import { swaggerSpec } from '@config/swagger';
+import { devLogger } from '@middleware/devLogger';
 import { requestLogger } from '@middleware/requestLogger';
 import { auditMiddleware } from '@middleware/audit';
 import { errorHandler, notFoundHandler } from '@middleware/errorHandler';
 import { Routes } from '@routes/index';
-import { RoutesV2 } from '@routes-v2/index';
 import path from 'path';
 import fs from 'fs';
 
 export class App {
   public app: Application;
   private routes: Routes;
-  private routesV2: RoutesV2;
 
   constructor() {
     this.app = express();
     this.routes = new Routes(this.app);
-    this.routesV2 = new RoutesV2(this.app);
     
     // Crear directorios necesarios
     this.createRequiredDirectories();
@@ -102,16 +102,21 @@ export class App {
 
     // Logging middlewares
     if (config.isDevelopment) {
-      // Morgan para desarrollo con formato personalizado
-      this.app.use(morgan('dev', {
+      // Usar el logger formateado en desarrollo
+      this.app.use(devLogger.middleware());
+    } else {
+      // Morgan para producción
+      this.app.use(morgan('combined', {
         stream: {
           write: (message: string) => logger.http(message.trim())
         }
       }));
     }
 
-    // Custom request logger con formato bonito
-    this.app.use(requestLogger);
+    // Custom request logger para auditoría
+    if (!config.isDevelopment) {
+      this.app.use(requestLogger);
+    }
 
     // Audit middleware - TEMPORALMENTE DESHABILITADO
     // TODO: Restaurar cuando se arregle audit.ts
@@ -136,11 +141,25 @@ export class App {
       });
     });
 
+    // Swagger Documentation
+    if (config.features.swagger !== false) {
+      this.app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+        customCss: '.swagger-ui .topbar { display: none }',
+        customSiteTitle: 'BSI API Documentation',
+        customfavIcon: '/favicon.ico'
+      }));
+      
+      // Endpoint para obtener el spec JSON
+      this.app.get('/api-docs.json', (req: Request, res: Response) => {
+        res.setHeader('Content-Type', 'application/json');
+        res.send(swaggerSpec);
+      });
+
+      logger.info('📚 Swagger documentation available at /api-docs');
+    }
+
     // Inicializar todas las rutas
     this.routes.init();
-    
-    // Inicializar rutas V2
-    this.routesV2.init();
   }
 
   private configureErrorHandling(): void {
@@ -165,6 +184,12 @@ export class App {
 ║  🚀 Server running on: http://localhost:${appPort}               ║
 ║  📚 API Docs: http://localhost:${appPort}/api-docs               ║
 ║  🔍 Environment: ${config.env.padEnd(45)}║
+║                                                                ║
+║  💾 Database Connection:                                       ║
+║  🏢 Host: ${config.database.primary.host.padEnd(52)}║
+║  🗄️  Database: ${config.database.primary.database.padEnd(48)}║
+║  👤 User: ${config.database.primary.user.padEnd(52)}║
+║  🔌 Port: ${config.database.primary.port.toString().padEnd(52)}║
 ║  📁 Logs directory: ${config.logging.dir.padEnd(42)}║
 ║                                                                ║
 ╚════════════════════════════════════════════════════════════════╝

@@ -6,7 +6,7 @@ export enum TipoPantalla {
     PAGO_BENEFICIOS = 3,
     PAGO_PROVEEDORES = 4,
     PAGO_HONORARIOS = 9,
-    ºPAGO_EMBARGOS_OTROS = 10,
+    PAGO_EMBARGOS_OTROS = 10,
     ALTA_CUENTAS = 3
 }
 
@@ -22,13 +22,16 @@ export enum TipoModulo {
 export enum TipoMetada {
     IMPORT = 'IMPORT',
     LIST = 'LIST',
-      FILL = 'FILL'
+    FILL = 'FILL',
+    VERIFY = 'VERIFY',
+    COMBO = 'COMBO'
 }
 
 export enum TipoData {
     EXPORT = 'EXPORT',
     LIST = 'LIST',
-    FILL = 'FILL'
+    FILL = 'FILL',
+    DETAIL = 'DETAIL'
 }
    
 export function getFileType(tipoModulo: TipoModulo) {

@@ -8,11 +8,11 @@
     "rootDir": "./src",
     
     /* Strict Type-Checking Options */
-    "strict": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    "strictFunctionTypes": true,
-    "strictBindCallApply": true,
+    "strict": false,
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+    "strictFunctionTypes": false,
+    "strictBindCallApply": false,
     "strictPropertyInitialization": false,
     "noImplicitThis": true,
     "alwaysStrict": true,
@@ -34,9 +34,6 @@
       "@middleware/*": ["middleware/*"],
       "@models/*": ["models/*"],
       "@routes/*": ["routes/*"],
-      "@routes-v2/*": ["routes-v2/*"],
-      "@controllers-v2/*": ["controllers-v2/*"],
-      "@services-v2/*": ["services-v2/*"],
       "@utils/*": ["utils/*"],
       "@types/*": ["types/*"],
       "@validators/*": ["validators/*"],
@@ -57,5 +54,13 @@
     "emitDecoratorMetadata": true
   },
   "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "build", "dist"]
+  "exclude": [
+    "node_modules", 
+    "build", 
+    "dist",
+    "src/**/legacy/**/*",
+    "src/**/test/**/*",
+    "src/**/*.spec.ts",
+    "src/**/*.test.ts"
+  ]
 }

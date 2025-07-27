@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import logger from '@config/logger';
 import { config } from '@config/index';
 import { auditService, AuditEventType } from '@config/audit';
-import EmailService from '@services-v2/emailService';
+import EmailService from '@services/emailService';
 import DatabaseHelper from '../DB/databaseHelper';
 import { ZodError } from 'zod';
 
@@ -174,9 +174,25 @@ export const errorHandler = async (
     statusCode = 400;
     message = err.message;
     code = 'FILE_UPLOAD_ERROR';
+  } else if (err.message && err.message.includes('Tipo de archivo no soportado')) {
+    statusCode = 400;
+    message = 'El archivo debe ser formato Excel (.xlsx o .xls) o texto (.txt)';
+    code = 'UNSUPPORTED_FILE_TYPE';
+  } else if (err.message && err.message.includes('debe ser de tipo')) {
+    statusCode = 400;
+    message = 'El archivo no corresponde al tipo de operación seleccionado. Verifique que el archivo sea para PAGO, NOMINA o CUENTA según corresponda.';
+    code = 'WRONG_FILE_TYPE';
+  } else if (err.message && err.message.includes('no coincide con el formato esperado')) {
+    statusCode = 400;
+    message = err.message; // Usar el mensaje completo del detector inteligente
+    code = 'INVALID_FILE_FORMAT';
   } else if (statusCode === 500) {
     // Para errores 500 no controlados, notificar por email
     shouldNotifyEmail = true;
+    // Usar el mensaje original del error si está disponible
+    if (err.message && err.message !== 'Internal server error') {
+      message = err.message;
+    }
   }
 
   // Log completo del error
@@ -224,8 +240,12 @@ export const errorHandler = async (
     },
   });
 
-  // Enviar notificación por email si es necesario
-  if (shouldNotifyEmail || (statusCode >= 500 && config.isProduction)) {
+  // Enviar notificación por email para errores importantes (400+ excepto 401, 403, 404)
+  const shouldSendEmail = shouldNotifyEmail || 
+                         (statusCode >= 500) || 
+                         (statusCode >= 400 && statusCode !== 401 && statusCode !== 403 && statusCode !== 404);
+  
+  if (shouldSendEmail) {
     const errorDetails = `
 MÉTODO HTTP: ${method}
 ENDPOINT: ${url}
@@ -258,24 +278,32 @@ Detalles del contexto:
 Por favor revise los logs del servidor y tome las acciones necesarias.
     `.trim();
 
-    try {
-      await EmailService.sendErrorNotificationSimple(
-        `Error ${statusCode}: ${code}`,
-        errorDetails,
-        friendlyDescription
-      );
-    } catch (emailError) {
+    // No bloquear la respuesta por problemas de email
+    EmailService.sendErrorNotificationSimple(
+      `Error ${statusCode}: ${code}`,
+      errorDetails,
+      friendlyDescription
+    ).then(() => {
+      logger.info('Error notification email sent successfully');
+    }).catch((emailError) => {
       logger.error('Error enviando notificación por email:', emailError);
-    }
+      // Log como fallback para que el admin vea el error aunque no llegue el email
+      logger.error('ADMIN ALERT - Error crítico no notificado por email:', {
+        subject: `Error ${statusCode}: ${code}`,
+        details: errorDetails,
+        friendly: friendlyDescription
+      });
+    });
   }
 
   // Preparar respuesta de error
   const errorResponse: any = {
-    estado: statusCode >= 500 ? 0 : statusCode, // Mantener compatibilidad con formato actual
+    estado: 0, // Siempre 0 para errores - impide avance en frontend
     descripcion: message,
     data: null,
     error: {
       code,
+      statusCode, // Mantener statusCode en error object para debugging
       ...(details && { details }),
     },
   };

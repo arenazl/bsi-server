@@ -1,10 +1,18 @@
 import { Application } from 'express';
-import swaggerUi from 'swagger-ui-express';
+// import swaggerUi from 'swagger-ui-express';
+// import { swaggerSpecV2 } from '@config/swagger';
 
-/**
- * Clase para manejar las rutas de la API v1 (Legacy)
- * Mantiene compatibilidad con el sistema anterior mientras se migra a v2
- */
+// Rutas v2 orientadas al negocio
+import nominaRoutes from './nomina.routes';
+import pagoRoutes from './pago.routes';
+import archivoRoutes from './archivo.routes';
+import organismoRoutes from './organismo.routes';
+import authRoutes from './auth.routes';
+import usuarioRoutes from './usuario.routes';
+import genericRoutes from './generic.routes';
+import cuentaRoutes from './cuenta.routes';
+import navigationRoutes from './navigation.routes';
+
 export class Routes {
   private app: Application;
   private apiPrefix = '/api';
@@ -14,44 +22,28 @@ export class Routes {
   }
 
   public init(): void {
-    console.log('🔧 Inicializando rutas Legacy (v1)...');
+    console.log('🚀 Inicializando rutas API...');
 
-    // Swagger básico para v1 (si existe)
-    try {
-      this.app.use('/api-docs', swaggerUi.serve, swaggerUi.setup({
-        openapi: '3.0.0',
-        info: {
-          title: 'BSI API v1 (Legacy)',
-          version: '1.0.0',
-          description: 'API Legacy - En proceso de migración a v2'
-        },
-        paths: {}
-      }, {
-        customCss: '.swagger-ui .topbar { display: none }',
-        customSiteTitle: 'BSI API v1 Legacy Documentation',
-      }));
-    } catch (error) {
-      console.log('⚠️  Swagger v1 no disponible');
-    }
+    // Rutas orientadas al negocio
+    this.app.use(`${this.apiPrefix}/auth`, authRoutes);
+    this.app.use(`${this.apiPrefix}/usuarios`, usuarioRoutes);
+    this.app.use(`${this.apiPrefix}/nominas`, nominaRoutes);
+    this.app.use(`${this.apiPrefix}/pagos`, pagoRoutes);
+    this.app.use(`${this.apiPrefix}/archivos`, archivoRoutes);
+    this.app.use(`${this.apiPrefix}/organismos`, organismoRoutes);
+    this.app.use(`${this.apiPrefix}/generic`, genericRoutes);
+    this.app.use(`${this.apiPrefix}/cuentas`, cuentaRoutes);
+    this.app.use(`${this.apiPrefix}/navigation`, navigationRoutes);
 
-    // Ruta de salud básica para v1
-    this.app.get(`${this.apiPrefix}/health`, (req, res) => {
-      res.json({ 
-        status: 'ok', 
-        version: '1.0.0',
-        message: 'Legacy API - Migrating to v2',
-        timestamp: new Date().toISOString() 
-      });
-    });
-
-    // Middleware para avisar sobre rutas legacy
-    this.app.use(`${this.apiPrefix}/*`, (req, res, next) => {
-      console.log(`⚠️  Legacy API call: ${req.method} ${req.originalUrl}`);
-      next();
-    });
-
-    console.log('✅ Rutas Legacy (v1) configuradas:');
-    console.log(`   - ${this.apiPrefix}/health`);
-    console.log(`   - ${this.apiPrefix}/* (Legacy routes with warnings)`);
+    console.log('✅ Rutas API cargadas:');
+    console.log(`   - ${this.apiPrefix}/auth`);
+    console.log(`   - ${this.apiPrefix}/usuarios`);
+    console.log(`   - ${this.apiPrefix}/nominas`);
+    console.log(`   - ${this.apiPrefix}/pagos`);
+    console.log(`   - ${this.apiPrefix}/archivos`);
+    console.log(`   - ${this.apiPrefix}/organismos`);
+    console.log(`   - ${this.apiPrefix}/generic`);
+    console.log(`   - ${this.apiPrefix}/cuentas`);
+    console.log(`   - ${this.apiPrefix}/navigation`);
   }
 }

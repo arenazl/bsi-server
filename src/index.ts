@@ -1,3 +1,4 @@
+import 'module-alias/register';
 import express, { Application, Request, Response, NextFunction } from 'express';
 import morgan from 'morgan';
 import cors from 'cors';
@@ -8,7 +9,7 @@ import cors from 'cors';
 // import metadataRoutes from './routes/metadataRoutes';
 // import userRoutes from './routes/userRoutes'; // Comentado temporalmente
 // import openaiRoutes from './routes/openaiRoutes'; // Comentado temporalmente
-import EmailService from './services-v2/emailService';
+import EmailService from './services/emailService';
 import config from './keys';
 import https from 'https';
 import fs from 'fs';

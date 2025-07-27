@@ -1,5 +1,5 @@
 import { createPool, Pool, PoolConnection } from 'mysql2/promise';
-import keys from '../keys';
+import { config } from '../config';
 import { TipoData, TipoMetada, TipoModulo } from '../utils/enums';
 import multer from 'multer';
 
@@ -10,7 +10,7 @@ class DatabaseHelper {
 
   private constructor() {
     // Configuración del pool de conexiones usando createPool
-    this.pool = createPool(keys.database);
+    this.pool = createPool(config.database.primary);
   }
 
   public static getInstance(): DatabaseHelper {
@@ -234,6 +234,29 @@ public async executeSpJsonReturn(
           return '';
       }
     }
+    
+  /**
+   * Ejecuta una consulta SQL directa
+   * @param query La consulta SQL a ejecutar
+   * @param params Los parámetros de la consulta
+   * @returns Los resultados de la consulta
+   */
+  public async executeQuery(query: string, params: any[] = []): Promise<any> {
+    let connection: PoolConnection | undefined;
+    try {
+      connection = await this.getConnection();
+      
+      // Ejecutar query con parámetros
+      const [results] = await connection.execute(query, params);
+      
+      return results;
+    } catch (error) {
+      console.error('Error ejecutando query:', error);
+      throw error;
+    } finally {
+      if (connection) connection.release();
+    }
+  }
 }
 
 

@@ -1,0 +1,21 @@
+# Archivos que Heroku NO debe incluir en el build
+*.md
+*.log
+.git
+.gitignore
+.env*
+.vscode
+.idea
+test/
+tests/
+spec/
+docs/
+coverage/
+.nyc_output/
+.github/
+scripts/
+migrations/
+legacy/
+*.test.ts
+*.spec.ts
+node_modules/

@@ -1,14 +1,14 @@
 import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
-import { RoutesV2 } from '@routes-v2/index';
+import { Routes } from '@routes/index';
 
 export class SimpleApp {
   public app: Application;
-  private routesV2: RoutesV2;
+  private routes: Routes;
 
   constructor() {
     this.app = express();
-    this.routesV2 = new RoutesV2(this.app);
+    this.routes = new Routes(this.app);
     
     // Configurar middlewares básicos
     this.configureBasicMiddlewares();
@@ -50,7 +50,7 @@ export class SimpleApp {
     });
 
     // Inicializar rutas V2
-    this.routesV2.init();
+    this.routes.init();
 
     // 404 handler
     this.app.use('*', (req: Request, res: Response) => {

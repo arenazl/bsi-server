@@ -19,20 +19,16 @@ const swaggerOptions: swaggerJsdoc.Options = {
     },
     servers: [
       {
-        url: `http://localhost:${config.port}/api/v1`,
-        description: 'API v1 - Development',
+        url: `http://localhost:${config.port}/api`,
+        description: 'Development Server',
       },
       {
-        url: `http://localhost:${config.port}/api/v2`,
-        description: 'API v2 - Development (Orientada al negocio)',
+        url: `https://bsi-backend-staging.herokuapp.com/api`,
+        description: 'Staging Server',
       },
       {
-        url: `https://api.bsi.com/api/v1`,
-        description: 'API v1 - Production',
-      },
-      {
-        url: `https://api.bsi.com/api/v2`,
-        description: 'API v2 - Production',
+        url: `https://bsi-backend-prod.herokuapp.com/api`,
+        description: 'Production Server',
       },
     ],
     components: {

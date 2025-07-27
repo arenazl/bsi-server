@@ -51,18 +51,49 @@ AS
 BEGIN
     SET NOCOUNT ON;
     
+    -- Variables para respuesta estándar
+    DECLARE @estado INT = 1;
+    DECLARE @descripcion VARCHAR(500) = 'Configuración obtenida correctamente';
+    DECLARE @data NVARCHAR(MAX);
+    
+    BEGIN TRY
+        -- Obtener datos en formato JSON
+        SET @data = (
+            SELECT 
+                Nombre_Accion as actionName,
+                Tipo_Pantalla as screenType,
+                Ruta_Template as routeTemplate,
+                Icono as icon,
+                Orden as [order],
+                Condicion_Mostrar as showCondition,
+                Id_Modalidad as modalityId
+            FROM BSI_CONFIGURACION_MODULOS
+            WHERE Codigo_Modulo = @moduleCode
+            AND Activo = 1
+            ORDER BY Orden
+            FOR JSON PATH
+        );
+        
+        -- Si no hay datos
+        IF @data IS NULL
+        BEGIN
+            SET @estado = 0;
+            SET @descripcion = 'No se encontró configuración para el módulo: ' + @moduleCode;
+            SET @data = '[]';
+        END
+        
+    END TRY
+    BEGIN CATCH
+        SET @estado = 0;
+        SET @descripcion = ERROR_MESSAGE();
+        SET @data = '[]';
+    END CATCH
+    
+    -- Devolver respuesta estándar
     SELECT 
-        Nombre_Accion as actionName,
-        Tipo_Pantalla as screenType,
-        Ruta_Template as routeTemplate,
-        Icono as icon,
-        Orden as [order],
-        Condicion_Mostrar as showCondition,
-        Id_Modalidad as modalityId
-    FROM BSI_CONFIGURACION_MODULOS
-    WHERE Codigo_Modulo = @moduleCode
-    AND Activo = 1
-    ORDER BY Orden;
+        @estado as estado,
+        @descripcion as descripcion,
+        @data as data;
 END
 GO
 
