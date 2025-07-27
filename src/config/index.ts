@@ -1,10 +1,19 @@
 import dotenv from 'dotenv';
-import { keys } from './keys';
 
 // Cargar variables de entorno
 dotenv.config();
 
-// Using keys.ts configuration
+// Database configuration - using hardcoded values for Heroku (like your other 3 apps)
+const databaseConfig = {
+  host: 'mysql-aiven-arenazl.e.aivencloud.com',
+  user: 'avnadmin',
+  password: 'AVNS_Fqe0qsChCHnqSnVsvoi',
+  database: 'defaultdev',
+  port: 23108,
+  ssl: {
+    ca: './src/DB/crt/ca.pem'
+  }
+};
 
 export const config = {
   // Environment
@@ -20,18 +29,18 @@ export const config = {
   database: {
     // Primary Database (Main)
     primary: {
-      host: keys.database.primary.host,
-      port: keys.database.primary.port,
-      user: keys.database.primary.user,
-      password: keys.database.primary.password,
-      database: keys.database.primary.database,
+      host: databaseConfig.host,
+      port: databaseConfig.port,
+      user: databaseConfig.user,
+      password: databaseConfig.password,
+      database: databaseConfig.database,
       connectionLimit: 10,
       waitForConnections: true,
       queueLimit: 0,
       timezone: 'Z',
-      ...(keys.database.primary.ssl?.ca && {
+      ...(databaseConfig.ssl?.ca && {
         ssl: {
-          ca: require('fs').readFileSync(require('path').resolve(keys.database.primary.ssl.ca), 'utf-8')
+          ca: require('fs').readFileSync(require('path').resolve(databaseConfig.ssl.ca), 'utf-8')
         }
       })
     },
