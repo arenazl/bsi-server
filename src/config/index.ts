@@ -1,27 +1,10 @@
 import dotenv from 'dotenv';
+import { keys } from './keys';
 
 // Cargar variables de entorno
 dotenv.config();
 
-// Validar variables de entorno requeridas solo en producción
-const isProduction = process.env.NODE_ENV === 'production';
-
-if (isProduction) {
-  const requiredEnvVars = [
-    'DB_PRIMARY_HOST',
-    'DB_PRIMARY_USER', 
-    'DB_PRIMARY_PASSWORD',
-    'DB_PRIMARY_NAME',
-    'JWT_SECRET',
-    'JWT_REFRESH_SECRET'
-  ];
-
-  for (const envVar of requiredEnvVars) {
-    if (!process.env[envVar]) {
-      console.warn(`Warning: Missing required environment variable: ${envVar}`);
-    }
-  }
-}
+// Using keys.ts configuration
 
 export const config = {
   // Environment
@@ -37,18 +20,18 @@ export const config = {
   database: {
     // Primary Database (Main)
     primary: {
-      host: process.env.DB_PRIMARY_HOST || 'localhost',
-      port: parseInt(process.env.DB_PRIMARY_PORT || '3306', 10),
-      user: process.env.DB_PRIMARY_USER || 'root',
-      password: process.env.DB_PRIMARY_PASSWORD || '',
-      database: process.env.DB_PRIMARY_NAME || 'bsi_db',
-      connectionLimit: parseInt(process.env.DB_CONNECTION_LIMIT || '10', 10),
+      host: keys.database.primary.host,
+      port: keys.database.primary.port,
+      user: keys.database.primary.user,
+      password: keys.database.primary.password,
+      database: keys.database.primary.database,
+      connectionLimit: 10,
       waitForConnections: true,
       queueLimit: 0,
       timezone: 'Z',
-      ...(process.env.DB_PRIMARY_SSL_CA && {
+      ...(keys.database.primary.ssl?.ca && {
         ssl: {
-          ca: require('fs').readFileSync(require('path').resolve(process.env.DB_PRIMARY_SSL_CA), 'utf-8')
+          ca: require('fs').readFileSync(require('path').resolve(keys.database.primary.ssl.ca), 'utf-8')
         }
       })
     },
@@ -83,12 +66,12 @@ export const config = {
     }
   },
   
-  // JWT
+  // JWT (not used according to user)
   jwt: {
-    secret: process.env.JWT_SECRET || 'dev-secret-key-do-not-use-in-production',
-    expiresIn: process.env.JWT_EXPIRES_IN || '15m',
-    refreshSecret: process.env.JWT_REFRESH_SECRET || 'dev-refresh-secret-do-not-use-in-production',
-    refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
+    secret: 'not-used',
+    expiresIn: '15m',
+    refreshSecret: 'not-used',
+    refreshExpiresIn: '7d',
   },
   
   // AWS
@@ -101,17 +84,17 @@ export const config = {
   
   // Email Configuration  
   email: {
-    service: process.env.EMAIL_SERVICE || 'gmail',
-    host: process.env.EMAIL_HOST || process.env.SMTP_HOST || 'smtp.gmail.com',
-    port: parseInt(process.env.EMAIL_PORT || process.env.SMTP_PORT || '587', 10),
-    secure: process.env.EMAIL_SECURE === 'true' || process.env.SMTP_SECURE === 'true',
+    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false,
     auth: {
-      user: process.env.EMAIL_USER || process.env.SMTP_USER,
-      pass: process.env.EMAIL_PASSWORD || process.env.SMTP_PASSWORD,
+      user: 'arenazl@gmail.com',
+      pass: 'wyev fcmg ohbn uawv',
     },
-    from: process.env.EMAIL_FROM || 'BSI System <noreply@bsi.com>',
-    adminEmail: process.env.ADMIN_EMAIL,
-    controlEmail: process.env.CONTROL_EMAIL,
+    from: 'BSI <arenazl@gmail.com>',
+    adminEmail: 'arenazl@gmail.com',
+    controlEmail: 'arenazl@gmail.com',
   },
   
   // External APIs
