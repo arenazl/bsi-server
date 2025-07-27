@@ -3,19 +3,23 @@ import dotenv from 'dotenv';
 // Cargar variables de entorno
 dotenv.config();
 
-// Validar variables de entorno requeridas
-const requiredEnvVars = [
-  'DB_PRIMARY_HOST',
-  'DB_PRIMARY_USER', 
-  'DB_PRIMARY_PASSWORD',
-  'DB_PRIMARY_NAME',
-  'JWT_SECRET',
-  'JWT_REFRESH_SECRET'
-];
+// Validar variables de entorno requeridas solo en producción
+const isProduction = process.env.NODE_ENV === 'production';
 
-for (const envVar of requiredEnvVars) {
-  if (!process.env[envVar]) {
-    throw new Error(`Missing required environment variable: ${envVar}`);
+if (isProduction) {
+  const requiredEnvVars = [
+    'DB_PRIMARY_HOST',
+    'DB_PRIMARY_USER', 
+    'DB_PRIMARY_PASSWORD',
+    'DB_PRIMARY_NAME',
+    'JWT_SECRET',
+    'JWT_REFRESH_SECRET'
+  ];
+
+  for (const envVar of requiredEnvVars) {
+    if (!process.env[envVar]) {
+      console.warn(`Warning: Missing required environment variable: ${envVar}`);
+    }
   }
 }
 
@@ -33,11 +37,11 @@ export const config = {
   database: {
     // Primary Database (Main)
     primary: {
-      host: process.env.DB_PRIMARY_HOST!,
+      host: process.env.DB_PRIMARY_HOST || 'localhost',
       port: parseInt(process.env.DB_PRIMARY_PORT || '3306', 10),
-      user: process.env.DB_PRIMARY_USER!,
-      password: process.env.DB_PRIMARY_PASSWORD!,
-      database: process.env.DB_PRIMARY_NAME!,
+      user: process.env.DB_PRIMARY_USER || 'root',
+      password: process.env.DB_PRIMARY_PASSWORD || '',
+      database: process.env.DB_PRIMARY_NAME || 'bsi_db',
       connectionLimit: parseInt(process.env.DB_CONNECTION_LIMIT || '10', 10),
       waitForConnections: true,
       queueLimit: 0,
@@ -50,11 +54,11 @@ export const config = {
     },
     // Núcleo Database Local
     nucleo: {
-      host: process.env.DB_NUCLEO_HOST!,
+      host: process.env.DB_NUCLEO_HOST || 'localhost',
       port: parseInt(process.env.DB_NUCLEO_PORT || '3306', 10),
-      user: process.env.DB_NUCLEO_USER!,
-      password: process.env.DB_NUCLEO_PASSWORD!,
-      database: process.env.DB_NUCLEO_NAME!,
+      user: process.env.DB_NUCLEO_USER || 'root',
+      password: process.env.DB_NUCLEO_PASSWORD || '',
+      database: process.env.DB_NUCLEO_NAME || 'ng',
       connectionLimit: parseInt(process.env.DB_CONNECTION_LIMIT || '10', 10),
       waitForConnections: true,
       queueLimit: 0,
@@ -81,9 +85,9 @@ export const config = {
   
   // JWT
   jwt: {
-    secret: process.env.JWT_SECRET!,
+    secret: process.env.JWT_SECRET || 'dev-secret-key-do-not-use-in-production',
     expiresIn: process.env.JWT_EXPIRES_IN || '15m',
-    refreshSecret: process.env.JWT_REFRESH_SECRET!,
+    refreshSecret: process.env.JWT_REFRESH_SECRET || 'dev-refresh-secret-do-not-use-in-production',
     refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
   },
   
