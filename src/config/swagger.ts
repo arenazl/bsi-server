@@ -1,5 +1,10 @@
 import swaggerJsdoc from 'swagger-jsdoc';
 import { config } from './index';
+import path from 'path';
+
+// Determine if we're in production (compiled) or development
+const isProduction = __dirname.includes('build');
+const basePath = isProduction ? './build' : './src';
 
 const swaggerOptions: swaggerJsdoc.Options = {
   definition: {
@@ -422,10 +427,12 @@ const swaggerOptions: swaggerJsdoc.Options = {
     ],
   },
   apis: [
-    './src/routes/*.ts',
-    './src/routes/*.js',
-    './src/models/*.ts',
-    './src/models/*.js',
+    `${basePath}/routes/*.ts`,
+    `${basePath}/routes/*.js`,
+    `${basePath}/models/*.ts`,
+    `${basePath}/models/*.js`,
+    `${basePath}/controllers/*.ts`,
+    `${basePath}/controllers/*.js`,
   ],
 };
 
@@ -450,10 +457,10 @@ const swaggerOptionsV2 = {
     ],
   },
   apis: [
-    './src/routes-v2/*.ts',
-    './src/routes-v2/*.js',
-    './src/models/*.ts',
-    './src/models/*.js',
+    `${basePath}/routes-v2/*.ts`,
+    `${basePath}/routes-v2/*.js`,
+    `${basePath}/models/*.ts`,
+    `${basePath}/models/*.js`,
   ],
 };
 
