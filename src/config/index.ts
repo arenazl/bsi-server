@@ -129,7 +129,7 @@ export const config = {
   // Security
   security: {
     bcryptRounds: parseInt(process.env.BCRYPT_ROUNDS || '10', 10),
-    corsOrigin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : ['http://localhost:4200', 'https://bsi-front.herokuapp.com', 'https://bsi-new.herokuapp.com'],
+    corsOrigin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : ['http://localhost:4200', 'https://bsi-front.herokuapp.com', 'https://bsi-new.herokuapp.com', 'https://bsi-front-new-20ad7335b66c.herokuapp.com'],
     sessionSecret: process.env.SESSION_SECRET || 'default-session-secret',
   },
   
