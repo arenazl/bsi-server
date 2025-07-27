@@ -5,7 +5,6 @@ dotenv.config();
 
 // Database configuration - using hardcoded values for Heroku (like your other 3 apps)
 const isProduction = process.env.NODE_ENV === 'production';
-const sslCertPath = isProduction ? './build/DB/crt/ca.pem' : './src/DB/crt/ca.pem';
 
 const databaseConfig = {
   host: 'mysql-aiven-arenazl.e.aivencloud.com',
@@ -13,9 +12,12 @@ const databaseConfig = {
   password: 'AVNS_Fqe0qsChCHnqSnVsvoi',
   database: 'defaultdev',
   port: 23108,
-  ssl: {
-    ca: sslCertPath
-  }
+  // SSL configuration only for development
+  ...((!isProduction && require('fs').existsSync('./src/DB/crt/ca.pem')) && {
+    ssl: {
+      ca: require('fs').readFileSync('./src/DB/crt/ca.pem', 'utf-8')
+    }
+  })
 };
 
 export const config = {
@@ -41,11 +43,7 @@ export const config = {
       waitForConnections: true,
       queueLimit: 0,
       timezone: 'Z',
-      ...(databaseConfig.ssl?.ca && {
-        ssl: {
-          ca: require('fs').readFileSync(require('path').resolve(databaseConfig.ssl.ca), 'utf-8')
-        }
-      })
+      ...databaseConfig
     },
     // Núcleo Database Local
     nucleo: {
