@@ -94,12 +94,36 @@ export class ArchivoController {
         return;
       }
 
-      // Enviar archivo
-      res.setHeader('Content-Disposition', `attachment; filename="${archivo.nombre_salida || archivo.nombre_original}"`);
-      res.setHeader('Content-Type', 'application/octet-stream');
-
-      const fileStream = fs.createReadStream(filePath);
-      fileStream.pipe(res);
+      // Determinar el tipo de contenido basado en la extensión
+      const fileName = archivo.nombre_salida || archivo.nombre_original;
+      const fileExtension = fileName.split('.').pop()?.toLowerCase();
+      
+      // Configurar headers según el tipo de archivo
+      if (fileExtension === 'txt' || fileExtension === 'csv') {
+        // Para archivos de texto, especificar UTF-8
+        res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+        res.setHeader('Content-Disposition', `attachment; filename="${fileName}"; filename*=UTF-8''${encodeURIComponent(fileName)}`);
+        
+        // Crear stream con encoding UTF-8
+        const fileStream = fs.createReadStream(filePath, { encoding: 'utf8' });
+        fileStream.pipe(res);
+      } else if (fileExtension === 'xlsx' || fileExtension === 'xls') {
+        // Para archivos Excel, mantener como binary
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+        
+        // Stream binario sin encoding
+        const fileStream = fs.createReadStream(filePath);
+        fileStream.pipe(res);
+      } else {
+        // Para otros archivos, forzar UTF-8 si es posible
+        res.setHeader('Content-Type', 'application/octet-stream; charset=utf-8');
+        res.setHeader('Content-Disposition', `attachment; filename="${fileName}"; filename*=UTF-8''${encodeURIComponent(fileName)}`);
+        
+        // Intentar leer como UTF-8
+        const fileStream = fs.createReadStream(filePath, { encoding: 'utf8' });
+        fileStream.pipe(res);
+      }
 
       // Registrar descarga
       await this.dbService.executeInsertSP('ARCHIVO_REGISTRAR_DESCARGA', {

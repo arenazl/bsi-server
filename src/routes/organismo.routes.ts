@@ -8,7 +8,39 @@ const router = Router();
  * /api/organismos:
  *   get:
  *     summary: Lista todos los organismos/municipios
+ *     description: Obtiene una lista paginada de organismos con filtros opcionales
  *     tags: [Organismos]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - $ref: '#/components/parameters/PageParam'
+ *       - $ref: '#/components/parameters/LimitParam'
+ *       - $ref: '#/components/parameters/SearchParam'
+ *       - name: tipo
+ *         in: query
+ *         schema:
+ *           type: string
+ *           enum: [MUNICIPIO, PROVINCIA, NACION, PRIVADO]
+ *       - name: activo
+ *         in: query
+ *         schema:
+ *           type: boolean
+ *     responses:
+ *       200:
+ *         description: Lista de organismos obtenida exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Organismo'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
  */
 router.get('/', organismoController.listar.bind(organismoController));
 
@@ -16,8 +48,26 @@ router.get('/', organismoController.listar.bind(organismoController));
  * @swagger
  * /api/organismos:
  *   post:
- *     summary: Crea nuevo organismo
+ *     summary: Crear nuevo organismo
+ *     description: Crea un nuevo organismo en el sistema
  *     tags: [Organismos]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/CreateOrganismoRequest'
+ *     responses:
+ *       201:
+ *         description: Organismo creado exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Organismo'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
  */
 router.post('/', organismoController.crear.bind(organismoController));
 
@@ -25,8 +75,27 @@ router.post('/', organismoController.crear.bind(organismoController));
  * @swagger
  * /api/organismos/{id}:
  *   get:
- *     summary: Obtiene detalle de organismo
+ *     summary: Obtener detalle de organismo
  *     tags: [Organismos]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Organismo obtenido exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Organismo'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
  */
 router.get('/:id', organismoController.obtenerDetalle.bind(organismoController));
 
@@ -34,8 +103,27 @@ router.get('/:id', organismoController.obtenerDetalle.bind(organismoController))
  * @swagger
  * /api/organismos/{id}:
  *   put:
- *     summary: Actualiza organismo
+ *     summary: Actualizar organismo
  *     tags: [Organismos]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/CreateOrganismoRequest'
+ *     responses:
+ *       200:
+ *         description: Organismo actualizado exitosamente
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
  */
 router.put('/:id', organismoController.actualizar.bind(organismoController));
 
@@ -43,8 +131,21 @@ router.put('/:id', organismoController.actualizar.bind(organismoController));
  * @swagger
  * /api/organismos/{id}:
  *   delete:
- *     summary: Desactiva organismo
+ *     summary: Desactivar organismo
  *     tags: [Organismos]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Organismo desactivado exitosamente
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
  */
 router.delete('/:id', organismoController.desactivar.bind(organismoController));
 
@@ -52,8 +153,21 @@ router.delete('/:id', organismoController.desactivar.bind(organismoController));
  * @swagger
  * /api/organismos/{id}/archivos:
  *   get:
- *     summary: Lista archivos del organismo
+ *     summary: Listar archivos del organismo
  *     tags: [Organismos]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Archivos obtenidos exitosamente
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
  */
 router.get('/:id/archivos', organismoController.listarArchivos.bind(organismoController));
 
@@ -61,8 +175,21 @@ router.get('/:id/archivos', organismoController.listarArchivos.bind(organismoCon
  * @swagger
  * /api/organismos/{id}/contratos:
  *   get:
- *     summary: Lista contratos del organismo
+ *     summary: Listar contratos del organismo
  *     tags: [Organismos]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Contratos obtenidos exitosamente
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
  */
 router.get('/:id/contratos', organismoController.listarContratos.bind(organismoController));
 
@@ -70,8 +197,21 @@ router.get('/:id/contratos', organismoController.listarContratos.bind(organismoC
  * @swagger
  * /api/organismos/{id}/usuarios:
  *   get:
- *     summary: Lista usuarios del organismo
+ *     summary: Listar usuarios del organismo
  *     tags: [Organismos]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Usuarios obtenidos exitosamente
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
  */
 router.get('/:id/usuarios', organismoController.listarUsuarios.bind(organismoController));
 
@@ -79,8 +219,21 @@ router.get('/:id/usuarios', organismoController.listarUsuarios.bind(organismoCon
  * @swagger
  * /api/organismos/{id}/estadisticas:
  *   get:
- *     summary: Obtiene estadísticas del organismo
+ *     summary: Obtener estadísticas del organismo
  *     tags: [Organismos]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Estadísticas obtenidas exitosamente
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
  */
 router.get('/:id/estadisticas', organismoController.obtenerEstadisticas.bind(organismoController));
 
@@ -88,8 +241,21 @@ router.get('/:id/estadisticas', organismoController.obtenerEstadisticas.bind(org
  * @swagger
  * /api/organismos/contratos/{id}:
  *   post:
- *     summary: Obtiene un contrato específico por ID
+ *     summary: Obtener un contrato específico por ID
  *     tags: [Organismos]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Contrato obtenido exitosamente
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
  */
 router.post('/contratos/:id', organismoController.obtenerContratoPorId.bind(organismoController));
 
@@ -97,8 +263,23 @@ router.post('/contratos/:id', organismoController.obtenerContratoPorId.bind(orga
  * @swagger
  * /api/organismos/combo/{tipoModulo}:
  *   get:
- *     summary: Obtiene lista para combos/dropdowns
+ *     summary: Obtener lista para combos/dropdowns
+ *     description: Obtiene una lista simplificada de organismos para uso en componentes de selección
  *     tags: [Organismos]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: tipoModulo
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *           enum: [NOMINA, PAGO, CUENTA]
+ *     responses:
+ *       200:
+ *         description: Lista para combo obtenida exitosamente
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
  */
 router.get('/combo/:tipoModulo', organismoController.obtenerListaParaCombo.bind(organismoController));
 

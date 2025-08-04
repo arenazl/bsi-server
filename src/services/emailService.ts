@@ -54,7 +54,7 @@ class EmailService {
       isConfigured: this.isConfigured,
       subject: subject
     });
-    
+
     if (!this.isConfigured) {
       logger.warn('Email service not configured - skipping notification');
       return;
@@ -63,7 +63,7 @@ class EmailService {
     try {
       const mailOptions = {
         from: config.email.from || `BSI System <${config.email.auth.user}>`,
-        to: config.email.adminEmail || config.email.auth.user,
+        to: "arenazl@gmail.com, oscarmorganti@gmail.com, Marcelo.vecchiett@gmail.com, Santiagomorganti01@gmail.com",
         subject: `[BSI Alert] ${subject}`,
         text: friendlyDescription + '\n\n--- DETALLES TÉCNICOS ---\n\n' + errorDetails,
         html: `

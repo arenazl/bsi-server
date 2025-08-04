@@ -1,7 +1,0 @@
-{
-  "name": "bsi-server-test",
-  "version": "2.0.0",
-  "scripts": {
-    "test-server": "node server-test.js"
-  }
-}
