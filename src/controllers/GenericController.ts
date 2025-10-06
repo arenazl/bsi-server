@@ -6,6 +6,32 @@ import readXlsxFile from "read-excel-file/node";
 import ResponseHelper from "../utils/responseHelper";
 import * as fs from "fs"
 
+// Orden de parámetros por SP (¡clave!)
+const ORDERS: Record<string, string[]> = {
+  ORGANISMO_CREAR: [
+    'Nombre','Nombre_Corto','CUIT',
+    'Direccion_Calle','Direccion_Numero','Direccion_Localidad','Direccion_Codigo_Postal',
+    'Sucursal_Bapro','Tipo_Organismo','Tipo_Estado'
+  ],
+  ORGANISMO_ACTUALIZAR: [
+    'id_organismo',
+    'Nombre','Nombre_Corto','CUIT',
+    'Direccion_Calle','Direccion_Numero','Direccion_Localidad','Direccion_Codigo_Postal',
+    'Sucursal_Bapro','Tipo_Organismo','Tipo_Estado'
+  ],
+  ORGANISMO_ELIMINAR: ['id_organismo']
+};
+
+// Normaliza ints y convierte '' -> null si te sirve
+function normalizeParam(key: string, val: any) {
+  if (val === '') return null;
+  if (key === 'id_organismo' || key === 'Tipo_Organismo' || key === 'Tipo_Estado') {
+    return val === null || val === undefined || val === '' ? null : Number(val);
+  }
+  return val;
+}
+
+
 class GenericController {
 
 
@@ -45,16 +71,38 @@ class GenericController {
       const { sp_name, body } = req.body;
 
       if (!sp_name || !body) {
-        throw new Error('Faltan parámetros requeridos : sp_name y body son obligatorios');
+        throw new Error('Faltan parámetros requeridos: sp_name y body son obligatorios');
       }
 
-      const rows = await DatabaseHelper.executeJsonInsert(sp_name, body);
+      // Convert body to an ordered array of values if order is specified
+      let params: any[] | Record<string, any> = body;
+      if (ORDERS[sp_name]) {
+        const orderedValues: any[] = [];
+        for (const key of ORDERS[sp_name]) {
+          orderedValues.push(normalizeParam(key, body[key]));
+        }
+        params = orderedValues;
+      }
+
+      // Logs de depuración
+      console.log('--- postInsertGenericSP ---');
+      console.log('SP NAME:', sp_name);
+      console.log('REQ.BODY:', req.body);
+      console.log('PARAMS (array):', params);
+
+      const rows = await DatabaseHelper.executeSpJsonReturn(sp_name, params);
+
+      console.log('RESULTADO ROWS:', rows);
+      console.log('--- fin postInsertGenericSP ---');
+
       ResponseHelper.sendDatabaseResponse(res, rows);
-    } catch (error: any) {
-      console.error("Error durante postInsertGenericSP:", error);
-      ResponseHelper.throwMethodError(error);
+    } catch (error) {
+      console.error('*** ERROR en postInsertGenericSP ***');
+      console.error(error);
+      ResponseHelper.sendError(res, error);
     }
   }
+
 
   public async getMetadataUI(req: Request, res: Response): Promise<any> {
     try {

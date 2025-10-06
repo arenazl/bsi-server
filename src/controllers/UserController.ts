@@ -3,6 +3,20 @@ import { DatabaseService } from '@services/DatabaseService';
 import ResponseHelper from '@utils/responseHelper';
 // import bcrypt from 'bcryptjs'; // Removido - sistema legacy usa passwords en texto plano
 
+/**
+ * ARCHIVO CORREGIDO - CAMBIOS REALIZADOS:
+ * ========================================
+ * 1. Cambiado 'id' por 'ID_USER' en todos los métodos para coincidir con la BD
+ * 2. Actualizados los nombres de Stored Procedures para coincidir con los existentes:
+ *    - GetAllUsers → USUARIOS_OBTENER_TODOS
+ *    - GetUserById → USUARIOS_OBTENER
+ *    - InsertUser → USUARIOS_CREAR
+ *    - UpdateUser → USUARIOS_ACTUALIZAR
+ *    - DeleteUser → USUARIOS_ELIMINAR
+ * 
+ * NOTA: GetUserContracts se mantiene igual - verificar si existe en BD
+ */
+
 export class UserController {
   private databaseService: DatabaseService;
 
@@ -24,7 +38,8 @@ export class UserController {
    */
   public listar = async (req: Request, res: Response): Promise<void> => {
     try {
-      const result = await this.databaseService.executeStoredProcedure('GetAllUsers', {});
+      // CORREGIDO: Cambiado GetAllUsers → USUARIOS_OBTENER_TODOS
+      const result = await this.databaseService.executeStoredProcedure('USUARIOS_OBTENER_TODOS', {});
 
       ResponseHelper.success(res, result);
     } catch (error) {
@@ -57,8 +72,11 @@ export class UserController {
     try {
       const { id } = req.params;
 
-      const result = await this.databaseService.executeStoredProcedure('GetUserById', {
-        id: parseInt(id)
+      // CORREGIDO: 
+      // 1. Cambiado GetUserById → USUARIOS_OBTENER
+      // 2. Cambiado 'id' → 'ID_USER' (parámetro esperado por el SP)
+      const result = await this.databaseService.executeStoredProcedure('USUARIOS_OBTENER', {
+        ID_USER: parseInt(id)
       });
 
       if (!result || result.length === 0) {
@@ -115,7 +133,8 @@ export class UserController {
       // NO hacer hash - el sistema legacy usa passwords en texto plano
       // Mantener compatibilidad con sp_login_user
 
-      const result = await this.databaseService.executeJsonInsert('InsertUser', userData);
+      // CORREGIDO: Cambiado InsertUser → USUARIOS_CREAR
+      const result = await this.databaseService.executeJsonInsert('USUARIOS_CREAR', userData);
 
       ResponseHelper.success(res, result, 'Usuario creado exitosamente');
     } catch (error) {
@@ -162,15 +181,18 @@ export class UserController {
   public actualizar = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
+      
+      // CORREGIDO: Cambiado 'id' → 'ID_USER' para coincidir con el parámetro del SP
       const userData = {
         ...req.body,
-        id: parseInt(id)
+        ID_USER: parseInt(id)
       };
 
       // NO hacer hash - el sistema legacy usa passwords en texto plano
       // Mantener compatibilidad con sp_login_user
 
-      const result = await this.databaseService.executeJsonInsert('UpdateUser', userData);
+      // CORREGIDO: Cambiado UpdateUser → USUARIOS_ACTUALIZAR
+      const result = await this.databaseService.executeJsonInsert('USUARIOS_ACTUALIZAR', userData);
 
       ResponseHelper.success(res, result);
     } catch (error) {
@@ -201,8 +223,11 @@ export class UserController {
     try {
       const { id } = req.params;
 
-      const result = await this.databaseService.executeSpJsonReturn('DeleteUser', {
-        id: parseInt(id)
+      // CORREGIDO: 
+      // 1. Cambiado DeleteUser → USUARIOS_ELIMINAR
+      // 2. Cambiado 'id' → 'ID_USER' (parámetro esperado por el SP)
+      const result = await this.databaseService.executeSpJsonReturn('USUARIOS_ELIMINAR', {
+        ID_USER: parseInt(id)
       });
 
       ResponseHelper.success(res, { mensaje: 'Usuario eliminado exitosamente', result });
@@ -234,6 +259,9 @@ export class UserController {
     try {
       const { id } = req.params;
 
+      // NOTA: Este SP (GetUserContracts) no fue encontrado en los scripts SQL revisados
+      // Verificar si existe en la BD o si debe cambiarse por otro nombre
+      // Posible alternativa: crear un nuevo SP o usar una consulta diferente
       const result = await this.databaseService.executeStoredProcedure('GetUserContracts', {
         userId: parseInt(id)
       });

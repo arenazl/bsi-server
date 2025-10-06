@@ -38,14 +38,15 @@ export class OrganismoController {
         throw new Error('ID de organismo es requerido');
       }
 
-      const result = await this.dbService.executeSpSelect('ORGANISMO_GET_DETALLE', [id]);
+      const result = await this.dbService.executeSpSelect('ORGANISMO_OBTENER_POR_ID', [id]);
 
       if (!result || result.length === 0) {
-        res.status(404).json({ error: 'Organismo no encontrado' });
+        res.status(404).json({ estado: 0, descripcion: 'Organismo no encontrado' });
         return;
       }
 
-      this.dbService.sendResponse(res, result);
+      // Enviar una respuesta estructurada con el objeto directamente en data
+      this.dbService.sendResponse(res, { estado: 1, data: result[0] });
     } catch (error: any) {
       console.error("Error obteniendo detalle de organismo:", error);
       this.dbService.throwError(error);
