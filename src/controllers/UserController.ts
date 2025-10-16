@@ -128,13 +128,27 @@ export class UserController {
    */
   public crear = async (req: Request, res: Response): Promise<void> => {
     try {
-      const userData = req.body;
+      const { ID_Organismo, User_Name, CUIL, Apellido, Nombre, Telefono, Email, Cargo_Funcion, Perfil, Tipo_Estado } = req.body;
 
+      const params = {
+        p_ID_Organismo: ID_Organismo,
+        p_User_Name: User_Name,
+        p_CUIL: CUIL,
+        p_Apellido: Apellido,
+        p_Nombre: Nombre,
+        p_Telefono: Telefono,
+        p_Email: Email,
+        p_Cargo_Funcion: Cargo_Funcion,
+        p_Perfil: Perfil,
+        p_Tipo_Estado: Tipo_Estado,
+      };
+      
       // NO hacer hash - el sistema legacy usa passwords en texto plano
       // Mantener compatibilidad con sp_login_user
 
       // CORREGIDO: Cambiado InsertUser → USUARIOS_CREAR
-      const result = await this.databaseService.executeJsonInsert('USUARIOS_CREAR', userData);
+
+      const result = await this.databaseService.executeSpJsonReturn('USUARIOS_CREAR', params);
 
       ResponseHelper.success(res, result, 'Usuario creado exitosamente');
     } catch (error) {
@@ -181,18 +195,28 @@ export class UserController {
   public actualizar = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
-      
-      // CORREGIDO: Cambiado 'id' → 'ID_USER' para coincidir con el parámetro del SP
-      const userData = {
-        ...req.body,
-        ID_USER: parseInt(id)
+      const { ID_Organismo, User_Name, CUIL, Apellido, Nombre, Telefono, Email, Cargo_Funcion, Perfil, Tipo_Estado } = req.body;
+
+      const params = {
+        p_ID_USER: parseInt(id),
+        p_ID_Organismo: ID_Organismo,
+        p_User_Name: User_Name,
+        p_CUIL: CUIL,
+        p_Apellido: Apellido,
+        p_Nombre: Nombre,
+        p_Telefono: Telefono,
+        p_Email: Email,
+        p_Cargo_Funcion: Cargo_Funcion,
+        p_Perfil: Perfil,
+        p_Tipo_Estado: Tipo_Estado
       };
 
       // NO hacer hash - el sistema legacy usa passwords en texto plano
       // Mantener compatibilidad con sp_login_user
 
       // CORREGIDO: Cambiado UpdateUser → USUARIOS_ACTUALIZAR
-      const result = await this.databaseService.executeJsonInsert('USUARIOS_ACTUALIZAR', userData);
+
+      const result = await this.databaseService.executeSpJsonReturn('USUARIOS_ACTUALIZAR', params);
 
       ResponseHelper.success(res, result);
     } catch (error) {
@@ -256,6 +280,9 @@ export class UserController {
    *         description: Lista de contratos del usuario
    */
   public obtenerContratos = async (req: Request, res: Response): Promise<void> => {
+
+    //Todavia no esta implementado el SP en la base de datos
+
     try {
       const { id } = req.params;
 
